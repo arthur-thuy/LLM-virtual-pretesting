@@ -169,3 +169,12 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# data folder
+/data/
+
+# checkpoints or output folder
+**/output/
+
+# draft
+draft.ipynb
