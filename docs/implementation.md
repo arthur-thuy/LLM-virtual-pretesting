@@ -23,9 +23,23 @@ Elements of prompt:
 
 TODO: 
 - give few-shot examples of a particular student -> what dataset??
+- add build functions:
+    - config files
+    - model
+    - system prompt (student level explanation here)
+    - example selector for few-shot examples
+    - dataset loader (into dataframe with columns: prompt, output)
+- give CUPA dataset and ask to find possible misconceptions that students of various levels can make
+
 
 # Questions meeting 17/03/2025
 
-Models:
-- LLama3: 8B or 70B version?
-- OLMo2: 7B or 13B version?
+- Models:
+    - Llama3: 8B or 70B version?
+    - OLMo2: 7B or 13B version?
+- Prompting
+    - Does it make sense to ask for misconceptions in the correct answer option?
+    - Do we tell the roll-playing model what the correct answer is? + show the explanation (see DBE-KT22)
+- Datasets
+    - What dataset to use? No dataset is perfect?
+-

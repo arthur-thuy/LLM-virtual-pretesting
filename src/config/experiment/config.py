@@ -1,0 +1,24 @@
+"""Default config file."""
+
+from yacs.config import CfgNode as CN
+
+_C = CN()
+
+# seed for reproducibility
+_C.SEED = 42
+
+
+# model architecture
+_C.MODEL = CN()
+# model name
+_C.MODEL.NAME = "llama3.2"
+# model provider
+_C.MODEL.PROVIDER = "ollama"
+# model temperature
+_C.MODEL.TEMPERATURE = 0.0
+# max tokens
+_C.MODEL.MAX_TOKENS = None
+# timeout (openai and anthropic only)
+_C.MODEL.TIMEOUT = None
+# max retries (openai and anthropic only)
+_C.MODEL.MAX_RETRIES = None
