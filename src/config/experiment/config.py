@@ -22,3 +22,12 @@ _C.MODEL.MAX_TOKENS = None
 _C.MODEL.TIMEOUT = None
 # max retries (openai and anthropic only)
 _C.MODEL.MAX_RETRIES = None
+
+# data loader
+_C.LOADER = CN()
+# dataset name
+_C.LOADER.NAME = "dbe_kt22"
+# train size
+_C.LOADER.TRAIN_SIZE = 0.6
+# test size
+_C.LOADER.TEST_SIZE = 0.25
