@@ -4,21 +4,12 @@
 CUPA = "cupa"
 
 # paths
-WRITE_DIR = "../data/processed"
+BRONZE_DIR = "../data/raw"
+SILVER_DIR = "../data/processed"
 
 VALIDATION = "validation"
 TEST = "test"
 TRAIN = "train"
-CORRECT_ANSWERS_LIST = "correct_answers_list"
-PRED_DIFFICULTY = "predicted_difficulty"
-TF_QUESTION_ID = "question_id"
-TF_DIFFICULTY = "difficulty"
-TF_TEXT = "text"
-TF_LABEL = "label"
-TF_DESCRIPTION = "description"
-TF_ANSWERS = "answers"
-TF_CORRECT = "correct"
-TF_ANS_ID = "id"
 
 CORRECT_ANSWER = "correct_answer"
 OPTIONS = "options"
@@ -47,6 +38,14 @@ DF_COLS = [
     SPLIT,
     DIFFICULTY,
 ]
+
+QUESTION_ID = "question_id"
+STUDENT_ID = "student_id"
+INTERACT_ID = "interact_id"
+Q_TEXT = "q_text"
+STUDENT_ANSWER = "student_answer"
+Q_DIFFICULTY = "q_difficulty"
+OPTIONS_TEXT = "options_text"
 
 # student levels
 DICT_CEFR_DESCRIPTIONS = {

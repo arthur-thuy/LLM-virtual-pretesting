@@ -8,7 +8,8 @@ import structlog
 
 # local application/library specific imports
 from tools.constants import (
-    WRITE_DIR,
+    BRONZE_DIR,
+    SILVER_DIR,
 )
 from tools.data_manager import DBEKT22Datamanager
 
@@ -20,9 +21,8 @@ def main():
     """Run the data preparation."""
     # DBE-KT22
     logger.info("Starting preparation DBE-KT22")
-    cupa_data_dir = "../data/raw/dbe-kt22"
     dbekt22_dm = DBEKT22Datamanager()
-    dbekt22_dm.build_dataset(cupa_data_dir, WRITE_DIR)
+    _ = dbekt22_dm.build_dataset(read_dir=BRONZE_DIR, write_dir=SILVER_DIR)
 
 
 if __name__ == "__main__":
