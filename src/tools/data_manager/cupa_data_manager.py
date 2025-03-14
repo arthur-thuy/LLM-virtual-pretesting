@@ -16,7 +16,6 @@ from tools.constants import (
     CONTEXT,
     CONTEXT_ID,
     CORRECT_ANSWER,
-    DEV,
     DF_COLS,
     DIFFICULTY,
     OPTION_0,
@@ -29,14 +28,17 @@ from tools.constants import (
     SPLIT,
     TEST,
     TRAIN,
+    VALIDATION,
 )
-
-from ._data_manager import DataManager
 
 logger = structlog.get_logger(__name__)
 
 
-class CupaDatamanager(DataManager):
+class CupaDatamanager:
+
+    def __init__(self):
+        """No constructor."""
+        pass
 
     def get_cupa_dataset(
         self,
@@ -74,7 +76,7 @@ class CupaDatamanager(DataManager):
                 + int(len(tmp_series_context_ids) * test_size)
             ].values
         )
-        context_ids[DEV] = set(
+        context_ids[VALIDATION] = set(
             tmp_series_context_ids.iloc[
                 int(len(tmp_series_context_ids) * train_size)
                 + int(len(tmp_series_context_ids) * test_size) :
@@ -82,7 +84,7 @@ class CupaDatamanager(DataManager):
         )
 
         dataset = dict()
-        for split in [TRAIN, DEV, TEST]:
+        for split in [TRAIN, VALIDATION, TEST]:
             dataset[split] = df[df[CONTEXT_ID].isin(context_ids[split])].copy()
             logger.info(
                 f"Creating {split} split",
@@ -165,5 +167,6 @@ class CupaDatamanager(DataManager):
                         }
                     ]
                 )
+                # TODO: fix warning "FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated."
                 out_df = pd.concat([out_df, new_row_df], ignore_index=True)
         return out_df

@@ -6,7 +6,6 @@ CUPA = "cupa"
 # paths
 WRITE_DIR = "../data/processed"
 
-DEV = "dev"
 VALIDATION = "validation"
 TEST = "test"
 TRAIN = "train"

@@ -1,4 +1,4 @@
 """Submodule for data_manager."""
 
-from ._data_manager import DataManager
-from ._cupa_data_manager import CupaDatamanager
+from .cupa_data_manager import CupaDatamanager
+from .dbe_kt22_data_manager import DBEKT22Datamanager
