@@ -34,6 +34,7 @@ TODO:
 - also load datasets in train, val, test
 - create example selector to only choose questions from a particular student (person)
 - add code to pretty print an example
+- llama3 and olmo2 do not support structured outputs in langchain -> look at workaround (see tutorial)
 
 
 # Questions meeting 17/03/2025
