@@ -30,6 +30,10 @@ TODO:
     - example selector for few-shot examples
     - dataset loader (into dataframe with columns: prompt, output)
 - give CUPA dataset and ask to find possible misconceptions that students of various levels can make
+- make sure that all data csv files have the same columns!
+- also load datasets in train, val, test
+- create example selector to only choose questions from a particular student (person)
+- add code to pretty print an example
 
 
 # Questions meeting 17/03/2025
@@ -42,4 +46,10 @@ TODO:
     - Do we tell the roll-playing model what the correct answer is? + show the explanation (see DBE-KT22)
 - Datasets
     - What dataset to use? No dataset is perfect?
+    - DBE-KT22
+        - use this because it is the only dataset with MC questions, student-question pairs and question texts
+        - need to compute IRT parameters manually -> provided difficulty is discrete
+        - can use rich question text and change the latex urls to normal latex commands (e.g., `<img src="http://latex.codecogs.com/gif.latex?T_{1}" border="0"/>` to `T_{1}`)
+        - what do we do with MC questions with more or less than 4 answer options?
+    - Can we share question_id's and student_id's over train/val/test splits? -> I think yes because we need to find relevant examples in train set to answer the val and test questions
 -
