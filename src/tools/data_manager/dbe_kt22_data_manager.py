@@ -101,6 +101,7 @@ class DBEKT22Datamanager:
 
         # student-question interactions
         df_interact = pd.read_csv(os.path.join(data_dir, "Transaction.csv"))
+        # NOTE: omit questions where hint is used
         df_interact = df_interact[df_interact["hint_used"] == False]  # noqa: E712
         df_interact = df_interact.rename(columns={"answer_state": "answer_correct"})
         df_interact = df_interact[
