@@ -2,6 +2,7 @@
 
 # standard library imports
 import os
+from typing import Optional
 
 # related third party imports
 import numpy as np
@@ -36,11 +37,15 @@ class DBEKT22Datamanager:
         self,
         read_dir: str,
         write_dir: str,
+        sample_student_ids: Optional[int] = None,
         save_dataset: bool = True,
         random_state: int = 42,
     ) -> pd.DataFrame:
         set_seed(random_state)
-        df = self._preprocess_datasets(read_dir=os.path.join(read_dir, self.name))
+        df = self._preprocess_datasets(
+            read_dir=os.path.join(read_dir, self.name),
+            sample_student_ids=sample_student_ids,
+        )
         if save_dataset:
             output_path = os.path.join(write_dir, f"{self.name}.csv")
             logger.info("Saving dataset", path=output_path)
@@ -77,7 +82,9 @@ class DBEKT22Datamanager:
 
         return q_text, options_text, student_answer, correct_answer, q_difficulty
 
-    def _preprocess_datasets(self, read_dir: str) -> pd.DataFrame:
+    def _preprocess_datasets(
+        self, read_dir: str, sample_student_ids: Optional[int] = None
+    ) -> pd.DataFrame:
 
         # student-question interactions
         df_interact = pd.read_csv(os.path.join(read_dir, "Transaction.csv"))
@@ -88,8 +95,12 @@ class DBEKT22Datamanager:
             ["id", STUDENT_ID, QUESTION_ID, "answer_choice_id", "answer_correct"]
         ]
 
-        # TODO: remove this filtering
-        df_interact = df_interact[df_interact["student_id"] == 5]
+        if sample_student_ids:
+            # randomly select student ids
+            student_ids = np.random.choice(
+                df_interact[STUDENT_ID].unique(), size=sample_student_ids, replace=False
+            )
+            df_interact = df_interact[df_interact[STUDENT_ID].isin(student_ids)]
 
         # answer options
         df_question_choice = pd.read_csv(os.path.join(read_dir, "Question_Choices.csv"))

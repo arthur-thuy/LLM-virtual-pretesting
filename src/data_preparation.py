@@ -22,7 +22,11 @@ def main():
     # DBE-KT22
     logger.info("Starting preparation DBE-KT22")
     dbekt22_dm = DBEKT22Datamanager()
-    _ = dbekt22_dm.build_dataset(read_dir=BRONZE_DIR, write_dir=SILVER_DIR)
+    # TODO: remove this if want to use all students
+    SAMPLE_STUDENT_IDS = 100
+    _ = dbekt22_dm.build_dataset(
+        read_dir=BRONZE_DIR, write_dir=SILVER_DIR, sample_student_ids=SAMPLE_STUDENT_IDS
+    )
 
 
 if __name__ == "__main__":
