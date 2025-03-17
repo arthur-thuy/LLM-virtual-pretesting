@@ -31,3 +31,9 @@ _C.LOADER.NAME = "dbe_kt22"
 _C.LOADER.TRAIN_SIZE = 0.6
 # test size
 _C.LOADER.TEST_SIZE = 0.25
+
+
+def get_cfg_defaults() -> CN:
+    """Get a yacs CfgNode object with default values."""
+    # Return a clone so that the defaults will not be altered
+    return _C.clone()

@@ -30,11 +30,10 @@ TODO:
     - example selector for few-shot examples
     - dataset loader (into dataframe with columns: prompt, output)
 - give CUPA dataset and ask to find possible misconceptions that students of various levels can make
-- make sure that all data csv files have the same columns!
-- also load datasets in train, val, test
-- create example selector to only choose questions from a particular student (person)
 - add code to pretty print an example
 - llama3 and olmo2 do not support structured outputs in langchain -> look at workaround (see tutorial)
+- example selector: within the same student_id, select semantically similar examples
+- evaluate performance on val data
 
 
 # Questions meeting 17/03/2025
@@ -52,5 +51,6 @@ TODO:
         - need to compute IRT parameters manually -> provided difficulty is discrete
         - can use rich question text and change the latex urls to normal latex commands (e.g., `<img src="http://latex.codecogs.com/gif.latex?T_{1}" border="0"/>` to `T_{1}`)
         - what do we do with MC questions with more or less than 4 answer options?
+        - What to do with the HTML content?
     - Can we share question_id's and student_id's over train/val/test splits? -> I think yes because we need to find relevant examples in train set to answer the val and test questions
 -

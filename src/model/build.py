@@ -28,6 +28,6 @@ def build_model(model_cfg: CfgNode) -> tuple:
     tuple
         Tuple of model and tokenizer
     """
-    logger.info("Building discretizer", name=model_cfg.NAME, provider=model_cfg.PROVIDER)
+    logger.info("Building model", name=model_cfg.NAME, provider=model_cfg.PROVIDER)
     model = MODEL_PROVIDER_REGISTRY[model_cfg.PROVIDER](model_cfg)
     return model
