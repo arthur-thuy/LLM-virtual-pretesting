@@ -27,7 +27,7 @@ from prompt.few_shot_prompt import (
 )
 from tools.constants import TRAIN, VALIDATION, TEST
 from prompt.build import build_prompt
-from prompt.json_schema import MCQAnswer
+from prompt.json_schema import MCQAnswer, validate_output
 from model.build import build_model
 from tools.metrics import compute_metrics
 
@@ -71,7 +71,7 @@ def main() -> None:
             dataset = build_dataset(cfg.LOADER, cfg.SEED + run_n)
             # subset
             # TODO: remove for real run!
-            # dataset[VALIDATION] = dataset[VALIDATION].iloc[:10, :]
+            dataset[VALIDATION] = dataset[VALIDATION].iloc[:10, :]
 
             # dataframes
             df_train = apply_prompt_fmt(
@@ -99,26 +99,29 @@ def main() -> None:
             set_seed(cfg.SEED + run_n)
 
             # prompt
-            prompt, json_parser = build_prompt(cfg=cfg, examples=list_train)
+            prompt, _ = build_prompt(cfg=cfg, examples=list_train)
 
             # model
             model = build_model(model_cfg=cfg.MODEL)
             if cfg.MODEL.STRUCTURED_OUTPUT:
-                model = model.with_structured_output(MCQAnswer)  # TODO: make flexible
+                model = model.with_structured_output(
+                    MCQAnswer, include_raw=True
+                )  # TODO: make flexible
 
             # chain
             chain = prompt | model
-            if not cfg.MODEL.STRUCTURED_OUTPUT:
-                chain = chain.pipe(json_parser)
 
             # predict
-            # TODO: time the prediction
             cb = BatchCallback(len(list_val))  # init callback
             preds = chain.batch(list_val, config={"callbacks": [cb]})
             cb.progress_bar.close()
+            if cfg.MODEL.STRUCTURED_OUTPUT:
+                # get all raw outputs
+                preds = [output["raw"] for output in preds]
+            preds_validated = validate_output(preds, schema=MCQAnswer)
 
             # evaluate
-            y_val_pred = np.array([output.student_answer for output in preds])
+            y_val_pred = np.array([output.student_answer for output in preds_validated])
             y_val_student = dataset[VALIDATION]["student_answer"].to_numpy()
             y_val_true = dataset[VALIDATION]["correct_answer"].to_numpy()
             metrics = compute_metrics(

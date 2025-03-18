@@ -4,6 +4,7 @@
 from typing import Any
 
 # related third party imports
+import numpy as np
 from numpy.typing import ArrayLike
 from sklearn.metrics import accuracy_score
 
@@ -37,5 +38,6 @@ def compute_metrics(
         "acc_student_pred": accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
         "acc_true_student": accuracy_score(y_true=y_val_true, y_pred=y_val_student),
         "acc_true_pred": accuracy_score(y_true=y_val_true, y_pred=y_val_pred),
+        "prop_invalid": np.mean(y_val_pred == -1),
     }
     return metrics
