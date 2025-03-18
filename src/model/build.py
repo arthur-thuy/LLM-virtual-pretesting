@@ -15,8 +15,8 @@ MODEL_PROVIDER_REGISTRY = Registry()
 logger = structlog.get_logger(__name__)
 
 
-def build_model(model_cfg: CfgNode) -> tuple:
-    """Build the HuggingFace model and tokenizer.
+def build_model(model_cfg: CfgNode):
+    """Build the model.
 
     Parameters
     ----------
@@ -25,8 +25,8 @@ def build_model(model_cfg: CfgNode) -> tuple:
 
     Returns
     -------
-    tuple
-        Tuple of model and tokenizer
+    model
+        Model
     """
     logger.info("Building model", name=model_cfg.NAME, provider=model_cfg.PROVIDER)
     model = MODEL_PROVIDER_REGISTRY[model_cfg.PROVIDER](model_cfg)

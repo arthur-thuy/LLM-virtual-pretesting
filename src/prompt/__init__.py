@@ -7,8 +7,5 @@
 # /
 
 # local application/library specific imports
-from example_selector.build import build_example_selector
-from example_selector.example_selector import (
-    RandomExampleSelector,
-    StudentIDExampleSelector,
-)
+from prompt.build import build_prompt, SYSTEM_PROMPT_REGISTRY
+from prompt.system_prompt import build_A

@@ -5,9 +5,34 @@ import random
 
 # related third party imports
 from langchain_core.example_selectors.base import BaseExampleSelector
+from yacs.config import CfgNode
 
 # local application/library specific imports
-# /
+from example_selector.build import EXAMPLE_SELECTOR_REGISTRY
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("random")
+def build_random(
+    example_selector_cfg: CfgNode, examples: list[dict]
+) -> BaseExampleSelector:
+    input_vars = []
+    selector = RandomExampleSelector(
+        examples=examples,
+        k=example_selector_cfg.NUM_EXAMPLES,
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("studentid_random")
+def build_studentid_random(
+    example_selector_cfg: CfgNode, examples: list[dict]
+) -> BaseExampleSelector:
+    input_vars = ["student_id"]
+    selector = StudentIDExampleSelector(
+        examples=examples,
+        k=example_selector_cfg.NUM_EXAMPLES,
+    )
+    return (selector, input_vars)
 
 
 class RandomExampleSelector(BaseExampleSelector):

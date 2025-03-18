@@ -1,4 +1,4 @@
-"""Module for creating example prompts."""
+"""Module for creating few-shot prompts."""
 
 # standard library imports
 from typing import Callable

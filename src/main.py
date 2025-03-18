@@ -1,0 +1,142 @@
+"""Module for fine-tuning."""
+
+# standard library imports
+import argparse
+import os
+import time
+
+# related third party imports
+import structlog
+import numpy as np
+
+# local application/library specific imports
+from data_loader.build import build_dataset
+from tools.configurator import check_cfg, load_configs, save_config
+from tools.utils import (
+    delete_previous_content,
+    print_elapsed_time,
+    write_pickle,
+    set_seed,
+)
+from prompt.few_shot_prompt import (
+    df_to_listdict,
+    human_format_input,
+    human_format_output,
+    apply_prompt_fmt,
+)
+from tools.constants import TRAIN, VALIDATION, TEST
+from prompt.build import build_prompt
+from prompt.json_schema import MCQAnswer
+from model.build import build_model
+from tools.metrics import compute_metrics
+
+# set up logger
+logger = structlog.get_logger(__name__)
+
+parser = argparse.ArgumentParser(description="PyTorch fine-tuning")
+parser.add_argument(
+    "config",
+    type=str,
+    help="config file path",
+)
+parser.add_argument(
+    "--dry-run", action="store_true", default=False, help="run a single epoch"
+)
+
+
+def main() -> None:
+    """Run experiment."""
+    args = parser.parse_args()
+
+    # config
+    configs = load_configs(args.config)
+
+    # remove previous contents (take dir form first cfg)
+    delete_previous_content(configs[0])
+
+    # logical checks before start running
+    for cfg in configs:
+        check_cfg(cfg)
+
+    for cfg in configs:
+        print("\n", "=" * 10, f"Config: {cfg.ID}", "=" * 10)
+
+        # start experiment loop
+        for run_n in range(1, cfg.RUNS + 1):
+            start_time = time.time()
+            print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
+
+            # load data
+            dataset = build_dataset(cfg.LOADER, cfg.SEED + run_n)
+            # subset
+            # TODO: remove for real run!
+            dataset[VALIDATION] = dataset[VALIDATION].iloc[:10, :]
+
+            # dataframes
+            df_train = apply_prompt_fmt(
+                df=dataset[TRAIN],
+                input_fmt=human_format_input,
+                output_fmt=human_format_output,
+            )
+            df_val = apply_prompt_fmt(
+                df=dataset[VALIDATION],
+                input_fmt=human_format_input,
+                output_fmt=human_format_output,
+            )
+            df_test = apply_prompt_fmt(
+                df=dataset[TEST],
+                input_fmt=human_format_input,
+                output_fmt=human_format_output,
+            )
+
+            # list of dicts
+            list_train = df_to_listdict(df_train)
+            list_val = df_to_listdict(df_val)
+            list_test = df_to_listdict(df_test)  # noqa
+
+            # seed
+            set_seed(cfg.SEED + run_n)
+
+            # prompt
+            prompt, json_parser = build_prompt(cfg=cfg, examples=list_train)
+
+            # model
+            model = build_model(model_cfg=cfg.MODEL)
+            if cfg.MODEL.STRUCTURED_OUTPUT:
+                model = model.with_structured_output(MCQAnswer)  # TODO: make flexible
+
+            # chain
+            chain = prompt | model
+            if not cfg.MODEL.STRUCTURED_OUTPUT:
+                chain = chain.pipe(json_parser)
+
+            # predict
+            # TODO: time the prediction
+            preds = chain.batch(list_val)
+
+            # evaluate
+            y_val_pred = np.array([output.student_answer for output in preds])
+            y_val_student = dataset[VALIDATION]["student_answer"].to_numpy()
+            y_val_true = dataset[VALIDATION]["correct_answer"].to_numpy()
+            metrics = compute_metrics(
+                y_val_pred=y_val_pred,
+                y_val_true=y_val_true,
+                y_val_student=y_val_student,
+            )
+            # TODO: also do with test set
+
+            write_pickle(
+                {
+                    "metrics": metrics,
+                    "preds": preds,
+                },
+                save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID),
+                fname=f"run_{run_n}",
+            )
+            print_elapsed_time(start_time, run_n)
+
+        save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
+
+
+if __name__ == "__main__":
+    main()
