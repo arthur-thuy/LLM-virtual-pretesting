@@ -17,6 +17,7 @@ from tools.utils import (
     print_elapsed_time,
     write_pickle,
     set_seed,
+    BatchCallback,
 )
 from prompt.few_shot_prompt import (
     df_to_listdict,
@@ -70,7 +71,7 @@ def main() -> None:
             dataset = build_dataset(cfg.LOADER, cfg.SEED + run_n)
             # subset
             # TODO: remove for real run!
-            dataset[VALIDATION] = dataset[VALIDATION].iloc[:10, :]
+            # dataset[VALIDATION] = dataset[VALIDATION].iloc[:10, :]
 
             # dataframes
             df_train = apply_prompt_fmt(
@@ -112,7 +113,9 @@ def main() -> None:
 
             # predict
             # TODO: time the prediction
-            preds = chain.batch(list_val)
+            cb = BatchCallback(len(list_val))  # init callback
+            preds = chain.batch(list_val, config={"callbacks": [cb]})
+            cb.progress_bar.close()
 
             # evaluate
             y_val_pred = np.array([output.student_answer for output in preds])

@@ -8,7 +8,7 @@ import sys
 import time
 import pickle
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, Any
 
 # related third party imports
 import click
@@ -18,6 +18,11 @@ import torch
 import matplotlib.pyplot as plt
 from torch.backends import cudnn
 from yacs.config import CfgNode
+from uuid import UUID
+from tqdm.auto import tqdm
+from langchain_core.callbacks import BaseCallbackHandler
+from langchain_core.outputs import LLMResult
+
 
 # local application/library specific imports
 # /
@@ -200,3 +205,22 @@ def deactivate_latex():
     plt.rcParams.update(
         {"text.usetex": False, "font.family": "DejaVu Sans", "text.latex.preamble": ""}
     )
+
+
+class BatchCallback(BaseCallbackHandler):
+    def __init__(self, total: int):
+        super().__init__()
+        self.count = 0
+        self.progress_bar = tqdm(total=total)  # define a progress bar
+
+    # Override on_llm_end method. This is called after every response from LLM
+    def on_llm_end(
+        self,
+        response: LLMResult,
+        *,
+        run_id: UUID,
+        parent_run_id: UUID | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        self.count += 1
+        self.progress_bar.update(1)
