@@ -40,6 +40,7 @@ TODO:
 - Models:
     - Llama3: 8B or 70B version?
     - OLMo2: 7B or 13B version?
+    - always temperature 0.0?
 - Prompting
     - Does it make sense to ask for misconceptions in the correct answer option?
     - Do we tell the roll-playing model what the correct answer is? + show the explanation (see DBE-KT22)
@@ -51,5 +52,5 @@ TODO:
         - can use rich question text and change the latex urls to normal latex commands (e.g., `<img src="http://latex.codecogs.com/gif.latex?T_{1}" border="0"/>` to `T_{1}`)
         - what do we do with MC questions with more or less than 4 answer options?
         - What to do with the HTML content?
+        - Do we use entire dataset? A lot of questions so might be expensive
     - Can we share question_id's and student_id's over train/val/test splits? -> I think yes because we need to find relevant examples in train set to answer the val and test questions
--
