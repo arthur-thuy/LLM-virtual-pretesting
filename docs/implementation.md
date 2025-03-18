@@ -32,8 +32,7 @@ TODO:
 - give CUPA dataset and ask to find possible misconceptions that students of various levels can make
 - add code to pretty print an example
 - example selector: within the same student_id, select semantically similar examples
-- evaluate performance on val data
-- can we simplify model building by using the `init_chat_model` function from langchain?
+- can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
 
 
 # Questions meeting 17/03/2025
