@@ -71,7 +71,7 @@ def main() -> None:
             dataset = build_dataset(cfg.LOADER, cfg.SEED + run_n)
             # subset
             # TODO: remove for real run!
-            dataset[VALIDATION] = dataset[VALIDATION].iloc[:10, :]
+            # dataset[VALIDATION] = dataset[VALIDATION].iloc[:10, :]
 
             # dataframes
             df_train = apply_prompt_fmt(
