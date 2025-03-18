@@ -41,6 +41,7 @@ TODO:
     - Llama3: 8B or 70B version?
     - OLMo2: 7B or 13B version?
     - always temperature 0.0?
+    - 
 - Prompting
     - Does it make sense to ask for misconceptions in the correct answer option?
     - Do we tell the roll-playing model what the correct answer is? + show the explanation (see DBE-KT22)
@@ -54,3 +55,6 @@ TODO:
         - What to do with the HTML content?
         - Do we use entire dataset? A lot of questions so might be expensive
     - Can we share question_id's and student_id's over train/val/test splits? -> I think yes because we need to find relevant examples in train set to answer the val and test questions
+- Small experiment: 
+    - olmo2 has much more invalid responses than llama3 (approx 3% vs 0.3%)
+    - no difference between random selector and studentid_random -> if a student has a lot of questions in different topics, not enough additional information is given to the model
