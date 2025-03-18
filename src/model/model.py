@@ -33,6 +33,7 @@ def build_anthropic(model_cfg: CfgNode) -> ChatAnthropic:
         max_tokens=model_cfg.MAX_TOKENS,
         timeout=model_cfg.TIMEOUT,
         max_retries=model_cfg.MAX_RETRIES,
+        # TODO: does it support json mode?
     )
     return model
 
@@ -43,5 +44,6 @@ def build_ollama(model_cfg: CfgNode) -> ChatOllama:
         model=model_cfg.NAME,
         temperature=model_cfg.TEMPERATURE,
         num_predict=model_cfg.MAX_TOKENS,
+        format=model_cfg.FORMAT,
     )
     return model

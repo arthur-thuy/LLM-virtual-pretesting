@@ -31,9 +31,9 @@ TODO:
     - dataset loader (into dataframe with columns: prompt, output)
 - give CUPA dataset and ask to find possible misconceptions that students of various levels can make
 - add code to pretty print an example
-- llama3 and olmo2 do not support structured outputs in langchain -> look at workaround (see tutorial)
 - example selector: within the same student_id, select semantically similar examples
 - evaluate performance on val data
+- can we simplify model building by using the `init_chat_model` function from langchain?
 
 
 # Questions meeting 17/03/2025
