@@ -94,35 +94,6 @@ def read_pickle(fpath: str) -> dict:
     return data
 
 
-def set_device(no_cuda: bool, no_mps: bool) -> torch.device:
-    """Set device to run operations on.
-
-    Parameters
-    ----------
-    no_cuda : bool
-        Whether to disable GPU training.
-    no_mps : bool
-        Whether to disable high-performance training on GPU for MacOS devices.
-    Returns
-    -------
-    torch.device
-        Device to run operations on.
-    """
-    use_cuda = not no_cuda and torch.cuda.is_available()
-    use_mps = not no_mps and torch.backends.mps.is_available()
-    if use_cuda:
-        device = torch.device("cuda")
-        logger.info(
-            f"GPU name: {torch.cuda.get_device_name(torch.cuda.current_device())}"
-        )
-    elif use_mps:
-        device = torch.device("mps")
-    else:
-        device = torch.device("cpu")
-        logger.warning("using CPU, this will be slow")
-    return device
-
-
 def set_seed(seed: Optional[int] = None) -> None:
     """Set seed for reproducibility.
 
