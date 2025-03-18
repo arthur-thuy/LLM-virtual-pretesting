@@ -1,0 +1,6 @@
+MODEL:
+  NAME: "olmo2:7b"
+  PROVIDER: "ollama"
+
+EXAMPLE_SELECTOR:
+  NAME: "studentid_random"

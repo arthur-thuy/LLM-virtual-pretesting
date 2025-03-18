@@ -17,7 +17,7 @@ _C.MODEL.NAME = "llama3"
 # model provider
 _C.MODEL.PROVIDER = "ollama"
 # model temperature
-_C.MODEL.TEMPERATURE = 0.5
+_C.MODEL.TEMPERATURE = 0.0
 # format
 _C.MODEL.FORMAT = "json"
 # max tokens
