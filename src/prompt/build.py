@@ -47,10 +47,10 @@ def build_prompt(cfg: CfgNode, examples: list[dict]) -> ChatPromptTemplate:
     )
     # build system prompt string
     system_prompt_str = SYSTEM_PROMPT_REGISTRY[cfg.PROMPT.SYSTEM.NAME]()
-    parser = None
+    # Set up a parser (not used if model supports structured output)
+    parser = PydanticOutputParser(pydantic_object=MCQAnswer)  # TODO: make flexible
     if not cfg.MODEL.STRUCTURED_OUTPUT:
         system_prompt_str += "Wrap the output in `json` tags\n{format_instructions}"
-        parser = PydanticOutputParser(pydantic_object=MCQAnswer)  # TODO: make flexible
 
     # build few_shot_prompt
     example_selector, input_vars = build_example_selector(
