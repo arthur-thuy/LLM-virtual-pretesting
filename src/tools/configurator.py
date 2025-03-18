@@ -135,7 +135,9 @@ def create_config_id(cfg: CfgNode) -> str:
         Config identifier.
     """
     cfg_id = cfg.MODEL.NAME
-    cfg_id += f"_TEMP{cfg.MODEL.TEMPERATURE}"
+    cfg_id += f"~T{cfg.MODEL.TEMPERATURE}"
+    cfg_id += f"~S{cfg.EXAMPLE_SELECTOR.NAME}"
+    cfg_id += f"~F{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
     # TODO: also add example selector and system prompt
     return cfg_id
 
@@ -156,7 +158,10 @@ def create_tuning_config_id(cfg: CfgNode) -> str:
         Config identifier.
     """
     cfg_id = cfg.MODEL.NAME
-    cfg_id += f"_TEMP{cfg.MODEL.TEMPERATURE}"
+    cfg_id += f"~T{cfg.MODEL.TEMPERATURE}"
+    cfg_id += f"~S{cfg.EXAMPLE_SELECTOR.NAME}"
+    cfg_id += f"~F{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
+    # TODO: also add example selector and system prompt
     return cfg_id
 
 

@@ -372,3 +372,34 @@ def merge_all_results(experiment: str, config_ids: list[str]) -> dict:
         run_id_list = merge_run_results(output_path)
         run_id_dict[Path(output_path).name] = run_id_list
     return run_id_dict
+
+
+def create_config_id_print(config_id: str) -> str:
+    """Create a human-readable string from a config_id.
+
+    Parameters
+    ----------
+    config_id : str
+        The config_id to transform.
+
+    Returns
+    -------
+    str
+       A human-readable string.
+    """
+    pattern = r"([^~]+)~T([0-9.]+)~S([^~]+)~F(\d+)"
+    match = re.match(pattern, config_id)
+
+    if match:
+        model_name = match.group(1)
+        temperature = float(match.group(2))
+        selector = match.group(3)
+        few_shot = int(match.group(4))
+
+        config_id_print = (
+            f"{model_name} ({selector}, {few_shot}-shot, temp {temperature})"
+        )
+    else:
+        config_id_print = config_id
+
+    return config_id_print
