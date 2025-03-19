@@ -79,7 +79,7 @@ def main() -> None:
             # dataframes
             df_train = apply_prompt_fmt(
                 df=dataset[TRAIN],
-                input_fmt=human_format_input,
+                input_fmt=human_format_input,  # TODO: make dependent on dataset (e.g., "reading context" for CUPA)
                 output_fmt=human_format_output,
             )
             df_val = apply_prompt_fmt(
