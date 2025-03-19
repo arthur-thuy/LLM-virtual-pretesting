@@ -38,6 +38,8 @@ TODO:
 
 # Questions meeting 17/03/2025
 
+- Research proposal
+    - Comments?
 - Models:
     - Llama3: 8B or 70B version?
     - OLMo2: 7B or 13B version?
@@ -52,8 +54,10 @@ TODO:
         - need to compute IRT parameters manually -> provided difficulty is discrete
         - can use rich question text and change the latex urls to normal latex commands (e.g., `<img src="http://latex.codecogs.com/gif.latex?T_{1}" border="0"/>` to `T_{1}`)
         - what do we do with MC questions with more or less than 4 answer options?
-        - What to do with the HTML content?
+        - What to do with the HTML content? E.g., tables.
         - Do we use entire dataset? A lot of questions so might be expensive
+    - CUPA
+        - We do not have student-answer records? How do we select relevant few-shot examples?
     - Can we share question_id's and student_id's over train/val/test splits? -> I think yes because we need to find relevant examples in train set to answer the val and test questions
 - Small experiment: 
     - olmo2 has much more invalid responses than llama3 (approx 3% vs 0.3%)
@@ -66,3 +70,4 @@ TODO:
     - Clear enough? 
     - Do we need to restrict the length of the response?
     - Would it help if we make a new field to indicate that the student answer is correct/incorrect?
+    - Ask for common misconception in the few-shot examples? Can we ask to show where this mistakes has been made in the few-shot examples?
