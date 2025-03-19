@@ -89,7 +89,7 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
                 match_idx.append(idx)
 
         # Sample k random examples without replacement
-        # (if k > len(examples), returns all examples in random order)
+        # (if k >= len(examples), returns all examples in random order)
         k = min(self.k, len(match_idx))
         idx_out = random.sample(match_idx, k)
         return [self.examples[i] for i in idx_out]
