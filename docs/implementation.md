@@ -51,7 +51,7 @@ TODO:
     - What dataset to use? No dataset is perfect?
     - DBE-KT22
         - use this because it is the only dataset with MC questions, student-question pairs and question texts
-        - need to compute IRT parameters manually -> provided difficulty is discrete
+        - need to compute IRT parameters manually -> provided difficulty is discrete. Which package to use?
         - can use rich question text and change the latex urls to normal latex commands (e.g., `<img src="http://latex.codecogs.com/gif.latex?T_{1}" border="0"/>` to `T_{1}`)
         - what do we do with MC questions with more or less than 4 answer options?
         - What to do with the HTML content? E.g., tables.
