@@ -28,7 +28,7 @@ def build_studentid_random(
     example_selector_cfg: CfgNode, examples: list[dict]
 ) -> BaseExampleSelector:
     input_vars = ["student_id"]
-    selector = StudentIDExampleSelector(
+    selector = StudentIDRandomExampleSelector(
         examples=examples,
         k=example_selector_cfg.NUM_EXAMPLES,
     )
@@ -36,6 +36,7 @@ def build_studentid_random(
 
 
 class RandomExampleSelector(BaseExampleSelector):
+    """Randomly select examples."""
     def __init__(self, examples: list[dict], k: int) -> None:
         """Initialize the example selector.
 
@@ -59,7 +60,8 @@ class RandomExampleSelector(BaseExampleSelector):
         return random.sample(self.examples, k)
 
 
-class StudentIDExampleSelector(BaseExampleSelector):
+class StudentIDRandomExampleSelector(BaseExampleSelector):
+    """Filter examples of the same student_id and randomly select."""
     def __init__(self, examples: list[dict], k: int):
         """Initialize the example selector.
 

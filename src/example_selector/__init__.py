@@ -10,5 +10,5 @@
 from example_selector.build import build_example_selector
 from example_selector.example_selector import (
     RandomExampleSelector,
-    StudentIDExampleSelector,
+    StudentIDRandomExampleSelector,
 )
