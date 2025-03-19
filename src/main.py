@@ -41,7 +41,7 @@ parser.add_argument(
     help="config file path",
 )
 parser.add_argument(
-    "--dry-run", action="store_true", default=False, help="run a single epoch"
+    "--dry-run", action="store_true", default=False, help="predict small number of examples"
 )
 
 
