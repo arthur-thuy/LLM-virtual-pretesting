@@ -33,6 +33,7 @@ TODO:
 - add code to pretty print an example
 - example selector: within the same student_id, select semantically similar examples
 - can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
+- Make sure the data is shuffled before splitting!
 
 
 # Questions meeting 17/03/2025
@@ -41,7 +42,6 @@ TODO:
     - Llama3: 8B or 70B version?
     - OLMo2: 7B or 13B version?
     - always temperature 0.0?
-    - 
 - Prompting
     - Does it make sense to ask for misconceptions in the correct answer option?
     - Do we tell the roll-playing model what the correct answer is? + show the explanation (see DBE-KT22)
@@ -58,3 +58,11 @@ TODO:
 - Small experiment: 
     - olmo2 has much more invalid responses than llama3 (approx 3% vs 0.3%)
     - no difference between random selector and studentid_random -> if a student has a lot of questions in different topics, not enough additional information is given to the model
+- Example selector with studentID and semantic similarity:
+    - What is exact input to vector database? Only question without "correct answer"?
+    - How to avoid that embeddings are calculated multiple times? Can we calculate once for all examples and then filter on the student_id?
+    - What if unknown student_id at inference time? -> use random student_id
+- System prompt
+    - Clear enough? 
+    - Do we need to restrict the length of the response?
+    - Would it help if we make a new field to indicate that the student answer is correct/incorrect?
