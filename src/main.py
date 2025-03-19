@@ -138,6 +138,7 @@ def main() -> None:
                 {
                     "metrics": metrics,
                     "preds": preds,
+                    # TODO: save prediction time and tokens/second
                 },
                 save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID),
                 fname=f"run_{run_n}",
