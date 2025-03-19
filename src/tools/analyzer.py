@@ -324,13 +324,11 @@ def merge_run_results(output_dir: str) -> list:
         raise ValueError("Overlap in run IDs!")
 
     all_metrics = {}
-    all_preds = {}
     for output_path in output_paths:
         run_n = re.search(r"run_(\d+)", output_path).group(1)
         result = read_pickle(output_path)
 
         all_metrics[f"run_{run_n}"] = result["metrics"]
-        all_preds[f"run_{run_n}"] = result["preds"]
 
     path = Path(output_dir)
     logger.info(
@@ -340,7 +338,6 @@ def merge_run_results(output_dir: str) -> list:
     write_pickle(
         {
             "metrics": all_metrics,
-            "preds": all_preds,
         },
         save_dir=path.parent,
         fname=path.name,

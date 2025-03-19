@@ -18,6 +18,7 @@ from tools.utils import (
     write_pickle,
     set_seed,
     BatchCallback,
+    format_time,
 )
 from prompt.few_shot_prompt import (
     df_to_listdict,
@@ -41,7 +42,10 @@ parser.add_argument(
     help="config file path",
 )
 parser.add_argument(
-    "--dry-run", action="store_true", default=False, help="predict small number of examples"
+    "--dry-run",
+    action="store_true",
+    default=False,
+    help="predict small number of examples",
 )
 
 
@@ -115,15 +119,20 @@ def main() -> None:
             chain = prompt | model
 
             # predict
+            logger.info("Predict - start")
+            pred_start_time = time.time()
             cb = BatchCallback(len(list_val))  # init callback
-            preds = chain.batch(list_val, config={"callbacks": [cb]})
+            preds_raw = chain.batch(list_val, config={"callbacks": [cb]})
             cb.progress_bar.close()
             if cfg.MODEL.STRUCTURED_OUTPUT:
                 # get all raw outputs
-                preds = [output["raw"] for output in preds]
-            preds_validated = validate_output(preds, schema=MCQAnswer)
+                preds_raw = [output["raw"] for output in preds_raw]
+            preds_validated = validate_output(preds_raw, schema=MCQAnswer)
+            pred_time = time.time() - pred_start_time
+            logger.info("Predict - end", time=format_time(pred_time))
 
             # evaluate
+            logger.info("Evaluate - start")
             y_val_pred = np.array([output.student_answer for output in preds_validated])
             y_val_student = dataset[VALIDATION]["student_answer"].to_numpy()
             y_val_true = dataset[VALIDATION]["correct_answer"].to_numpy()
@@ -133,12 +142,17 @@ def main() -> None:
                 y_val_student=y_val_student,
             )
             # TODO: also do with test set
+            logger.info("Evaluate - end", accuracy=metrics["acc_student_pred"])
 
             write_pickle(
                 {
                     "metrics": metrics,
-                    "preds": preds,
-                    # TODO: save prediction time and tokens/second
+                    "preds_raw": preds_raw,
+                    "preds_validated": preds_validated,
+                    "y_pred": y_val_pred,
+                    "y_true": y_val_true,
+                    "y_student": y_val_student,
+                    "pred_time": pred_time,
                 },
                 save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID),
                 fname=f"run_{run_n}",
