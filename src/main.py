@@ -72,6 +72,9 @@ def main() -> None:
             # subset
             # TODO: remove for real run!
             # dataset[VALIDATION] = dataset[VALIDATION].iloc[:10, :]
+            if args.dry_run:
+                logger.info("Dry run: using only 10 validation observations")
+                dataset[VALIDATION] = dataset[VALIDATION].iloc[:10, :]
 
             # dataframes
             df_train = apply_prompt_fmt(
