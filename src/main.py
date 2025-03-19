@@ -34,7 +34,7 @@ from tools.metrics import compute_metrics
 # set up logger
 logger = structlog.get_logger(__name__)
 
-parser = argparse.ArgumentParser(description="PyTorch fine-tuning")
+parser = argparse.ArgumentParser(description="Run experiment")
 parser.add_argument(
     "config",
     type=str,
