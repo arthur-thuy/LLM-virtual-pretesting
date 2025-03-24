@@ -11,7 +11,7 @@ from tools.constants import (
     BRONZE_DIR,
     SILVER_DIR,
 )
-from tools.data_manager import DBEKT22Datamanager
+from tools.data_manager import DBEKT22Datamanager, CupaDatamanager
 
 # set logger
 logger = structlog.get_logger()
@@ -24,9 +24,14 @@ def main():
     dbekt22_dm = DBEKT22Datamanager()
     # TODO: remove this if want to use all students
     SAMPLE_STUDENT_IDS = 25  # 100
-    _ = dbekt22_dm.build_dataset(
+    _, _ = dbekt22_dm.build_dataset(
         read_dir=BRONZE_DIR, write_dir=SILVER_DIR, sample_student_ids=SAMPLE_STUDENT_IDS
     )
+
+    # CUPA
+    logger.info("Starting preparation CUPA")
+    cupa_dm = CupaDatamanager()
+    _, _ = cupa_dm.build_dataset(read_dir=BRONZE_DIR, write_dir=SILVER_DIR)
 
 
 if __name__ == "__main__":

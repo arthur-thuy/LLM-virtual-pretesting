@@ -5,30 +5,28 @@ Adapted from Github repo qdet_utils/data_manager/_mcq_cupa_data_manager.py
 
 # standard library imports
 import os
-from typing import Dict, Literal
+from typing import Literal
 
 # related third party imports
 import pandas as pd
 import structlog
 
 # local application/library specific imports
+from tools.utils import set_seed
 from tools.constants import (
-    CONTEXT,
-    CONTEXT_ID,
-    CORRECT_ANSWER,
-    DF_COLS,
-    DIFFICULTY,
-    OPTION_0,
-    OPTION_1,
-    OPTION_2,
-    OPTION_3,
-    OPTIONS,
-    Q_ID,
-    QUESTION,
-    SPLIT,
-    TEST,
-    TRAIN,
-    VALIDATION,
+    INTERACT_ID,
+    QUESTION_ID,
+    STUDENT_ID,
+    Q_TEXT,
+    Q_DIFFICULTY,
+    Q_OPTION_IDS,
+    Q_OPTION_TEXTS,
+    Q_CORRECT_OPTION_ID,
+    Q_CONTEXT_TEXT,
+    Q_CONTEXT_ID,
+    Q_DISCRIMINATION,
+    S_OPTION_ID,
+    S_OPTION_CORRECT,
 )
 
 logger = structlog.get_logger(__name__)
@@ -37,82 +35,48 @@ logger = structlog.get_logger(__name__)
 class CupaDatamanager:
 
     def __init__(self):
-        """No constructor."""
-        pass
+        """Constructor."""
+        self.name = "cupa"
 
-    def get_cupa_dataset(
+    def build_dataset(
         self,
-        data_dir: str,
-        output_data_dir: str,
-        diff_type: Literal["cefr", "irt"] = "irt",
+        read_dir: str,
+        write_dir: str,
         save_dataset: bool = True,
-        train_size: float = 0.6,
-        test_size: float = 0.25,
         random_state: int = 42,
-    ) -> Dict[str, pd.DataFrame]:
-        df = self._get_cupa_dataset(data_dir=data_dir, diff_type=diff_type)
-        tmp_series_context_ids = (
-            df.sort_values(CONTEXT_ID)[CONTEXT_ID]
-            .drop_duplicates()
-            .sample(frac=1, random_state=random_state)
+    ) -> pd.DataFrame:
+        set_seed(random_state)
+        df_questions = self._preprocess_questions(
+            read_dir=os.path.join(read_dir, self.name)
         )
-        logger.info(
-            "Reading entire dataset",
-            num_questions=len(df),
-            num_contexts=len(tmp_series_context_ids),
+        df_interactions = self._preprocess_interactions(
+            read_dir=os.path.join(read_dir, self.name),
         )
+        if save_dataset:
+            output_path = os.path.join(write_dir, f"{self.name}_questions.csv")
+            logger.info("Saving dataset", path=output_path)
+            df_questions.to_csv(output_path, index=False)
 
-        context_ids = dict()
-        context_ids[TRAIN] = set(
-            tmp_series_context_ids.iloc[
-                : int(len(tmp_series_context_ids) * train_size)
-            ].values
-        )
-        context_ids[TEST] = set(
-            tmp_series_context_ids.iloc[
-                int(len(tmp_series_context_ids) * train_size) : int(
-                    len(tmp_series_context_ids) * train_size
-                )
-                + int(len(tmp_series_context_ids) * test_size)
-            ].values
-        )
-        context_ids[VALIDATION] = set(
-            tmp_series_context_ids.iloc[
-                int(len(tmp_series_context_ids) * train_size)
-                + int(len(tmp_series_context_ids) * test_size) :
-            ].values
-        )
+            output_path = os.path.join(write_dir, f"{self.name}_interactions.csv")
+            logger.info("Saving dataset", path=output_path)
+            df_interactions.to_csv(output_path, index=False)
 
-        dataset = dict()
-        for split in [TRAIN, VALIDATION, TEST]:
-            dataset[split] = df[df[CONTEXT_ID].isin(context_ids[split])].copy()
-            logger.info(
-                f"Creating {split} split",
-                num_questions=len(dataset[split]),
-                num_contexts=len(context_ids[split]),
-            )
-            if save_dataset:
-                dataset[split].to_csv(
-                    os.path.join(output_data_dir, f"cupa_{split}.csv"), index=False
-                )
-        return dataset
+        return df_questions, df_interactions
 
-    def _get_cupa_dataset(
-        self, data_dir: str, diff_type: Literal["cefr", "irt"] = "irt"
+    def _preprocess_questions(
+        self, read_dir: str, diff_type: Literal["cefr", "irt"] = "irt"
     ) -> pd.DataFrame:
 
-        df = pd.read_json(os.path.join(data_dir, "mcq_data_cupa.jsonl"), lines=True)
+        df = pd.read_json(os.path.join(read_dir, "mcq_data_cupa.jsonl"), lines=True)
 
         assert len(df) == df["id"].nunique()
 
-        out_df = pd.DataFrame(columns=DF_COLS)
-
+        out_list = []
         for _, row in df.iterrows():
             context = (
                 row["text"].encode("ascii", "ignore").decode("ascii")
             )  # to fix issue with encoding
             context_id = row["id"]
-            split = None
 
             for q_idx, q_val in row["questions"].items():
 
@@ -149,24 +113,39 @@ class CupaDatamanager:
                 else:
                     # dicrete CEFR level: same level for all questions in the same context
                     difficulty = row["level"]
-                new_row_df = pd.DataFrame(
-                    [
-                        {
-                            CORRECT_ANSWER: correct_answer,
-                            OPTIONS: options,
-                            OPTION_0: option_0,
-                            OPTION_1: option_1,
-                            OPTION_2: option_2,
-                            OPTION_3: option_3,
-                            QUESTION: question,
-                            CONTEXT: context,
-                            CONTEXT_ID: context_id,
-                            Q_ID: q_id,
-                            SPLIT: split,
-                            DIFFICULTY: difficulty,
-                        }
-                    ]
+                discrimination = q_val["disc"]
+
+                out_list.append(
+                    {
+                        QUESTION_ID: q_id,
+                        Q_TEXT: question,
+                        Q_DIFFICULTY: difficulty,
+                        Q_DISCRIMINATION: discrimination,
+                        Q_OPTION_IDS: list(range(4)),
+                        Q_OPTION_TEXTS: options,
+                        Q_CORRECT_OPTION_ID: correct_answer,
+                        Q_CONTEXT_TEXT: context,
+                        Q_CONTEXT_ID: context_id,
+                    }
                 )
-                # TODO: fix warning "FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated."
-                out_df = pd.concat([out_df, new_row_df], ignore_index=True)
+
+        out_df = pd.DataFrame(
+            out_list,
+            columns=[
+                QUESTION_ID,
+                Q_TEXT,
+                Q_DIFFICULTY,
+                Q_DISCRIMINATION,
+                Q_OPTION_IDS,
+                Q_OPTION_TEXTS,
+                Q_CORRECT_OPTION_ID,
+                Q_CONTEXT_TEXT,
+                Q_CONTEXT_ID,
+            ],
+        )
         return out_df
+
+    def _preprocess_interactions(self, read_dir: str) -> pd.DataFrame:
+        df = pd.DataFrame()
+        # TODO: implement (using FCE dataset???)
+        return df

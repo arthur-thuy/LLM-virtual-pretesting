@@ -21,6 +21,9 @@ from tools.constants import (
     Q_OPTION_IDS,
     Q_OPTION_TEXTS,
     Q_CORRECT_OPTION_ID,
+    Q_CONTEXT_TEXT,
+    Q_CONTEXT_ID,
+    Q_DISCRIMINATION,
     S_OPTION_ID,
     S_OPTION_CORRECT,
 )
@@ -78,7 +81,10 @@ class DBEKT22Datamanager:
         correct_answer = df_q_choice_text[df_q_choice_text["is_correct"] == True].iloc[
             0
         ]["id"]
-        return options_ids, options_texts, correct_answer
+        context_text = None
+        context_id = None
+        q_discrimination = None
+        return options_ids, options_texts, correct_answer, context_text, context_id, q_discrimination
 
     def _preprocess_questions(self, read_dir: str) -> pd.DataFrame:
         # answer options
@@ -99,6 +105,9 @@ class DBEKT22Datamanager:
             df[Q_OPTION_IDS],
             df[Q_OPTION_TEXTS],
             df[Q_CORRECT_OPTION_ID],
+            df[Q_CONTEXT_TEXT],
+            df[Q_CONTEXT_ID],
+            df[Q_DISCRIMINATION],
         ) = zip(
             *df.apply(
                 self._process_question_row,

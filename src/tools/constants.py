@@ -19,6 +19,9 @@ Q_DIFFICULTY = "q_difficulty"
 Q_OPTION_IDS = "option_ids"
 Q_OPTION_TEXTS = "option_texts"
 Q_CORRECT_OPTION_ID = "correct_option_id"
+Q_CONTEXT_TEXT = "context_text"
+Q_CONTEXT_ID = "context_id"
+Q_DISCRIMINATION = "q_discrimination"
 
 
 # interactions
@@ -26,44 +29,6 @@ INTERACT_ID = "interact_id"
 STUDENT_ID = "student_id"
 S_OPTION_ID = "student_option_id"
 S_OPTION_CORRECT = "student_option_correct"
-
-
-# TODO: remove once CUPA is in right format!
-CORRECT_ANSWER = "correct_answer"
-OPTIONS = "options"
-OPTION_ = "option_"
-OPTION_0 = "option_0"
-OPTION_1 = "option_1"
-OPTION_2 = "option_2"
-OPTION_3 = "option_3"
-QUESTION = "question"
-CONTEXT = "context"
-CONTEXT_ID = "context_id"
-Q_ID = "q_id"
-SPLIT = "split"
-DIFFICULTY = "difficulty"
-DF_COLS = [
-    CORRECT_ANSWER,
-    OPTIONS,
-    OPTION_0,
-    OPTION_1,
-    OPTION_2,
-    OPTION_3,
-    QUESTION,
-    CONTEXT,
-    CONTEXT_ID,
-    Q_ID,
-    SPLIT,
-    DIFFICULTY,
-]
-
-QUESTION_ID = "question_id"
-STUDENT_ID = "student_id"
-INTERACT_ID = "interact_id"
-Q_TEXT = "q_text"
-STUDENT_ANSWER = "student_answer"
-Q_DIFFICULTY = "q_difficulty"
-OPTIONS_TEXT = "options_text"
 
 
 # model
