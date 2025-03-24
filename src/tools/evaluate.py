@@ -27,6 +27,7 @@ def predict(
     prefix: Literal["val", "test"],
     structured: bool,
     json_schema: BaseModel,
+    langfuse_handler,
 ) -> dict:
     """Predict.
 
@@ -42,6 +43,8 @@ def predict(
         Whether model supports structured output
     json_schema : BaseModel
         Pydantic schema
+    langfuse_handler : _type_
+        Langfuse handler for Langchain callback
 
     Returns
     -------
@@ -51,7 +54,7 @@ def predict(
     logger.info("Predict - start", split=prefix)
     pred_start_time = time.time()
     cb = BatchCallback(len(data))  # init callback
-    preds_raw = chain.batch(data, config={"callbacks": [cb]})
+    preds_raw = chain.batch(data, config={"callbacks": [cb, langfuse_handler]})
     cb.progress_bar.close()
     if structured:
         # get all raw outputs

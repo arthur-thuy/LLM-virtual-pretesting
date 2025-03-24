@@ -7,6 +7,7 @@ import time
 
 # related third party imports
 import structlog
+from langfuse.callback import CallbackHandler
 
 # local application/library specific imports
 from data_loader.build import build_dataset
@@ -25,8 +26,10 @@ from model.build import build_model
 from tools.evaluate import evaluate, predict
 from example_formatter.build import build_example_formatter
 
+
 # set up logger
 logger = structlog.get_logger(__name__)
+langfuse_handler = CallbackHandler()
 
 parser = argparse.ArgumentParser(description="Run experiment")
 parser.add_argument(
@@ -106,6 +109,7 @@ def main() -> None:
                 prefix="val",
                 structured=cfg.MODEL.STRUCTURED_OUTPUT,
                 json_schema=MCQAnswer,
+                langfuse_handler=langfuse_handler,
             )
             # TODO: also for test set
 
