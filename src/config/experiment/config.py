@@ -31,10 +31,17 @@ _C.MODEL.MAX_RETRIES = None
 _C.LOADER = CN()
 # dataset name
 _C.LOADER.NAME = "dbe_kt22"
+# dataset join key
+_C.LOADER.JOIN_KEY = "question_id"
 # train size
 _C.LOADER.TRAIN_SIZE = 0.6
 # test size
 _C.LOADER.TEST_SIZE = 0.25
+
+# example formatter
+_C.EXAMPLE_FORMATTER = CN()
+# example formatter name
+_C.EXAMPLE_FORMATTER.NAME = "A"
 
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
