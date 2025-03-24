@@ -19,3 +19,7 @@ Create an `.env` file at the root level with contents:
 ```
 OPENAI_API_KEY="your_openai_api_key"
 ```
+
+# Langfuse dashboard
+
+[link](https://cloud.langfuse.com/project/cm8n8clg300k7ad07l3pjqklk)

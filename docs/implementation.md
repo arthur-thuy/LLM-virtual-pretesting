@@ -35,6 +35,7 @@ TODO:
 - can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
 - Make sure the data is shuffled before splitting!
 - create build function for structured output class
+- watch [langfuse demo](https://langfuse.com/watch-demo)
 
 
 # Questions meeting 17/03/2025
