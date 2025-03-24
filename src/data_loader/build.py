@@ -28,16 +28,17 @@ def build_dataset(loader_cfg: CfgNode, seed: int) -> Dict[str, pd.DataFrame]:
     Returns
     -------
     Dict[str, pd.DataFrame]
-        Train/Val/Test datasets
+        Train/Val/Test interaction dataframes
     """
     logger.info("Building dataset", name=loader_cfg.NAME)
     data_loader = DataLoader(
         read_dir=SILVER_DIR,
         dataset_name=loader_cfg.NAME,
+        join_key=loader_cfg.JOIN_KEY,
     )
-    dataset = data_loader.split_data(
+    datasets = data_loader.split_data(
         train_size=loader_cfg.TRAIN_SIZE,
         test_size=loader_cfg.TEST_SIZE,
         seed=seed,
     )
-    return dataset
+    return datasets

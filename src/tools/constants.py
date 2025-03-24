@@ -12,7 +12,7 @@ TEST = "test"
 TRAIN = "train"
 
 # columns
-# questions
+## questions
 QUESTION_ID = "question_id"
 Q_TEXT = "q_text"
 Q_DIFFICULTY = "q_difficulty"
@@ -23,12 +23,15 @@ Q_CONTEXT_TEXT = "context_text"
 Q_CONTEXT_ID = "context_id"
 Q_DISCRIMINATION = "q_discrimination"
 
-
-# interactions
+## interactions
 INTERACT_ID = "interact_id"
 STUDENT_ID = "student_id"
 S_OPTION_ID = "student_option_id"
 S_OPTION_CORRECT = "student_option_correct"
+
+## example formatter
+INPUT = "input"
+OUTPUT = "output"
 
 
 # model

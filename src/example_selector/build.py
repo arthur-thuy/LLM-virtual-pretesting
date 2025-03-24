@@ -33,5 +33,7 @@ def build_example_selector(example_selector_cfg: CfgNode, examples: list[dict]) 
     logger.info(
         "Building example selector",
     )
-    model = EXAMPLE_SELECTOR_REGISTRY[example_selector_cfg.NAME](example_selector_cfg, examples)
-    return model
+    (selector, input_vars) = EXAMPLE_SELECTOR_REGISTRY[example_selector_cfg.NAME](
+        example_selector_cfg, examples
+    )
+    return (selector, input_vars)
