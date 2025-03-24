@@ -52,8 +52,10 @@ class DBEKT22Datamanager:
         )
         df_interactions = self._preprocess_interactions(
             read_dir=os.path.join(read_dir, self.name),
+            df_questions=df_questions,
             sample_student_ids=sample_student_ids,
         )
+        df_questions = df_questions.drop(columns=[Q_OPTION_IDS])
         if save_dataset:
             output_path = os.path.join(write_dir, f"{self.name}_questions.csv")
             logger.info("Saving dataset", path=output_path)
@@ -84,7 +86,14 @@ class DBEKT22Datamanager:
         context_text = None
         context_id = None
         q_discrimination = None
-        return options_ids, options_texts, correct_answer, context_text, context_id, q_discrimination
+        return (
+            options_ids,
+            options_texts,
+            correct_answer,
+            context_text,
+            context_id,
+            q_discrimination,
+        )
 
     def _preprocess_questions(self, read_dir: str) -> pd.DataFrame:
         # answer options
@@ -115,10 +124,20 @@ class DBEKT22Datamanager:
                 axis=1,
             )
         )
+        df[Q_CORRECT_OPTION_ID] = df.apply(
+            lambda row: row[Q_OPTION_IDS].index(row[Q_CORRECT_OPTION_ID]), axis=1
+        )
         return df
 
+    def _process_interact_row(self, row, df_q: pd.DataFrame) -> int:
+        option_ids = df_q[df_q[QUESTION_ID] == row[QUESTION_ID]].iloc[0][Q_OPTION_IDS]
+        return option_ids.index(row[S_OPTION_ID])
+
     def _preprocess_interactions(
-        self, read_dir: str, sample_student_ids: Optional[int] = None
+        self,
+        read_dir: str,
+        df_questions: pd.DataFrame,
+        sample_student_ids: Optional[int] = None,
     ) -> pd.DataFrame:
         # student-question interactions
         df_interact = pd.read_csv(os.path.join(read_dir, "Transaction.csv"))
@@ -141,6 +160,12 @@ class DBEKT22Datamanager:
                 df_interact[STUDENT_ID].unique(), size=sample_student_ids, replace=False
             )
             df_interact = df_interact[df_interact[STUDENT_ID].isin(student_ids)]
+
+        df_interact[S_OPTION_ID] = df_interact.apply(
+            self._process_interact_row,
+            df_q=df_questions,
+            axis=1,
+        )
 
         return df_interact
 
