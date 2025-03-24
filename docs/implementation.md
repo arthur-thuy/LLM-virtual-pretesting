@@ -34,6 +34,7 @@ TODO:
 - example selector: within the same student_id, select semantically similar examples
 - can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
 - Make sure the data is shuffled before splitting!
+- create build function for structured output class
 
 
 # Questions meeting 17/03/2025
