@@ -11,6 +11,24 @@ VALIDATION = "validation"
 TEST = "test"
 TRAIN = "train"
 
+# columns
+# questions
+QUESTION_ID = "question_id"
+Q_TEXT = "q_text"
+Q_DIFFICULTY = "q_difficulty"
+Q_OPTION_IDS = "option_ids"
+Q_OPTION_TEXTS = "option_texts"
+Q_CORRECT_OPTION_ID = "correct_option_id"
+
+
+# interactions
+INTERACT_ID = "interact_id"
+STUDENT_ID = "student_id"
+S_OPTION_ID = "student_option_id"
+S_OPTION_CORRECT = "student_option_correct"
+
+
+# TODO: remove once CUPA is in right format!
 CORRECT_ANSWER = "correct_answer"
 OPTIONS = "options"
 OPTION_ = "option_"
@@ -47,6 +65,8 @@ STUDENT_ANSWER = "student_answer"
 Q_DIFFICULTY = "q_difficulty"
 OPTIONS_TEXT = "options_text"
 
+
+# model
 MODEL_STRUCTURED_OUTPUT = {
     "llama3": False,
     "llama3.2": True,
