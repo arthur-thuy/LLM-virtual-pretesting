@@ -7,7 +7,6 @@ import time
 
 # related third party imports
 import structlog
-import numpy as np
 
 # local application/library specific imports
 from data_loader.build import build_dataset
@@ -17,20 +16,14 @@ from tools.utils import (
     print_elapsed_time,
     write_pickle,
     set_seed,
-    BatchCallback,
-    format_time,
 )
-from prompt.few_shot_prompt import (
-    df_to_listdict,
-    human_format_input,
-    human_format_output,
-    apply_prompt_fmt,
-)
+from prompt.few_shot_prompt import df_to_listdict
 from tools.constants import TRAIN, VALIDATION, TEST
 from prompt.build import build_prompt
-from prompt.json_schema import MCQAnswer, validate_output
+from prompt.json_schema import MCQAnswer
 from model.build import build_model
-from tools.metrics import compute_metrics
+from tools.evaluate import evaluate, predict
+from example_formatter.build import build_example_formatter
 
 # set up logger
 logger = structlog.get_logger(__name__)
@@ -72,35 +65,23 @@ def main() -> None:
             print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
 
             # load data
-            dataset = build_dataset(cfg.LOADER, cfg.SEED + run_n)
+            datasets = build_dataset(cfg.LOADER, cfg.SEED + run_n)
             # subset
-            # TODO: remove for real run!
-            # dataset[VALIDATION] = dataset[VALIDATION].iloc[:10, :]
             if args.dry_run:
-                logger.info("Dry run: using only 10 validation observations")
-                dataset[VALIDATION] = dataset[VALIDATION].iloc[:10, :]
+                logger.info("Dry run: using only 10 observations")
+                datasets[VALIDATION] = datasets[VALIDATION].iloc[:10, :]
+                datasets[TEST] = datasets[TEST].iloc[:10, :]
 
             # dataframes
-            df_train = apply_prompt_fmt(
-                df=dataset[TRAIN],
-                input_fmt=human_format_input,  # TODO: make dependent on dataset (e.g., "reading context" for CUPA)
-                output_fmt=human_format_output,
-            )
-            df_val = apply_prompt_fmt(
-                df=dataset[VALIDATION],
-                input_fmt=human_format_input,
-                output_fmt=human_format_output,
-            )
-            df_test = apply_prompt_fmt(
-                df=dataset[TEST],
-                input_fmt=human_format_input,
-                output_fmt=human_format_output,
+            datasets_fmt = build_example_formatter(
+                example_formatter_cfg=cfg.EXAMPLE_FORMATTER,
+                datasets=datasets,
             )
 
             # list of dicts
-            list_train = df_to_listdict(df_train)
-            list_val = df_to_listdict(df_val)
-            list_test = df_to_listdict(df_test)  # noqa
+            list_train = df_to_listdict(datasets_fmt[TRAIN])
+            list_val = df_to_listdict(datasets_fmt[VALIDATION])
+            list_test = df_to_listdict(datasets_fmt[TEST])  # noqa
 
             # seed
             set_seed(cfg.SEED + run_n)
@@ -119,40 +100,28 @@ def main() -> None:
             chain = prompt | model
 
             # predict
-            logger.info("Predict - start")
-            pred_start_time = time.time()
-            cb = BatchCallback(len(list_val))  # init callback
-            preds_raw = chain.batch(list_val, config={"callbacks": [cb]})
-            cb.progress_bar.close()
-            if cfg.MODEL.STRUCTURED_OUTPUT:
-                # get all raw outputs
-                preds_raw = [output["raw"] for output in preds_raw]
-            preds_validated = validate_output(preds_raw, schema=MCQAnswer)
-            pred_time = time.time() - pred_start_time
-            logger.info("Predict - end", time=format_time(pred_time))
+            val_preds = predict(
+                chain=chain,
+                data=list_val,
+                prefix="val",
+                structured=cfg.MODEL.STRUCTURED_OUTPUT,
+                json_schema=MCQAnswer,
+            )
+            # TODO: also for test set
 
             # evaluate
-            logger.info("Evaluate - start")
-            y_val_pred = np.array([output.student_answer for output in preds_validated])
-            y_val_student = dataset[VALIDATION]["student_answer"].to_numpy()
-            y_val_true = dataset[VALIDATION]["correct_answer"].to_numpy()
-            metrics = compute_metrics(
-                y_val_pred=y_val_pred,
-                y_val_true=y_val_true,
-                y_val_student=y_val_student,
+            val_result = evaluate(
+                preds_validated=val_preds["val_preds_validated"],
+                dataset=datasets[VALIDATION],
+                prefix="val",
             )
-            # TODO: also do with test set
-            logger.info("Evaluate - end", accuracy=metrics["acc_student_pred"])
+            # test_result = evaluate(preds_validated=preds_validated, dataset=datasets[TEST], prefix="test")
 
             write_pickle(
                 {
-                    "metrics": metrics,
-                    "preds_raw": preds_raw,
-                    "preds_validated": preds_validated,
-                    "y_pred": y_val_pred,
-                    "y_true": y_val_true,
-                    "y_student": y_val_student,
-                    "pred_time": pred_time,
+                    **val_preds,
+                    **val_result,
+                    # **test_result,
                 },
                 save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID),
                 fname=f"run_{run_n}",
