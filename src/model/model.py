@@ -44,6 +44,6 @@ def build_ollama(model_cfg: CfgNode) -> ChatOllama:
         model=model_cfg.NAME,
         temperature=model_cfg.TEMPERATURE,
         num_predict=model_cfg.MAX_TOKENS,
-        format=model_cfg.FORMAT,
+        format="json",
     )
     return model

@@ -42,13 +42,13 @@ def build_prompt(cfg: CfgNode, examples: list[dict], str_output: BaseModel) -> C
     """
     logger.info(
         "Building prompt",
-        system_prompt=cfg.PROMPT.SYSTEM.NAME,
+        system_prompt=cfg.SYSTEM_PROMPT.NAME,
         native_structured_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
         example_selector=cfg.EXAMPLE_SELECTOR.NAME,
         num_examples=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
     )
     # build system prompt string
-    system_prompt_str = SYSTEM_PROMPT_REGISTRY[cfg.PROMPT.SYSTEM.NAME]()
+    system_prompt_str = SYSTEM_PROMPT_REGISTRY[cfg.SYSTEM_PROMPT.NAME]()
     # Set up a parser (not used if model supports structured output)
     parser = PydanticOutputParser(pydantic_object=str_output)
     if not cfg.MODEL.NATIVE_STRUCTURED_OUTPUT:

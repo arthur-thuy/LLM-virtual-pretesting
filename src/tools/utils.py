@@ -78,6 +78,7 @@ def write_pickle(data: dict, save_dir: str, fname: str) -> None:
         Filename to save to
     """
     fpath = get_save_path(save_dir, fname)
+    logger.info("Saving data", path=os.path.dirname(save_dir))
     with open(fpath, "wb") as f:
         pickle.dump(data, f)
 

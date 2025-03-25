@@ -3,6 +3,7 @@
 # standard library imports
 import importlib
 import os
+import datetime
 from pathlib import Path
 from typing import Any, Union
 
@@ -79,7 +80,7 @@ def _add_derived_configs(
     # add derived config variables at runtime
     cfg.ID = create_config_id(cfg)
     cfg.TUNE_ID = create_tuning_config_id(cfg)
-    cfg.OUTPUT_DIR = f"./output/{config_dir}"
+    cfg.OUTPUT_DIR = os.path.join(".", "output", config_dir)
     cfg.MODEL.NATIVE_STRUCTURED_OUTPUT = MODEL_STRUCTURED_OUTPUT[cfg.MODEL.NAME]
     if freeze:
         cfg.freeze()
@@ -111,12 +112,12 @@ def load_configs(fpath: str, freeze: bool = True) -> tuple[CfgNode, ...]:
     if not (config_path_full.exists() and config_path_full.is_dir()):
         raise ValueError(f"Invalid config dirname (base): {config_path_full}")
     config_paths = list(config_path_full.glob("*.yaml"))
-    config_dir_base = fpath
+    output_dir = f"{fpath}_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}"
     # load config files
     configs = tuple([_merge_config(config_path) for config_path in config_paths])
     # add derived config variables
     configs = tuple(
-        [_add_derived_configs(config, config_dir_base, freeze) for config in configs]
+        [_add_derived_configs(config, output_dir, freeze) for config in configs]
     )
     return configs
 
@@ -135,10 +136,11 @@ def create_config_id(cfg: CfgNode) -> str:
         Config identifier.
     """
     cfg_id = cfg.MODEL.NAME
-    cfg_id += f"~T{cfg.MODEL.TEMPERATURE}"
-    cfg_id += f"~S{cfg.EXAMPLE_SELECTOR.NAME}"
-    cfg_id += f"~F{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
-    # TODO: also add example selector and system prompt
+    # cfg_id += f"~T{cfg.MODEL.TEMPERATURE}"
+    cfg_id += f"~SO:{cfg.STRUCTURED_OUTPUTTER.NAME}"
+    cfg_id += f"~SP:{cfg.SYSTEM_PROMPT.NAME}"
+    cfg_id += f"~EF:{cfg.EXAMPLE_FORMATTER.NAME}"
+    cfg_id += f"~ES:{cfg.EXAMPLE_SELECTOR.NAME}{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
     return cfg_id
 
 
@@ -157,11 +159,7 @@ def create_tuning_config_id(cfg: CfgNode) -> str:
     str
         Config identifier.
     """
-    cfg_id = cfg.MODEL.NAME
-    cfg_id += f"~T{cfg.MODEL.TEMPERATURE}"
-    cfg_id += f"~S{cfg.EXAMPLE_SELECTOR.NAME}"
-    cfg_id += f"~F{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
-    # TODO: also add example selector and system prompt
+    cfg_id = create_config_id(cfg)
     return cfg_id
 
 
