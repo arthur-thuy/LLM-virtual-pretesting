@@ -35,7 +35,7 @@ TODO:
 - can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
 - Make sure the data is shuffled before splitting!
 - create build function for structured output class
-- watch [langfuse demo](https://langfuse.com/watch-demo)
+- langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to have log this on a per-observation basis? "correct" and "output_valid".
 
 
 # Questions meeting 17/03/2025
