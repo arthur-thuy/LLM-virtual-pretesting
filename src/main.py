@@ -14,6 +14,7 @@ load_env(os.path.join("..", ".env"))  # noqa
 import structlog
 from yacs.config import CfgNode
 from langfuse.decorators import langfuse_context, observe
+from langfuse import Langfuse
 
 # local application/library specific imports
 from data_loader.build import build_dataset
@@ -64,6 +65,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
     )
     # get the langchain handler for the current trace
     langfuse_handler = langfuse_context.get_current_langchain_handler()
+    trace_id = langfuse_context.get_current_trace_id()
 
     start_time = time.time()
     print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
@@ -121,6 +123,14 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
         prefix="val",
     )
     # test_result = evaluate(preds_validated=preds_validated, dataset=datasets[TEST], prefix="test")
+
+    langfuse = Langfuse()
+    langfuse.score(
+        trace_id=trace_id,
+        name="val_accuracy",
+        value=val_result["val_metrics"]["acc_student_pred"],
+        data_type="NUMERIC",
+    )
 
     write_pickle(
         {
