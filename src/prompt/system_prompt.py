@@ -29,3 +29,22 @@ def build_A() -> str:
         "Provide your answer as an integer in the range 1-4. "
     )
     return system_prompt_str
+
+@SYSTEM_PROMPT_REGISTRY.register("B")
+def build_B() -> str:
+    """Build system prompt B.
+
+    Returns
+    -------
+    str
+        System prompt B
+    """
+    system_prompt_str = (
+        "You are an expert teaching preparing a set of Multiple Choice Questions for {exam_type}. "
+        "You will be shown a set of students' responses  to previous questions. "  # They must be from the *same* or a *similar* student.
+        "Analyse the reponses to the questions and identify the possible misconceptions that led to the errors. "
+        "Then, discussing if and how those misconceptions might cause the student to make a mistake on the new question. "
+        "Finally, select the index of the answer option that the student would select. "
+        "Provide your answer as an integer in the range 1-4. "
+    )
+    return system_prompt_str
