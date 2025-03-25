@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Union, Optional, Any
 
 # related third party imports
+import dotenv
 import click
 import numpy as np
 import structlog
@@ -224,3 +225,16 @@ class BatchCallback(BaseCallbackHandler):
     ) -> Any:
         self.count += 1
         self.progress_bar.update(1)
+
+
+def load_env(env_path: str) -> None:
+    """Load environment variables from file.
+
+    Parameters
+    ----------
+    env_path : str
+        Path to environment file
+    """
+    # Reload the variables in your '.env' file (override the existing variables)
+    dotenv.load_dotenv(env_path, override=True)
+    logger.info(f"Loaded environment variables from {env_path}")

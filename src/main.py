@@ -5,6 +5,11 @@ import argparse
 import os
 import time
 
+# NOTE: load environment variables
+from tools.utils import load_env  # isort:skip
+
+load_env(os.path.join("..", ".env"))  # noqa
+
 # related third party imports
 import structlog
 from yacs.config import CfgNode
