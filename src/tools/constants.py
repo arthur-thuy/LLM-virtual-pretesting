@@ -29,6 +29,12 @@ STUDENT_ID = "student_id"
 S_OPTION_ID = "student_option_id"
 S_OPTION_CORRECT = "student_option_correct"
 
+# Parameters for IRT estimation
+DIFFICULTY_MIN = -5
+DIFFICULTY_MAX = +5
+DEFAULT_DISCRIMINATION = 1.0
+DEFAULT_GUESS = 0.0
+
 ## example formatter
 INPUT = "input"
 OUTPUT = "output"
