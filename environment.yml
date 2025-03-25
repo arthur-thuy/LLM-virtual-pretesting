@@ -302,6 +302,7 @@ dependencies:
       - pyasn1==0.6.1
       - pyasn1-modules==0.4.1
       - pydantic-settings==2.8.1
+      - pyirt==0.3.4
       - pypika==0.48.9
       - pyproject-hooks==1.2.0
       - python-dotenv==1.0.1
