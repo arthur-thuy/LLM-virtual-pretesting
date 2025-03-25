@@ -1,12 +1,3 @@
-
-
-# Questions implementations Luca
-
-- Did Luca use langchain or other package?
-- What are the `prompt_idx` variables? see `utils.py` functions `build_system_message_from_params` and `get_student_levels_from_prompt_idx`
-
-
-
 # Own implementation
 
 Elements of prompt:
@@ -29,13 +20,11 @@ TODO:
     - system prompt (student level explanation here)
     - example selector for few-shot examples
     - dataset loader (into dataframe with columns: prompt, output)
-- give CUPA dataset and ask to find possible misconceptions that students of various levels can make
 - add code to pretty print an example
 - example selector: within the same student_id, select semantically similar examples
 - can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
 - Make sure the data is shuffled before splitting!
-- create build function for structured output class
-- langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to have log this on a per-observation basis? "correct" and "output_valid".
+- langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to log this on a per-observation basis? "correct" and "output_valid". -> don't know how to do it on a per-observation basis. I only implemented on a per batch basis (accuracy)
 
 
 # Questions meeting 17/03/2025
