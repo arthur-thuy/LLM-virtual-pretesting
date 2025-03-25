@@ -11,10 +11,10 @@ from langchain_core.prompts import (
     FewShotChatMessagePromptTemplate,
 )
 from langchain_core.output_parsers import PydanticOutputParser
+from pydantic import BaseModel
 
 # local application/library specific imports
 from tools.registry import Registry
-from prompt.json_schema import MCQAnswer
 from example_selector.build import build_example_selector
 from tools.constants import PROMPT_INFO
 
@@ -23,7 +23,7 @@ SYSTEM_PROMPT_REGISTRY = Registry()
 logger = structlog.get_logger(__name__)
 
 
-def build_prompt(cfg: CfgNode, examples: list[dict]) -> ChatPromptTemplate:
+def build_prompt(cfg: CfgNode, examples: list[dict], str_output: BaseModel) -> ChatPromptTemplate:
     """Build the prompt.
 
     Parameters
@@ -32,6 +32,8 @@ def build_prompt(cfg: CfgNode, examples: list[dict]) -> ChatPromptTemplate:
         Config node.
     examples : list[dict]
         List of examples.
+    str_output : BaseModel
+        Pydantic model for structured output.
 
     Returns
     -------
@@ -41,15 +43,15 @@ def build_prompt(cfg: CfgNode, examples: list[dict]) -> ChatPromptTemplate:
     logger.info(
         "Building prompt",
         system_prompt=cfg.PROMPT.SYSTEM.NAME,
-        structured_output=cfg.MODEL.STRUCTURED_OUTPUT,
+        native_structured_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
         example_selector=cfg.EXAMPLE_SELECTOR.NAME,
         num_examples=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
     )
     # build system prompt string
     system_prompt_str = SYSTEM_PROMPT_REGISTRY[cfg.PROMPT.SYSTEM.NAME]()
     # Set up a parser (not used if model supports structured output)
-    parser = PydanticOutputParser(pydantic_object=MCQAnswer)  # TODO: make flexible
-    if not cfg.MODEL.STRUCTURED_OUTPUT:
+    parser = PydanticOutputParser(pydantic_object=str_output)
+    if not cfg.MODEL.NATIVE_STRUCTURED_OUTPUT:
         system_prompt_str += "Wrap the output in `json` tags\n{format_instructions}"
 
     # build few_shot_prompt

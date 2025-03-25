@@ -27,10 +27,10 @@ from tools.utils import (
 from prompt.few_shot_prompt import df_to_listdict
 from tools.constants import TRAIN, VALIDATION, TEST
 from prompt.build import build_prompt
-from prompt.json_schema import MCQAnswer
 from model.build import build_model
 from tools.evaluate import evaluate, predict
 from example_formatter.build import build_example_formatter
+from structured_outputter.build import build_structured_outputter
 
 
 # set up logger
@@ -58,7 +58,6 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
     langfuse_context.update_current_trace(
         # name="custom-trace",
         session_id=f"{cfg.ID}~Run{run_n}",
-        # user_id="session-1234",
         metadata=convert_to_dict(cfg),
         tags=["dry-run" if args.dry_run else "full-run"],
     )
@@ -91,15 +90,18 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
     # seed
     set_seed(cfg.SEED + run_n)
 
+    # structured output
+    StrOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
+
     # prompt
-    prompt, _ = build_prompt(cfg=cfg, examples=list_train)
+    prompt, _ = build_prompt(cfg=cfg, examples=list_train, str_output=StrOutput)
 
     # model
     model = build_model(model_cfg=cfg.MODEL)
-    if cfg.MODEL.STRUCTURED_OUTPUT:
+    if cfg.MODEL.NATIVE_STRUCTURED_OUTPUT:
         model = model.with_structured_output(
-            MCQAnswer, include_raw=True
-        )  # TODO: make flexible
+            StrOutput, include_raw=True
+        )
 
     # chain
     chain = prompt | model
@@ -109,8 +111,8 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
         chain=chain,
         data=list_val,
         prefix="val",
-        structured=cfg.MODEL.STRUCTURED_OUTPUT,
-        json_schema=MCQAnswer,
+        structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+        json_schema=StrOutput,
         langfuse_handler=langfuse_handler,
     )
     # TODO: also for test set
@@ -122,7 +124,12 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
         prefix="val",
         trace_id=trace_id,
     )
-    # test_result = evaluate(preds_validated=preds_validated, dataset=datasets[TEST], prefix="test")
+    # test_result = evaluate(
+    #     preds_validated=test_preds["test_preds_validated"],
+    #     dataset=datasets[TEST],
+    #     prefix="test",
+    #     trace_id=trace_id,
+    # )
 
     write_pickle(
         {

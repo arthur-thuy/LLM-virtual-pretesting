@@ -27,6 +27,11 @@ _C.MODEL.TIMEOUT = None
 # max retries (openai and anthropic only)
 _C.MODEL.MAX_RETRIES = None
 
+# structured output
+_C.STRUCTURED_OUTPUTTER = CN()
+# structured output name
+_C.STRUCTURED_OUTPUTTER.NAME = "A"
+
 # data loader
 _C.LOADER = CN()
 # dataset name

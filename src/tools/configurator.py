@@ -80,7 +80,7 @@ def _add_derived_configs(
     cfg.ID = create_config_id(cfg)
     cfg.TUNE_ID = create_tuning_config_id(cfg)
     cfg.OUTPUT_DIR = f"./output/{config_dir}"
-    cfg.MODEL.STRUCTURED_OUTPUT = MODEL_STRUCTURED_OUTPUT[cfg.MODEL.NAME]
+    cfg.MODEL.NATIVE_STRUCTURED_OUTPUT = MODEL_STRUCTURED_OUTPUT[cfg.MODEL.NAME]
     if freeze:
         cfg.freeze()
     return cfg
