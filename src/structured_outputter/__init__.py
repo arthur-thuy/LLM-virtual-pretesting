@@ -8,4 +8,4 @@
 
 # local application/library specific imports
 from structured_outputter.build import build_structured_outputter
-from structured_outputter.structured_outputter import StrOutputA
+from structured_outputter.structured_outputter import StrOutputA, StrOutputB
