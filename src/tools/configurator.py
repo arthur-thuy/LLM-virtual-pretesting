@@ -13,7 +13,7 @@ from yacs.config import CfgNode
 
 # local application/library specific imports
 from tools.utils import ensure_dir
-from tools.constants import MODEL_STRUCTURED_OUTPUT
+from tools.constants import MODEL_STRUCTURED_OUTPUT, _VALID_TYPES
 
 # set up logger
 logger = structlog.get_logger(__name__)
@@ -223,9 +223,6 @@ def check_cfg(cfg: CfgNode) -> None:
         If error in values of LOADER.VAL_SET, TRAIN.EARLY_STOPPING, and TRAIN.PATIENCE
     """
     pass
-
-
-_VALID_TYPES = {tuple, list, str, int, float, bool}
 
 
 def convert_to_dict(cfg_node, key_list=[]):

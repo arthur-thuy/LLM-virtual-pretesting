@@ -1,5 +1,8 @@
 """Constants."""
 
+from types import NoneType
+
+
 # datasets
 CUPA = "cupa"
 
@@ -57,3 +60,7 @@ PROMPT_INFO = {
         "exam_type": "a database systems exam (Department of Computer Science)"
     }
 }
+
+# configuration types
+
+_VALID_TYPES = {tuple, list, str, int, float, bool, NoneType}
