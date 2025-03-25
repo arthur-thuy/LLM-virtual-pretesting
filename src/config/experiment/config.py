@@ -30,7 +30,7 @@ _C.MODEL.MAX_RETRIES = None
 # structured output
 _C.STRUCTURED_OUTPUTTER = CN()
 # structured output name
-_C.STRUCTURED_OUTPUTTER.NAME = "A"
+_C.STRUCTURED_OUTPUTTER.NAME = "B"
 
 # data loader
 _C.LOADER = CN()
