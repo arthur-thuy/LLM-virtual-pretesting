@@ -1,30 +1,18 @@
 # Own implementation
 
-Elements of prompt:
-- System message
-    - Give context about type of exam and subject. "You will be shown a multiple choice question from an English reading comprehension exam"
-    - Say that it needs to analyze the mistakes in the few-shot examples and that it sould make similar mistakes/misconceptions.
-    - Do we say what the level of the student is or should the LLM solely rely on the previous examples?
-    - ask to explain misconception in this question. -> we do not have these misconceptions in the data!
-    - ask for chain of thought (CoT) why each answer options is correct/incorrect?
-    - say how it should answer? What would be the correct answer for a particular student?
-- show few-shot examples (TODO: decide how exactly)
+Resources:
+- check Kaggle competition [Eedi - Mining Misconceptions in Mathematics](https://www.kaggle.com/competitions/eedi-mining-misconceptions-in-mathematics/overview) for inspiration on how to handle misconceptions. Can check the winning solution in the discussion forum.
+- check [End-to-end LLM Workflows Guide](https://www.anyscale.com/blog/end-to-end-llm-workflows-guide?_gl=1*b35e5w*_gcl_au*MjM4MDY3NDkwLjE3NDI5NzMxNzU.)
 
 
 
 TODO: 
-- give few-shot examples of a particular student -> what dataset??
-- add build functions:
-    - config files
-    - model
-    - system prompt (student level explanation here)
-    - example selector for few-shot examples
-    - dataset loader (into dataframe with columns: prompt, output)
 - add code to pretty print an example
 - example selector: within the same student_id, select semantically similar examples
 - can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
 - Make sure the data is shuffled before splitting!
 - langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to log this on a per-observation basis? "correct" and "output_valid". -> don't know how to do it on a per-observation basis. I only implemented on a per batch basis (accuracy)
+- example formatter with quotes?
 
 
 # Questions meeting 17/03/2025
