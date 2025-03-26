@@ -5,7 +5,6 @@
 
 # related third party imports
 import structlog
-from pydantic import BaseModel, Field
 from langchain_core.exceptions import OutputParserException
 from langchain_core.output_parsers import PydanticOutputParser
 
@@ -14,18 +13,6 @@ from langchain_core.output_parsers import PydanticOutputParser
 
 # set up logger
 logger = structlog.get_logger(__name__)
-
-
-class MCQAnswer(BaseModel):
-    """Answer to a multiple-choice question."""
-
-    explanation: str = Field(
-        description="Misconception if incorrectly answered; motivation if correctly answered"
-    )
-    student_answer: int = Field(
-        description="The student's answer to the question, as an integer (1-4)"
-    )
-    # difficulty: str = Field(description="The difficulty level of the question")
 
 
 def validate_output(outputs: list, schema) -> list:

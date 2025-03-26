@@ -1,41 +1,26 @@
-
-
-# Questions implementations Luca
-
-- Did Luca use langchain or other package?
-- What are the `prompt_idx` variables? see `utils.py` functions `build_system_message_from_params` and `get_student_levels_from_prompt_idx`
-
-
-
 # Own implementation
 
-Elements of prompt:
-- System message
-    - Give context about type of exam and subject. "You will be shown a multiple choice question from an English reading comprehension exam"
-    - Say that it needs to analyze the mistakes in the few-shot examples and that it sould make similar mistakes/misconceptions.
-    - Do we say what the level of the student is or should the LLM solely rely on the previous examples?
-    - ask to explain misconception in this question. -> we do not have these misconceptions in the data!
-    - ask for chain of thought (CoT) why each answer options is correct/incorrect?
-    - say how it should answer? What would be the correct answer for a particular student?
-- show few-shot examples (TODO: decide how exactly)
+Resources:
+- check Kaggle competition [Eedi - Mining Misconceptions in Mathematics](https://www.kaggle.com/competitions/eedi-mining-misconceptions-in-mathematics/overview) for inspiration on how to handle misconceptions. Can check the winning solution in the discussion forum.
+- check [End-to-end LLM Workflows Guide](https://www.anyscale.com/blog/end-to-end-llm-workflows-guide?_gl=1*b35e5w*_gcl_au*MjM4MDY3NDkwLjE3NDI5NzMxNzU.)
 
 
 
 TODO: 
-- give few-shot examples of a particular student -> what dataset??
-- add build functions:
-    - config files
-    - model
-    - system prompt (student level explanation here)
-    - example selector for few-shot examples
-    - dataset loader (into dataframe with columns: prompt, output)
-- give CUPA dataset and ask to find possible misconceptions that students of various levels can make
 - add code to pretty print an example
 - example selector: within the same student_id, select semantically similar examples
 - can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
 - Make sure the data is shuffled before splitting!
-- create build function for structured output class
-- langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to have log this on a per-observation basis? "correct" and "output_valid".
+- langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to log this on a per-observation basis? "correct" and "output_valid". -> don't know how to do it on a per-observation basis. I only implemented on a per batch basis (accuracy)
+- example formatter with quotes?
+- make fixed splits for train/val/test
+- pinecone for vector database:
+    - use `filter` argument in `similarity_search` function to filter on student_id
+    - can use namespaces to get multiple datasets in one index (max 5 indexes in free tier). E.g., index llama3 has 2 namespaces: DBE-KT22 and CUPA
+    - do we need to embed once for every question_id or once for every interaction_id? We only need the input, which does not depend on the interaction_id. So we can embed once for every question_id. -> need to keep track of the question-answer records.
+    - can a student answer the same question multiple times? If yes, do we want to exclude this in the semantic search? Which record to select if the question is semantically similar?
+    - create build_embedding() function in model/build.py + add build_openai_embedding() function + rename existing functions to build_openai_model etc.
+
 
 
 # Questions meeting 17/03/2025

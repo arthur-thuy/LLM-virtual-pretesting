@@ -2,7 +2,7 @@
 
 # standard library imports
 import time
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 # related third party imports
 import structlog
@@ -11,6 +11,7 @@ import pandas as pd
 from numpy.typing import ArrayLike
 from sklearn.metrics import accuracy_score
 from pydantic import BaseModel
+from langfuse import Langfuse
 
 # local application/library specific imports
 from tools.constants import Q_CORRECT_OPTION_ID, S_OPTION_ID
@@ -102,7 +103,11 @@ def compute_metrics(
 
 
 def evaluate(
-    preds_validated: list, dataset: pd.DataFrame, prefix: Literal["val", "test"]
+    preds_validated: list,
+    dataset: pd.DataFrame,
+    prefix: Literal["val", "test"],
+    langfuse_session: Langfuse,
+    trace_id: Optional[str] = None,
 ) -> dict:
     """Evaluate.
 
@@ -114,6 +119,10 @@ def evaluate(
         Dataset.
     prefix : Literal["val", "test"]
         Prefix.
+    langfuse_session : Langfuse
+        Langfuse session.
+    trace_id : Optional[str] = None
+        Langfuse trace ID. If None, not logged.
 
     Returns
     -------
@@ -137,4 +146,17 @@ def evaluate(
         f"{prefix}_y_true": y_val_true,
         f"{prefix}_y_student": y_val_student,
     }
+    if trace_id is not None:
+        langfuse_session.score(
+            trace_id=trace_id,
+            name=f"{prefix}_accuracy",
+            value=metrics["acc_student_pred"],
+            data_type="NUMERIC",
+        )
+        langfuse_session.score(
+            trace_id=trace_id,
+            name=f"{prefix}_prop_invalid",
+            value=metrics["prop_invalid"],
+            data_type="NUMERIC",
+        )
     return logs

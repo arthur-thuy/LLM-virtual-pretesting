@@ -18,6 +18,10 @@ Optional argument: `--dry-run` to predict only for 10 examples
 Create an `.env` file at the root level with contents:
 ```
 OPENAI_API_KEY="your_openai_api_key"
+
+LANGFUSE_SECRET_KEY="..."
+LANGFUSE_PUBLIC_KEY="..."
+LANGFUSE_HOST="..."
 ```
 
 # Langfuse dashboard

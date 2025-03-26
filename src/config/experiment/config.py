@@ -18,14 +18,17 @@ _C.MODEL.NAME = "llama3"
 _C.MODEL.PROVIDER = "ollama"
 # model temperature
 _C.MODEL.TEMPERATURE = 0.0
-# format
-_C.MODEL.FORMAT = "json"
 # max tokens
 _C.MODEL.MAX_TOKENS = None
 # timeout (openai and anthropic only)
 _C.MODEL.TIMEOUT = None
 # max retries (openai and anthropic only)
 _C.MODEL.MAX_RETRIES = None
+
+# structured output
+_C.STRUCTURED_OUTPUTTER = CN()
+# structured output name
+_C.STRUCTURED_OUTPUTTER.NAME = "B"
 
 # data loader
 _C.LOADER = CN()
@@ -50,12 +53,11 @@ _C.EXAMPLE_SELECTOR.NAME = "random"
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 3
 
-# prompt
-_C.PROMPT = CN()
-# system prompt
-_C.PROMPT.SYSTEM = CN()
+# systemprompt
+_C.SYSTEM_PROMPT = CN()
 # system prompt name
 _C.PROMPT.SYSTEM.NAME = "student_A"
+
 
 
 def get_cfg_defaults() -> CN:

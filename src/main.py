@@ -5,10 +5,16 @@ import argparse
 import os
 import time
 
+# NOTE: load environment variables
+from tools.utils import load_env  # isort:skip
+
+load_env(os.path.join("..", ".env"))  # noqa
+
 # related third party imports
 import structlog
 from yacs.config import CfgNode
 from langfuse.decorators import langfuse_context, observe
+from langfuse import Langfuse
 
 # local application/library specific imports
 from data_loader.build import build_dataset
@@ -22,10 +28,10 @@ from tools.utils import (
 from prompt.few_shot_prompt import df_to_listdict
 from tools.constants import TRAIN, VALIDATION, TEST
 from prompt.build import build_prompt
-from prompt.json_schema import MCQAnswer
 from model.build import build_model
 from tools.evaluate import evaluate, predict
 from example_formatter.build import build_example_formatter
+from structured_outputter.build import build_structured_outputter
 
 
 # set up logger
@@ -47,18 +53,18 @@ parser.add_argument(
 
 # Create a trace via Langfuse decorators and get a Langchain Callback handler for it
 @observe()  # automtically log function as a trace to Langfuse
-def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
+def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -> None:
     """Run a single configuration."""
     # update trace attributes (e.g, name, session_id, user_id)
     langfuse_context.update_current_trace(
         # name="custom-trace",
         session_id=f"{cfg.ID}~Run{run_n}",
-        # user_id="session-1234",
         metadata=convert_to_dict(cfg),
         tags=["dry-run" if args.dry_run else "full-run"],
     )
     # get the langchain handler for the current trace
     langfuse_handler = langfuse_context.get_current_langchain_handler()
+    trace_id = langfuse_context.get_current_trace_id()
 
     start_time = time.time()
     print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
@@ -85,15 +91,16 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
     # seed
     set_seed(cfg.SEED + run_n)
 
+    # structured output
+    StrOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
+
     # prompt
-    prompt, _ = build_prompt(cfg=cfg, examples=list_train)
+    prompt, _ = build_prompt(cfg=cfg, examples=list_train, str_output=StrOutput)
 
     # model
     model = build_model(model_cfg=cfg.MODEL)
-    if cfg.MODEL.STRUCTURED_OUTPUT:
-        model = model.with_structured_output(
-            MCQAnswer, include_raw=True
-        )  # TODO: make flexible
+    if cfg.MODEL.NATIVE_STRUCTURED_OUTPUT:
+        model = model.with_structured_output(StrOutput, include_raw=True)
 
     # chain
     chain = prompt | model
@@ -103,8 +110,8 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
         chain=chain,
         data=list_val,
         prefix="val",
-        structured=cfg.MODEL.STRUCTURED_OUTPUT,
-        json_schema=MCQAnswer,
+        structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+        json_schema=StrOutput,
         langfuse_handler=langfuse_handler,
     )
     # TODO: also for test set
@@ -114,8 +121,15 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
         preds_validated=val_preds["val_preds_validated"],
         dataset=datasets[VALIDATION],
         prefix="val",
+        langfuse_session=langfuse_session,
+        trace_id=trace_id,
     )
-    # test_result = evaluate(preds_validated=preds_validated, dataset=datasets[TEST], prefix="test")
+    # test_result = evaluate(
+    #     preds_validated=test_preds["test_preds_validated"],
+    #     dataset=datasets[TEST],
+    #     prefix="test",
+    #     trace_id=trace_id,
+    # )
 
     write_pickle(
         {
@@ -144,12 +158,17 @@ def main() -> None:
     for cfg in configs:
         check_cfg(cfg)
 
+    # langfuse
+    langfuse_session = Langfuse()
+
     for cfg in configs:
         print("\n", "=" * 10, f"Config: {cfg.ID}", "=" * 10)
 
         # start experiment loop
         for run_n in range(1, cfg.RUNS + 1):
-            run_single_cfg(cfg=cfg, run_n=run_n, args=args)
+            run_single_cfg(
+                cfg=cfg, run_n=run_n, args=args, langfuse_session=langfuse_session
+            )
 
         save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
 
