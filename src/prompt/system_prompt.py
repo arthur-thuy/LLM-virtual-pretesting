@@ -10,14 +10,14 @@
 from prompt.build import SYSTEM_PROMPT_REGISTRY
 
 
-@SYSTEM_PROMPT_REGISTRY.register("A")
-def build_A() -> str:
-    """Build system prompt A.
+@SYSTEM_PROMPT_REGISTRY.register("student_A")
+def build_student_A() -> str:
+    """Build system prompt.
 
     Returns
     -------
     str
-        System prompt A
+        System prompt
     """
     system_prompt_str = (
         "You are a student working on {exam_type}, containing multiple choice questions. "
@@ -26,25 +26,25 @@ def build_A() -> str:
         "Inspect the new question and think how you would answer it as a student. "
         "If you answer incorrectly, explain which misconception leads to selecting that answer. "
         "If you answer correctly, explain why you think the answer is correct. "
-        "Provide your answer as an integer in the range 1-4. "
+        "Provide your answer as the integer index of the multiple choice option. "
     )
     return system_prompt_str
 
-@SYSTEM_PROMPT_REGISTRY.register("B")
-def build_B() -> str:
-    """Build system prompt B.
+
+@SYSTEM_PROMPT_REGISTRY.register("teacher_A")
+def build_teacher_A() -> str:
+    """Build system prompt.
 
     Returns
     -------
     str
-        System prompt B
+        System prompt
     """
     system_prompt_str = (
-        "You are an expert teaching preparing a set of Multiple Choice Questions for {exam_type}. "
-        "You will be shown a set of students' responses  to previous questions. "  # They must be from the *same* or a *similar* student.
+        "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "
+        "You will be shown a set of students' responses to previous questions. "  # They must be from the *same* or a *similar* student.
         "Analyse the reponses to the questions and identify the possible misconceptions that led to the errors. "
-        "Then, discussing if and how those misconceptions might cause the student to make a mistake on the new question. "
-        "Finally, select the index of the answer option that the student would select. "
-        "Provide your answer as an integer in the range 1-4. "
+        "Consider how those misconceptions might cause the student to make a mistake on this new question. "
+        "Finally, from the provided options, select the index of the answer option that the student would select. "
     )
     return system_prompt_str
