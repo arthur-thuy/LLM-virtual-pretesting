@@ -106,6 +106,7 @@ def evaluate(
     preds_validated: list,
     dataset: pd.DataFrame,
     prefix: Literal["val", "test"],
+    langfuse_session: Langfuse,
     trace_id: Optional[str] = None,
 ) -> dict:
     """Evaluate.
@@ -118,6 +119,8 @@ def evaluate(
         Dataset.
     prefix : Literal["val", "test"]
         Prefix.
+    langfuse_session : Langfuse
+        Langfuse session.
     trace_id : Optional[str] = None
         Langfuse trace ID. If None, not logged.
 
@@ -144,14 +147,13 @@ def evaluate(
         f"{prefix}_y_student": y_val_student,
     }
     if trace_id is not None:
-        langfuse = Langfuse()
-        langfuse.score(
+        langfuse_session.score(
             trace_id=trace_id,
             name=f"{prefix}_accuracy",
             value=metrics["acc_student_pred"],
             data_type="NUMERIC",
         )
-        langfuse.score(
+        langfuse_session.score(
             trace_id=trace_id,
             name=f"{prefix}_prop_invalid",
             value=metrics["prop_invalid"],

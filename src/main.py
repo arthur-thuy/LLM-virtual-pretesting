@@ -14,6 +14,7 @@ load_env(os.path.join("..", ".env"))  # noqa
 import structlog
 from yacs.config import CfgNode
 from langfuse.decorators import langfuse_context, observe
+from langfuse import Langfuse
 
 # local application/library specific imports
 from data_loader.build import build_dataset
@@ -52,7 +53,7 @@ parser.add_argument(
 
 # Create a trace via Langfuse decorators and get a Langchain Callback handler for it
 @observe()  # automtically log function as a trace to Langfuse
-def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
+def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -> None:
     """Run a single configuration."""
     # update trace attributes (e.g, name, session_id, user_id)
     langfuse_context.update_current_trace(
@@ -99,9 +100,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
     # model
     model = build_model(model_cfg=cfg.MODEL)
     if cfg.MODEL.NATIVE_STRUCTURED_OUTPUT:
-        model = model.with_structured_output(
-            StrOutput, include_raw=True
-        )
+        model = model.with_structured_output(StrOutput, include_raw=True)
 
     # chain
     chain = prompt | model
@@ -122,6 +121,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
         preds_validated=val_preds["val_preds_validated"],
         dataset=datasets[VALIDATION],
         prefix="val",
+        langfuse_session=langfuse_session,
         trace_id=trace_id,
     )
     # test_result = evaluate(
@@ -158,12 +158,17 @@ def main() -> None:
     for cfg in configs:
         check_cfg(cfg)
 
+    # langfuse
+    langfuse_session = Langfuse()
+
     for cfg in configs:
         print("\n", "=" * 10, f"Config: {cfg.ID}", "=" * 10)
 
         # start experiment loop
         for run_n in range(1, cfg.RUNS + 1):
-            run_single_cfg(cfg=cfg, run_n=run_n, args=args)
+            run_single_cfg(
+                cfg=cfg, run_n=run_n, args=args, langfuse_session=langfuse_session
+            )
 
         save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
 
