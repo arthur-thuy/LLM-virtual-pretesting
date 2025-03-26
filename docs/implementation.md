@@ -13,6 +13,14 @@ TODO:
 - Make sure the data is shuffled before splitting!
 - langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to log this on a per-observation basis? "correct" and "output_valid". -> don't know how to do it on a per-observation basis. I only implemented on a per batch basis (accuracy)
 - example formatter with quotes?
+- make fixed splits for train/val/test
+- pinecone for vector database:
+    - use `filter` argument in `similarity_search` function to filter on student_id
+    - can use namespaces to get multiple datasets in one index (max 5 indexes in free tier). E.g., index llama3 has 2 namespaces: DBE-KT22 and CUPA
+    - do we need to embed once for every question_id or once for every interaction_id? We only need the input, which does not depend on the interaction_id. So we can embed once for every question_id. -> need to keep track of the question-answer records.
+    - can a student answer the same question multiple times? If yes, do we want to exclude this in the semantic search? Which record to select if the question is semantically similar?
+    - create build_embedding() function in model/build.py + add build_openai_embedding() function + rename existing functions to build_openai_model etc.
+
 
 
 # Questions meeting 17/03/2025

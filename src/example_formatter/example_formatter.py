@@ -16,6 +16,8 @@ from tools.constants import (
     STUDENT_ID,
     Q_CORRECT_OPTION_ID,
     S_OPTION_ID,
+    QUESTION_ID,
+    INTERACT_ID,
 )
 
 
@@ -51,4 +53,6 @@ def build_A(dataset: pd.DataFrame) -> pd.DataFrame:
     df_out[INPUT] = dataset.apply(input_fmt, axis=1)
     df_out[OUTPUT] = dataset.apply(output_fmt, axis=1)
     df_out[STUDENT_ID] = dataset[STUDENT_ID]
+    df_out[QUESTION_ID] = dataset[QUESTION_ID]
+    df_out[INTERACT_ID] = dataset[INTERACT_ID]
     return df_out
