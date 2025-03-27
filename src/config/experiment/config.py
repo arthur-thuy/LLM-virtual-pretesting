@@ -36,10 +36,10 @@ _C.LOADER = CN()
 _C.LOADER.NAME = "dbe_kt22"
 # dataset join key
 _C.LOADER.JOIN_KEY = "question_id"
-# train size
-_C.LOADER.TRAIN_SIZE = 0.6
-# test size
-_C.LOADER.TEST_SIZE = 0.25
+# # train size
+# _C.LOADER.TRAIN_SIZE = 0.6
+# # test size
+# _C.LOADER.TEST_SIZE = 0.25
 
 # example formatter
 _C.EXAMPLE_FORMATTER = CN()
@@ -57,7 +57,6 @@ _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 3
 _C.SYSTEM_PROMPT = CN()
 # system prompt name
 _C.PROMPT.SYSTEM.NAME = "student_A"
-
 
 
 def get_cfg_defaults() -> CN:

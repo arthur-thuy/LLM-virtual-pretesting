@@ -131,7 +131,8 @@ class DBEKT22Datamanager:
 
     def _process_interact_row(self, row, df_q: pd.DataFrame) -> int:
         option_ids = df_q[df_q[QUESTION_ID] == row[QUESTION_ID]].iloc[0][Q_OPTION_IDS]
-        return option_ids.index(row[S_OPTION_ID])
+        return option_ids.index(row[S_OPTION_ID])  # ValueError: 619 is not in list
+        # TODO: make sure this zero-indexing aligns with one-indexing in prompt
 
     def _preprocess_interactions(
         self,
@@ -169,6 +170,7 @@ class DBEKT22Datamanager:
 
         return df_interact
 
+    # TODO: remove
     # def _process_row(
     #     self, row, df_q: pd.DataFrame, df_q_choice: pd.DataFrame
     # ) -> tuple[str, list, int, int, int]:

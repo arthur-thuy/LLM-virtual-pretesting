@@ -22,6 +22,7 @@ TODO:
     - create build_embedding() function in model/build.py + add build_openai_embedding() function + rename existing functions to build_openai_model etc.
 - DBE-KT22: 
     - convert html to latex code and to markdown table? -> check draft.ipynb
+    - data splitting: "ValueError: 619 is not in list"
 
 
 

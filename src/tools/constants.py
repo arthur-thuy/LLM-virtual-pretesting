@@ -11,6 +11,8 @@ BRONZE_DIR = "../data/raw"
 SILVER_DIR = "../data/processed"
 
 VALIDATION = "validation"
+VALSMALL = "valsmall"
+VALLARGE = "vallarge"
 TEST = "test"
 TRAIN = "train"
 
