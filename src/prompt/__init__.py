@@ -8,4 +8,4 @@
 
 # local application/library specific imports
 from prompt.build import build_prompt, SYSTEM_PROMPT_REGISTRY
-from prompt.system_prompt import build_A
+from prompt.system_prompt import build_student_A, build_teacher_A

@@ -56,7 +56,8 @@ _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 3
 # systemprompt
 _C.SYSTEM_PROMPT = CN()
 # system prompt name
-_C.SYSTEM_PROMPT.NAME = "A"
+_C.PROMPT.SYSTEM.NAME = "student_A"
+
 
 
 def get_cfg_defaults() -> CN:
