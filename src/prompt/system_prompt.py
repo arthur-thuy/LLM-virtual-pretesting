@@ -43,7 +43,7 @@ def build_teacher_A() -> str:
     system_prompt_str = (
         "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "
         "You will be shown a set of students' responses to previous questions. "  # They must be from the *same* or a *similar* student.
-        "Analyse the reponses to the questions and identify the possible misconceptions that led to the errors. "
+        "Analyse the responses to the questions and identify the possible misconceptions that led to the errors. "
         "Consider how those misconceptions might cause the student to make a mistake on this new question. "
         "Finally, from the provided options, select the index of the answer option that the student would select. "
     )
