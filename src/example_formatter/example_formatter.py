@@ -55,4 +55,5 @@ def build_A(dataset: pd.DataFrame) -> pd.DataFrame:
     df_out[STUDENT_ID] = dataset[STUDENT_ID]
     df_out[QUESTION_ID] = dataset[QUESTION_ID]
     df_out[INTERACT_ID] = dataset[INTERACT_ID]
+    df_out[Q_TEXT] = dataset[Q_TEXT]
     return df_out

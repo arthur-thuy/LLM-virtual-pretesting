@@ -20,6 +20,8 @@ TODO:
     - do we need to embed once for every question_id or once for every interaction_id? We only need the input, which does not depend on the interaction_id. So we can embed once for every question_id. -> need to keep track of the question-answer records.
     - can a student answer the same question multiple times? If yes, do we want to exclude this in the semantic search? Which record to select if the question is semantically similar?
     - create build_embedding() function in model/build.py + add build_openai_embedding() function + rename existing functions to build_openai_model etc.
+- DBE-KT22: 
+    - convert html to latex code and to markdown table? -> check draft.ipynb
 
 
 
@@ -41,7 +43,7 @@ TODO:
         - need to compute IRT parameters manually -> provided difficulty is discrete. Which package to use?
         - can use rich question text and change the latex urls to normal latex commands (e.g., `<img src="http://latex.codecogs.com/gif.latex?T_{1}" border="0"/>` to `T_{1}`)
         - what do we do with MC questions with more or less than 4 answer options?
-        - What to do with the HTML content? E.g., tables.
+        - What to do with the HTML tables -> can we render to markdown?
         - Do we use entire dataset? A lot of questions so might be expensive
     - CUPA
         - We do not have student-answer records? How do we select relevant few-shot examples?
