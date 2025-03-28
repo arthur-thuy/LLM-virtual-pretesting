@@ -25,7 +25,7 @@ from tools.utils import (
     write_pickle,
     set_seed,
 )
-from prompt.few_shot_prompt import df_to_listdict
+from prompt.utils import df_to_listdict
 from tools.constants import TRAIN, TEST, VALSMALL, VALLARGE, VALIDATION  # noqa
 from prompt.build import build_prompt
 from model.build import build_model

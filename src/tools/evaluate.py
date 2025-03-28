@@ -16,7 +16,7 @@ from langfuse import Langfuse
 # local application/library specific imports
 from tools.constants import Q_CORRECT_OPTION_ID, S_OPTION_ID
 from tools.utils import format_time, BatchCallback
-from prompt.json_schema import validate_output
+from prompt.utils import validate_output
 
 # set up logger
 logger = structlog.get_logger(__name__)

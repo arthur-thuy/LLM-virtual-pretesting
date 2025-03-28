@@ -1,9 +1,10 @@
-"""Module for structured output."""
+"""Module for prompt utils."""
 
 # standard library imports
 # /
 
 # related third party imports
+import pandas as pd
 import structlog
 from langchain_core.exceptions import OutputParserException
 from langchain_core.output_parsers import PydanticOutputParser
@@ -13,6 +14,26 @@ from langchain_core.output_parsers import PydanticOutputParser
 
 # set up logger
 logger = structlog.get_logger(__name__)
+
+
+def df_to_listdict(df: pd.DataFrame) -> list[dict]:
+    """Convert a DataFrame to a list of dictionaries.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame.
+
+    Returns
+    -------
+    list[dict]
+        List of dictionaries.
+    """
+    list_out = []
+    for _, row in df.iterrows():
+        dict_out = {colname: row[colname] for colname in df.columns}
+        list_out.append(dict_out)
+    return list_out
 
 
 def validate_output(outputs: list, schema) -> list:
