@@ -125,7 +125,7 @@ class DataLoader:
                 ),
                 index=False,
             )
-        logger.info(
-            f"Writing {split} split",
-            num_interactions=len(datasets[split]),
-        )
+            logger.info(
+                f"Writing {split} split",
+                num_interactions=len(datasets[split]),
+            )

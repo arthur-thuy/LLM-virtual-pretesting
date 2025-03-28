@@ -26,7 +26,7 @@ from tools.utils import (
     set_seed,
 )
 from prompt.few_shot_prompt import df_to_listdict
-from tools.constants import TRAIN, VALIDATION, TEST
+from tools.constants import TRAIN, TEST, VALSMALL, VALLARGE, VALIDATION  # noqa
 from prompt.build import build_prompt
 from model.build import build_model
 from tools.evaluate import evaluate, predict
@@ -71,11 +71,23 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     # load data
     datasets = build_dataset(cfg.LOADER)
+    #
+    if cfg.LOADER.RUN_LARGE_VAL:
+        datasets[VALIDATION] = datasets.pop(VALLARGE)
+        datasets.pop(VALSMALL)
+    else:
+        datasets[VALIDATION] = datasets.pop(VALSMALL)
+        datasets.pop(VALLARGE)
+    logger.info(
+        "Choosing validation set",
+        name=(VALLARGE if cfg.LOADER.RUN_LARGE_VAL else VALSMALL),
+        num_interactions=len(datasets[VALIDATION]),
+    )
+
     # subset
     if args.dry_run:
         logger.info("Dry run: using only 10 observations")
-        datasets[VALIDATION] = datasets[VALIDATION].iloc[:10, :]
-        datasets[TEST] = datasets[TEST].iloc[:10, :]
+        datasets[VALSMALL] = datasets[VALSMALL].iloc[:10, :]
 
     # dataframes
     datasets_fmt = build_example_formatter(
@@ -86,7 +98,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # list of dicts
     list_train = df_to_listdict(datasets_fmt[TRAIN])
     list_val = df_to_listdict(datasets_fmt[VALIDATION])
-    list_test = df_to_listdict(datasets_fmt[TEST])  # noqa
+    # list_test = df_to_listdict(datasets_fmt[TEST])  # noqa  # TODO
 
     # seed
     set_seed(cfg.SEED + run_n)
@@ -105,7 +117,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # chain
     chain = prompt | model
 
-    # predict
+    # predict & evaluate
     val_preds = predict(
         chain=chain,
         data=list_val,
@@ -114,9 +126,6 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         json_schema=StrOutput,
         langfuse_handler=langfuse_handler,
     )
-    # TODO: also for test set
-
-    # evaluate
     val_result = evaluate(
         preds_validated=val_preds["val_preds_validated"],
         dataset=datasets[VALIDATION],
@@ -124,6 +133,8 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         langfuse_session=langfuse_session,
         trace_id=trace_id,
     )
+
+    # TODO: also for test set
     # test_result = evaluate(
     #     preds_validated=test_preds["test_preds_validated"],
     #     dataset=datasets[TEST],

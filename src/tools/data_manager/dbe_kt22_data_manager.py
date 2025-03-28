@@ -59,11 +59,15 @@ class DBEKT22Datamanager:
         df_questions = df_questions.drop(columns=[Q_OPTION_IDS])
         if save_dataset:
             output_path = os.path.join(write_dir, f"{self.name}_questions.csv")
-            logger.info("Saving dataset", path=output_path)
+            logger.info("Saving questions dataset", path=output_path)
             df_questions.to_csv(output_path, index=False)
 
             output_path = os.path.join(write_dir, f"{self.name}_interactions.csv")
-            logger.info("Saving dataset", path=output_path)
+            logger.info(
+                "Saving interactions dataset",
+                path=output_path,
+                num_interactions=len(df_interactions),
+            )
             df_interactions.to_csv(output_path, index=False)
 
         return df_questions, df_interactions
@@ -132,8 +136,10 @@ class DBEKT22Datamanager:
         )
 
         # regex to get latex code from html link
-        pattern = r'<img src="http://latex\.codecogs\.com/gif\.latex\?([^"]+)" border="0"/>'
-        df[Q_TEXT] = df[Q_TEXT].apply(lambda row: re.sub(pattern, r'\1', row))
+        pattern = (
+            r'<img src="http://latex\.codecogs\.com/gif\.latex\?([^"]+)" border="0"/>'
+        )
+        df[Q_TEXT] = df[Q_TEXT].apply(lambda row: re.sub(pattern, r"\1", row))
         return df
 
     def _process_interact_row(self, row, df_q: pd.DataFrame) -> int:
@@ -152,10 +158,21 @@ class DBEKT22Datamanager:
     ) -> pd.DataFrame:
         # student-question interactions
         df_interact = pd.read_csv(os.path.join(read_dir, "Transaction.csv"))
+        # NOTE: omit records where hint is used
+        df_interact = df_interact[df_interact["hint_used"] == False]
         # remove invalid interactions (manually identified)
         df_interact = df_interact[df_interact["id"] != 2878]
-        # NOTE: omit questions where hint is used
-        df_interact = df_interact[df_interact["hint_used"] == False]
+        # only keep students that answered all questions
+        num_logs = (
+            df_interact.drop_duplicates(subset=["question_id", "student_id"])
+            .groupby("student_id")["question_id"]
+            .count()
+            .sort_values(ascending=False)
+            .reset_index()
+        )
+        students_all_q = num_logs[num_logs["question_id"] == 212]["student_id"].tolist()
+        df_interact = df_interact[df_interact["student_id"].isin(students_all_q)]
+
         df_interact = df_interact[
             ["id", STUDENT_ID, QUESTION_ID, "answer_choice_id", "answer_state"]
         ]

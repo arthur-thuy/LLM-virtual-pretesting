@@ -36,10 +36,8 @@ _C.LOADER = CN()
 _C.LOADER.NAME = "dbe_kt22"
 # dataset join key
 _C.LOADER.JOIN_KEY = "question_id"
-# # train size
-# _C.LOADER.TRAIN_SIZE = 0.6
-# # test size
-# _C.LOADER.TEST_SIZE = 0.25
+# run large validation set
+_C.LOADER.RUN_LARGE_VAL = False
 
 # example formatter
 _C.EXAMPLE_FORMATTER = CN()
