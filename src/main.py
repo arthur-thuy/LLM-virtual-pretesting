@@ -87,7 +87,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # subset
     if args.dry_run:
         logger.info("Dry run: using only 10 observations")
-        datasets[VALSMALL] = datasets[VALSMALL].iloc[:10, :]
+        datasets[VALIDATION] = datasets[VALIDATION].iloc[:10, :]
 
     # dataframes
     datasets_fmt = build_example_formatter(
