@@ -52,9 +52,9 @@ _C.EXAMPLE_SELECTOR.NAME = "random"
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 3
 
 # systemprompt
-_C.SYSTEM_PROMPT = CN()
+_C.PROMPT = CN()
 # system prompt name
-_C.PROMPT.SYSTEM.NAME = "student_A"
+_C.PROMPT.NAME = "teacher_A"  # "student_A"  #
 
 
 def get_cfg_defaults() -> CN:

@@ -18,12 +18,14 @@ from tools.registry import Registry
 from example_selector.build import build_example_selector
 from tools.constants import PROMPT_INFO
 
-SYSTEM_PROMPT_REGISTRY = Registry()
+PROMPT_REGISTRY = Registry()
 
 logger = structlog.get_logger(__name__)
 
 
-def build_prompt(cfg: CfgNode, examples: list[dict], str_output: BaseModel) -> ChatPromptTemplate:
+def build_prompt(
+    cfg: CfgNode, examples: list[dict], str_output: BaseModel
+) -> ChatPromptTemplate:
     """Build the prompt.
 
     Parameters
@@ -42,17 +44,21 @@ def build_prompt(cfg: CfgNode, examples: list[dict], str_output: BaseModel) -> C
     """
     logger.info(
         "Building prompt",
-        system_prompt=cfg.SYSTEM_PROMPT.NAME,
+        system_prompt=cfg.PROMPT.NAME,
         native_structured_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
         example_selector=cfg.EXAMPLE_SELECTOR.NAME,
         num_examples=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
     )
     # build system prompt string
-    system_prompt_str = SYSTEM_PROMPT_REGISTRY[cfg.SYSTEM_PROMPT.NAME]()
-    # Set up a parser (not used if model supports structured output)
-    parser = PydanticOutputParser(pydantic_object=str_output)
+    prompt_dict = PROMPT_REGISTRY[cfg.PROMPT.NAME]()
     if not cfg.MODEL.NATIVE_STRUCTURED_OUTPUT:
-        system_prompt_str += "Wrap the output in `json` tags\n{format_instructions}"
+        prompt_dict[
+            "system"
+        ] += "{format_instructions}"
+    # Set up a parser (not used if model supports structured output)
+    parser = PydanticOutputParser(
+        pydantic_object=str_output
+    )  # TODO: rename because "str" of structured is confusing with string
 
     # build few_shot_prompt
     example_selector, input_vars = build_example_selector(
@@ -68,13 +74,16 @@ def build_prompt(cfg: CfgNode, examples: list[dict], str_output: BaseModel) -> C
         ),
     )
 
-    final_prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", system_prompt_str),
-            few_shot_prompt,
-            ("human", "{input}"),
-        ]
-    ).partial(
+    # Create the messages list conditionally
+    messages = [
+        ("system", prompt_dict["system"])
+    ]
+    if prompt_dict["human1"]:
+        messages.append(("human", prompt_dict["human1"] + "{input}"))
+    messages.append(few_shot_prompt)
+    messages.append(("human", prompt_dict["human2"] + "{input}"))
+    # Create the template from the messages list
+    final_prompt = ChatPromptTemplate.from_messages(messages).partial(
         format_instructions=parser.get_format_instructions(),
         exam_type=PROMPT_INFO[cfg.LOADER.NAME]["exam_type"],
     )
