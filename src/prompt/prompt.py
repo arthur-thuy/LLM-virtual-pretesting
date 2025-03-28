@@ -10,6 +10,7 @@
 from prompt.build import PROMPT_REGISTRY
 
 
+# TODO: remove this
 # @SYSTEM_PROMPT_REGISTRY.register("teacher_A")
 # def build_teacher_A() -> str:
 #     """Build system prompt.
@@ -41,11 +42,10 @@ def build_student_A() -> dict[str, str]:
         "If you answer correctly, explain why you think the answer is correct. "
         "Provide your answer as the integer index of the multiple choice option. "
     )
-    human2_prompt_str = ""
     return {
         "system": system_prompt_str,
-        "human1": None,
-        "human2": human2_prompt_str,
+        "human1": None,  # NOTE: no human1 message
+        "human2": "",  # NOTE: just the input
     }
 
 
