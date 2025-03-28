@@ -28,7 +28,7 @@ def main():
     _, _ = dbekt22_dm.build_dataset(
         read_dir=BRONZE_DIR, write_dir=SILVER_DIR, sample_student_ids=SAMPLE_STUDENT_IDS
     )
-    # TODO: create fixed split here!
+    # create fixed split
     data_loader = DataLoader(
         read_dir=SILVER_DIR,
         dataset_name="dbe_kt22",
