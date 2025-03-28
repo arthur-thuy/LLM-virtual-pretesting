@@ -120,8 +120,17 @@ def prepare_empty_vector_store(
 
 def populate_vector_store(
     vector_store: PineconeVectorStore,
-    data=pd.DataFrame,
+    data: pd.DataFrame,
 ) -> None:
+    """Populate the vector store with documents.
+
+    Parameters
+    ----------
+    vector_store : PineconeVectorStore
+        The vector store to populate.
+    data : pd.DataFrame
+        The data to populate the vector store with.
+    """
     vector_input_df = data.drop_duplicates(subset=QUESTION_ID)
 
     vector_input_doc = [
@@ -139,3 +148,43 @@ def populate_vector_store(
         num_docs=len(vector_input_doc),
     )
     _ = vector_store.add_documents(documents=vector_input_doc, ids=vector_input_id)
+
+
+def get_vector_store(
+    index_name: str, embedding_name: str, namespace: str
+) -> PineconeVectorStore:
+    """Get the Pinecode vector store.
+
+    Parameters
+    ----------
+    index_name : str
+        Index name
+    embedding_name : str
+        Embedding name
+    namespace : str
+        Index namespace
+
+    Returns
+    -------
+    PineconeVectorStore
+        The Pinecone vector store.
+
+    Raises
+    ------
+    ValueError
+        If the index does not exist.
+    """
+    pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
+    if not pc.has_index(index_name):
+        raise ValueError(f"Index {index_name} does not exist.")
+    index = pc.Index(index_name)
+    embedding = build_embedding(
+        embedding_name=embedding_name, provider=EMBEDDING_PROVIDER[embedding_name]
+    )
+    vector_store = PineconeVectorStore(
+        index=index, embedding=embedding, namespace=namespace
+    )
+    logger.info(
+        "Loaded Pinecone vector store", index_name=index_name, namespace=namespace
+    )
+    return vector_store

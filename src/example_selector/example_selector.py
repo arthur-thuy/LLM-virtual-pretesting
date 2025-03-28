@@ -4,33 +4,50 @@
 import random
 
 # related third party imports
+import numpy as np
 from langchain_core.example_selectors.base import BaseExampleSelector
 from yacs.config import CfgNode
 
 # local application/library specific imports
 from example_selector.build import EXAMPLE_SELECTOR_REGISTRY
+from tools.constants import MODEL_TO_EMBEDDING
+from tools.vector_db import get_vector_store
 
 
 @EXAMPLE_SELECTOR_REGISTRY.register("random")
 def build_random(
-    example_selector_cfg: CfgNode, examples: list[dict]
+    cfg: CfgNode, examples: list[dict]
 ) -> BaseExampleSelector:
     input_vars = []
     selector = RandomExampleSelector(
         examples=examples,
-        k=example_selector_cfg.NUM_EXAMPLES,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
     )
     return (selector, input_vars)
 
 
 @EXAMPLE_SELECTOR_REGISTRY.register("studentid_random")
 def build_studentid_random(
-    example_selector_cfg: CfgNode, examples: list[dict]
+    cfg: CfgNode, examples: list[dict]
 ) -> BaseExampleSelector:
     input_vars = ["student_id"]
     selector = StudentIDRandomExampleSelector(
         examples=examples,
-        k=example_selector_cfg.NUM_EXAMPLES,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("studentid_semantic")
+def build_studentid_semantic(
+    cfg: CfgNode, examples: list[dict]
+) -> BaseExampleSelector:
+    input_vars = ["student_id", "question_id", "q_text"]
+    selector = StudentIDSemanticExampleSelector(
+        examples=examples,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        model_name=cfg.MODEL.NAME,
+        namespace=cfg.LOADER.NAME,
     )
     return (selector, input_vars)
 
@@ -93,3 +110,110 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
         k = min(self.k, len(match_idx))
         idx_out = random.sample(match_idx, k)
         return [self.examples[i] for i in idx_out]
+
+
+class StudentIDSemanticExampleSelector(BaseExampleSelector):
+    """Filter examples of the same student_id and select based on semantic similarity."""
+
+    def __init__(
+        self, examples: list, k: int, model_name: str, namespace: str
+    ) -> None:
+        """Initialize the example selector.
+
+        Parameters
+        ----------
+        k : int
+            k-shot prompting
+        model_name : str
+            The name of the LLM.
+        namespace : str
+            The namespace of the Pinecone index.
+        """
+        self.examples = examples
+        self.k = k
+
+        embedding_name = MODEL_TO_EMBEDDING[model_name]
+        self.vectorstore = get_vector_store(
+            index_name=embedding_name, embedding_name=embedding_name, namespace=namespace
+        )
+
+    def add_example(self, example: list) -> None:
+        self.examples.append(example)
+
+    def select_examples(self, input_variables: dict) -> list[dict[str, str]]:
+        """Select examples based on semantic similarity.
+
+        Parameters
+        ----------
+        input_variables : dict[str, str]
+            A dict containing info about a single observation.
+
+        Returns
+        -------
+        list[dict[str, str]]
+            The selected examples.
+        """
+        # information of target observation
+        student_id = input_variables["student_id"]
+        question_id = input_variables["question_id"]
+        q_text = input_variables["q_text"]
+
+        # find all questions answered by this student
+        student_interactions = [
+            interact
+            for interact in self.examples
+            if interact["student_id"] == student_id
+        ]
+        q_answered = set([interact["question_id"] for interact in student_interactions])
+        q_answered = list(
+            map(str, q_answered - {question_id})
+        )  # NOTE: remove current question_id
+
+        # semantic search on question text
+        results = self.vectorstore.similarity_search(
+            query=q_text,
+            k=self.k,
+            filter={"question_id": {"$in": q_answered}},
+        )
+        question_ids_selected = list(
+            map(int, [res.metadata["question_id"] for res in results])
+        )
+        # print(f"{question_ids_selected=}")  # TODO: remove
+
+        # find interactions of selected question_ids and student_id
+        interactions_selected = [
+            interact
+            for interact in self.examples
+            if (
+                interact["question_id"] in question_ids_selected
+                and interact["student_id"] == student_id
+            )
+        ]
+        # if a Q has multiple interactions, randomly select one
+        if len(interactions_selected) > self.k:
+            # find duplicate Q IDs
+            question_ids_interacted = np.array(
+                [interact["question_id"] for interact in interactions_selected]
+            )
+            unique, counts = np.unique(question_ids_interacted, return_counts=True)
+            duplicate_q_ids = unique[np.where(counts > 1)]
+
+            # sample from duplicate Q IDs
+            for q_id in duplicate_q_ids:
+                # find indexes to remove
+                idxs = np.where(question_ids_interacted == q_id)[0].tolist()
+                idx_to_remove = random.sample(idxs, len(idxs) - 1)
+                for idx in idx_to_remove:
+                    interactions_selected.pop(idx)
+        if len(interactions_selected) < self.k:
+            raise NotImplementedError(
+                "TODO: do we randomly select interactions or leave them empty?"
+            )
+            # TODO
+
+        return interactions_selected
+        # NOTE: can decide to only return input and output
+        # return [
+        #     {"input": interact["input"], "output": interact["output"]}
+        #     for interact in interactions_selected
+        # ]

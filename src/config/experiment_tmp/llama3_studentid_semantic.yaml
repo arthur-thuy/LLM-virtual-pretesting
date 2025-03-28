@@ -1,0 +1,6 @@
+MODEL:
+  NAME: "llama3"
+  PROVIDER: "ollama"
+
+EXAMPLE_SELECTOR:
+  NAME: "studentid_semantic"

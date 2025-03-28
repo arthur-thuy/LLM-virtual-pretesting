@@ -15,13 +15,13 @@ EXAMPLE_SELECTOR_REGISTRY = Registry()
 logger = structlog.get_logger(__name__)
 
 
-def build_example_selector(example_selector_cfg: CfgNode, examples: list[dict]) -> None:
+def build_example_selector(cfg: CfgNode, examples: list[dict]) -> None:
     """Build the example selector.
 
     Parameters
     ----------
-    example_selector_cfg : CfgNode
-        Config node for the example selector.
+    cfg : CfgNode
+        Config node.
     examples : list[dict]
         List of examples.
 
@@ -33,7 +33,7 @@ def build_example_selector(example_selector_cfg: CfgNode, examples: list[dict]) 
     logger.info(
         "Building example selector",
     )
-    (selector, input_vars) = EXAMPLE_SELECTOR_REGISTRY[example_selector_cfg.NAME](
-        example_selector_cfg, examples
+    (selector, input_vars) = EXAMPLE_SELECTOR_REGISTRY[cfg.EXAMPLE_SELECTOR.NAME](
+        cfg, examples
     )
     return (selector, input_vars)

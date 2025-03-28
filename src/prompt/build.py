@@ -62,7 +62,7 @@ def build_prompt(
 
     # build few_shot_prompt
     example_selector, input_vars = build_example_selector(
-        cfg.EXAMPLE_SELECTOR, examples=examples
+        cfg, examples=examples
     )
     few_shot_prompt = FewShotChatMessagePromptTemplate(
         # The input variables select the values to pass to the example_selector
