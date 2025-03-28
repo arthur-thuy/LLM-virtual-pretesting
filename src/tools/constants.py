@@ -72,3 +72,8 @@ PROMPT_INFO = {
 # configuration types
 
 _VALID_TYPES = {tuple, list, str, int, float, bool, NoneType}
+
+# vector DB
+EMBEDDINGS_DIM = {"llama3": 4096}
+EMBEDDING_PROVIDER = {"llama3": "ollama"}
+MODEL_TO_EMBEDDING = {"llama3": "llama3"}

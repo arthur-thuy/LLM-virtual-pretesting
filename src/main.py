@@ -71,7 +71,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     # load data
     datasets = build_dataset(cfg.LOADER)
-    #
+    # choose small or large validation set
     if cfg.LOADER.RUN_LARGE_VAL:
         datasets[VALIDATION] = datasets.pop(VALLARGE)
         datasets.pop(VALSMALL)
