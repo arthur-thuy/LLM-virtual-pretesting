@@ -13,7 +13,6 @@ TODO:
 - Make sure the data is shuffled before splitting!
 - langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to log this on a per-observation basis? "correct" and "output_valid". -> don't know how to do it on a per-observation basis. I only implemented on a per batch basis (accuracy)
 - example formatter with quotes?
-- make fixed splits for train/val/test
 - pinecone for vector database:
     - use `filter` argument in `similarity_search` function to filter on student_id
     - can use namespaces to get multiple datasets in one index (max 5 indexes in free tier). E.g., index llama3 has 2 namespaces: DBE-KT22 and CUPA
@@ -21,7 +20,8 @@ TODO:
     - can a student answer the same question multiple times? If yes, do we want to exclude this in the semantic search? Which record to select if the question is semantically similar?
     - create build_embedding() function in model/build.py + add build_openai_embedding() function + rename existing functions to build_openai_model etc.
 - DBE-KT22: 
-    - convert html to latex code and to markdown table? -> check draft.ipynb
+    - convert html tables to markdown -> no, because [this paper](https://arxiv.org/pdf/2305.13062) says that HTML is better than markdown
+    - convert html link to latex code? -> check draft.ipynb
     - data splitting: "ValueError: 619 is not in list"
 
 

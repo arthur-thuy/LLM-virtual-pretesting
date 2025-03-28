@@ -2,6 +2,7 @@
 
 # standard library imports
 import os
+import re
 from typing import Optional
 
 # related third party imports
@@ -80,16 +81,16 @@ class DBEKT22Datamanager:
         # get info
         options_texts = df_q_choice_text["choice_text"].tolist()
         options_ids = df_q_choice_text["id"].tolist()
-        correct_answer = df_q_choice_text[df_q_choice_text["is_correct"] == True].iloc[
-            0
-        ]["id"]
+        correct_answer_id = df_q_choice_text[
+            df_q_choice_text["is_correct"] == True
+        ].iloc[0]["id"]
         context_text = None
         context_id = None
         q_discrimination = None
         return (
             options_ids,
             options_texts,
-            correct_answer,
+            correct_answer_id,
             context_text,
             context_id,
             q_discrimination,
@@ -124,15 +125,24 @@ class DBEKT22Datamanager:
                 axis=1,
             )
         )
+        # get position of correct answer in the options
+        # NOTE: this one-indexing aligns with one-indexing in prompt
         df[Q_CORRECT_OPTION_ID] = df.apply(
-            lambda row: row[Q_OPTION_IDS].index(row[Q_CORRECT_OPTION_ID]), axis=1
+            lambda row: row[Q_OPTION_IDS].index(row[Q_CORRECT_OPTION_ID]) + 1, axis=1
         )
+
+        # regex to get latex code from html link
+        pattern = r'<img src="http://latex\.codecogs\.com/gif\.latex\?([^"]+)" border="0"/>'
+        df[Q_TEXT] = df[Q_TEXT].apply(lambda row: re.sub(pattern, r'\1', row))
         return df
 
     def _process_interact_row(self, row, df_q: pd.DataFrame) -> int:
         option_ids = df_q[df_q[QUESTION_ID] == row[QUESTION_ID]].iloc[0][Q_OPTION_IDS]
-        return option_ids.index(row[S_OPTION_ID])  # ValueError: 619 is not in list
-        # TODO: make sure this zero-indexing aligns with one-indexing in prompt
+        assert (
+            row[S_OPTION_ID] in option_ids
+        ), f"Option id {row[S_OPTION_ID]} not in {option_ids} of question ID {row[QUESTION_ID]}"
+        # NOTE: this one-indexing aligns with one-indexing in prompt
+        return option_ids.index(row[S_OPTION_ID]) + 1  # NOTE: one-indexing
 
     def _preprocess_interactions(
         self,
@@ -142,6 +152,8 @@ class DBEKT22Datamanager:
     ) -> pd.DataFrame:
         # student-question interactions
         df_interact = pd.read_csv(os.path.join(read_dir, "Transaction.csv"))
+        # remove invalid interactions (manually identified)
+        df_interact = df_interact[df_interact["id"] != 2878]
         # NOTE: omit questions where hint is used
         df_interact = df_interact[df_interact["hint_used"] == False]
         df_interact = df_interact[
@@ -169,90 +181,3 @@ class DBEKT22Datamanager:
         )
 
         return df_interact
-
-    # TODO: remove
-    # def _process_row(
-    #     self, row, df_q: pd.DataFrame, df_q_choice: pd.DataFrame
-    # ) -> tuple[str, list, int, int, int]:
-    #     # NOTE: get answer option texts, shuffle them and number them
-    #     q_text = df_q[df_q["id"] == row[QUESTION_ID]].iloc[0]["question_rich_text"]
-    #     df_q_choice_text = df_q_choice[
-    #         df_q_choice[QUESTION_ID] == row[QUESTION_ID]
-    #     ].sample(frac=1)
-    #     assert (  # TODO: remove this if we relax the number of answer options
-    #         len(df_q_choice_text) == 4
-    #     ), f"Expected 4 answer options, got {len(df_q_choice_text)}"
-    #     df_q_choice_text["option_position"] = np.arange(1, len(df_q_choice_text) + 1)
-
-    #     student_answer = df_q_choice_text[
-    #         df_q_choice_text["id"] == row.answer_choice_id
-    #     ].iloc[0]["option_position"]
-    #     correct_answer = df_q_choice_text[df_q_choice_text["is_correct"] == True].iloc[
-    #         0
-    #     ]["option_position"]
-    #     q_difficulty = df_q[df_q["id"] == row[QUESTION_ID]].iloc[0]["difficulty"]
-    #     options_text = [
-    #         df_q_choice_text[df_q_choice_text["option_position"] == i].iloc[0][
-    #             "choice_text"
-    #         ]
-    #         for i in range(1, len(df_q_choice_text) + 1)
-    #     ]
-
-    #     return q_text, options_text, student_answer, correct_answer, q_difficulty
-
-    # def _preprocess_datasets(
-    #     self, read_dir: str, sample_student_ids: Optional[int] = None
-    # ) -> pd.DataFrame:
-
-    #     # student-question interactions
-    #     df_interact = pd.read_csv(os.path.join(read_dir, "Transaction.csv"))
-    #     # NOTE: omit questions where hint is used
-    #     df_interact = df_interact[df_interact["hint_used"] == False]
-    #     df_interact = df_interact.rename(columns={"answer_state": "answer_correct"})
-    #     df_interact = df_interact[
-    #         ["id", STUDENT_ID, QUESTION_ID, "answer_choice_id", "answer_correct"]
-    #     ]
-
-    #     if sample_student_ids:
-    #         # randomly select student ids
-    #         student_ids = np.random.choice(
-    #             df_interact[STUDENT_ID].unique(), size=sample_student_ids, replace=False
-    #         )
-    #         df_interact = df_interact[df_interact[STUDENT_ID].isin(student_ids)]
-
-    #     # answer options
-    #     df_question_choice = pd.read_csv(os.path.join(read_dir, "Question_Choices.csv"))
-
-    #     # questions
-    #     df_question = pd.read_csv(os.path.join(read_dir, "Questions.csv"))
-    #     df_question["num_answer_options"] = df_question.apply(
-    #         lambda row: count_answer_options(row, df_question_choice), axis=1
-    #     )
-    #     # df_question = df_question[
-    #     #     df_question["num_answer_options"] == 4
-    #     # ]
-
-    #     # # only keep question_id's that are in the df_question
-    #     # df_interact = df_interact[df_interact[QUESTION_ID].isin(df_question["id"])]
-
-    #     df = pd.DataFrame()
-    #     df[[INTERACT_ID, QUESTION_ID, STUDENT_ID]] = df_interact[
-    #         ["id", QUESTION_ID, STUDENT_ID]
-    #     ]
-
-    #     (
-    #         df[Q_TEXT],
-    #         df[OPTIONS_TEXT],
-    #         df[STUDENT_ANSWER],
-    #         df[CORRECT_ANSWER],
-    #         df[Q_DIFFICULTY],
-    #     ) = zip(
-    #         *df_interact.apply(
-    #             self._process_row,
-    #             df_q=df_question,
-    #             df_q_choice=df_question_choice,
-    #             axis=1,
-    #         )
-    #     )
-
-    #     return df

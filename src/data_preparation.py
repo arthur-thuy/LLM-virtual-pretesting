@@ -29,17 +29,15 @@ def main():
         read_dir=BRONZE_DIR, write_dir=SILVER_DIR, sample_student_ids=SAMPLE_STUDENT_IDS
     )
     # TODO: create fixed split here!
-    # data_loader = DataLoader(
-    #     read_dir=SILVER_DIR,
-    #     dataset_name="dbe_kt22",
-    #     join_key="question_id",
-    # )
-    # _ = data_loader.split_data(
-    #     train_size=0.6,
-    #     test_size=0.25,
-    #     seed=42,
-    #     save=True,
-    # )
+    data_loader = DataLoader(
+        read_dir=SILVER_DIR,
+        dataset_name="dbe_kt22",
+    )
+    data_loader.split_data(
+        val_size=600,
+        test_size=1000,
+        seed=42,
+    )
 
     # # CUPA
     # logger.info("Starting preparation CUPA")

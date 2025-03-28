@@ -15,15 +15,13 @@ from tools.constants import SILVER_DIR
 logger = structlog.get_logger(__name__)
 
 
-def build_dataset(loader_cfg: CfgNode, seed: int) -> Dict[str, pd.DataFrame]:
+def build_dataset(loader_cfg: CfgNode) -> Dict[str, pd.DataFrame]:
     """Build the dataset.
 
     Parameters
     ----------
     loader_cfg : CfgNode
         Data loader config object
-    seed : int
-        Random seed
 
     Returns
     -------
@@ -31,10 +29,9 @@ def build_dataset(loader_cfg: CfgNode, seed: int) -> Dict[str, pd.DataFrame]:
         Train/Val/Test interaction dataframes
     """
     logger.info("Building dataset", name=loader_cfg.NAME)
-    datasets = DataLoader(
+    data_loader = DataLoader(
         read_dir=SILVER_DIR,
         dataset_name=loader_cfg.NAME,
-        join_key=loader_cfg.JOIN_KEY,
-        read_split=True,
     )
+    datasets = data_loader.read_splitted_data(join_key=loader_cfg.JOIN_KEY)
     return datasets

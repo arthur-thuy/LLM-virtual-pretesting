@@ -70,7 +70,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
 
     # load data
-    datasets = build_dataset(cfg.LOADER, cfg.SEED + run_n)
+    datasets = build_dataset(cfg.LOADER)
     # subset
     if args.dry_run:
         logger.info("Dry run: using only 10 observations")
