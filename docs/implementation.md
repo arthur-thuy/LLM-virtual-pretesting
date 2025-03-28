@@ -7,22 +7,22 @@ Resources:
 
 
 TODO: 
-- add code to pretty print an example
 - example selector: within the same student_id, select semantically similar examples
 - can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
-- Make sure the data is shuffled before splitting!
 - langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to log this on a per-observation basis? "correct" and "output_valid". -> don't know how to do it on a per-observation basis. I only implemented on a per batch basis (accuracy)
 - example formatter with quotes?
 - pinecone for vector database:
-    - use `filter` argument in `similarity_search` function to filter on student_id
     - can use namespaces to get multiple datasets in one index (max 5 indexes in free tier). E.g., index llama3 has 2 namespaces: DBE-KT22 and CUPA
     - do we need to embed once for every question_id or once for every interaction_id? We only need the input, which does not depend on the interaction_id. So we can embed once for every question_id. -> need to keep track of the question-answer records.
     - can a student answer the same question multiple times? If yes, do we want to exclude this in the semantic search? Which record to select if the question is semantically similar?
     - create build_embedding() function in model/build.py + add build_openai_embedding() function + rename existing functions to build_openai_model etc.
+    - given that database only holds questions, it does not depend on the dataset split of the interactions! -> easy to work with
 - DBE-KT22: 
     - convert html tables to markdown -> no, because [this paper](https://arxiv.org/pdf/2305.13062) says that HTML is better than markdown
     - convert html link to latex code? -> check draft.ipynb
-    - data splitting: "ValueError: 619 is not in list"
+    - LLaSA sampling: they only use students that filled out all 212 questions! -> these students have accuracy of 80% while general student population has accuracy 77%.
+    - what to do with students that answered questions multiple times? Keep all or keep only the first?
+- from Kate "I'd map student histories or questiosn as embeddings in train/val/test to ensure subsets are representative."
 
 
 
