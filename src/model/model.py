@@ -14,7 +14,7 @@ from model.build import MODEL_PROVIDER_REGISTRY
 
 
 @MODEL_PROVIDER_REGISTRY.register("openai")
-def build_openai(model_cfg: CfgNode) -> ChatOpenAI:
+def build_openai_model(model_cfg: CfgNode) -> ChatOpenAI:
     model = ChatOpenAI(
         model=model_cfg.NAME,
         temperature=model_cfg.TEMPERATURE,
@@ -26,7 +26,7 @@ def build_openai(model_cfg: CfgNode) -> ChatOpenAI:
 
 
 @MODEL_PROVIDER_REGISTRY.register("anthropic")
-def build_anthropic(model_cfg: CfgNode) -> ChatAnthropic:
+def build_anthropic_model(model_cfg: CfgNode) -> ChatAnthropic:
     model = ChatAnthropic(
         model=model_cfg.NAME,
         temperature=model_cfg.TEMPERATURE,
@@ -39,7 +39,7 @@ def build_anthropic(model_cfg: CfgNode) -> ChatAnthropic:
 
 
 @MODEL_PROVIDER_REGISTRY.register("ollama")
-def build_ollama(model_cfg: CfgNode) -> ChatOllama:
+def build_ollama_model(model_cfg: CfgNode) -> ChatOllama:
     model = ChatOllama(
         model=model_cfg.NAME,
         temperature=model_cfg.TEMPERATURE,
