@@ -17,11 +17,13 @@ Optional argument: `--dry-run` to predict only for 10 examples
 ## API keys
 Create an `.env` file at the root level with contents:
 ```
-OPENAI_API_KEY="your_openai_api_key"
+OPENAI_API_KEY="..."
 
 LANGFUSE_SECRET_KEY="..."
 LANGFUSE_PUBLIC_KEY="..."
 LANGFUSE_HOST="..."
+
+PINECONE_API_KEY="..."
 ```
 
 # Links
