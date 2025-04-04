@@ -4,24 +4,37 @@ Resources:
 - check Kaggle competition [Eedi - Mining Misconceptions in Mathematics](https://www.kaggle.com/competitions/eedi-mining-misconceptions-in-mathematics/overview) for inspiration on how to handle misconceptions. Can check the winning solution in the discussion forum.
 - check [End-to-end LLM Workflows Guide](https://www.anyscale.com/blog/end-to-end-llm-workflows-guide?_gl=1*b35e5w*_gcl_au*MjM4MDY3NDkwLjE3NDI5NzMxNzU.)
 
+Notes:
+- pinecone for vector database:
+    - can use namespaces to get multiple datasets in one index (max 5 indexes in free tier). E.g., index llama3 has 2 namespaces: DBE-KT22 and CUPA
+    - given that database only holds questions, it does not depend on the dataset split of the interactions! -> easy to work with
 
 
 TODO: 
 - can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
-- langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to log this on a per-observation basis? "correct" and "output_valid". -> don't know how to do it on a per-observation basis. I only implemented on a per batch basis (accuracy)
+- langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to log this on a per-observation basis? "correct" and "output_valid". -> don't know how to do it on a per-observation basis. I only implemented on a per batch basis (accuracy) -> see notebook Kate!
 - example formatter with quotes?
-- pinecone for vector database:
-    - can use namespaces to get multiple datasets in one index (max 5 indexes in free tier). E.g., index llama3 has 2 namespaces: DBE-KT22 and CUPA
-    - do we need to embed once for every question_id or once for every interaction_id? We only need the input, which does not depend on the interaction_id. So we can embed once for every question_id. -> need to keep track of the question-answer records.
-    - can a student answer the same question multiple times? If yes, do we want to exclude this in the semantic search? Which record to select if the question is semantically similar?
-    - create build_embedding() function in model/build.py + add build_openai_embedding() function + rename existing functions to build_openai_model etc.
-    - given that database only holds questions, it does not depend on the dataset split of the interactions! -> easy to work with
 - DBE-KT22: 
-    - convert html tables to markdown -> no, because [this paper](https://arxiv.org/pdf/2305.13062) says that HTML is better than markdown
-    - convert html link to latex code? -> check draft.ipynb
     - LLaSA sampling: they only use students that filled out all 212 questions! -> these students have accuracy of 80% while general student population has accuracy 77%.
-    - what to do with students that answered questions multiple times? Keep all or keep only the first?
-- from Kate "I'd map student histories or questiosn as embeddings in train/val/test to ensure subsets are representative."
+    - what to do with students that answered questions multiple times? keep first!
+    - use IRT estimation to get ground truth in DBE-KT22!
+    - how to filter out 6 questions (212 -> 206)? -> check number of student answers per question, if too low -> remove question
+- from Kate "I'd map student histories or questions as embeddings in train/val/test to ensure subsets are representative."
+- splitting: split on question_id! (not interactions)
+- can we avoid merging the questions.csv and interactions.csv? See new setup with misconceptions!
+- make student persona more explicit. E.g., add background field of study for DBE-KT22
+- New misconception prompt:
+    1. Select relevant examples from student history (most recent, most similar, mix of correct/incorrect 50/50, history of specific student or of other students with similar abilities (low, medium, high))
+    1. Find misconceptions in the examples
+    1. Present the target question and ask which misconceptions are relevant
+    1. Ask for the student answer and explanation
+- passive learning
+    - check performance when reducing the dataset size\ 
+    DBE-KT22: samples questions or interactions and decide on the stratification\
+    CUPA: filter on target CEFR level made by the exam creators
+- embedding models: just try which performs best, e.g., BERT sentence embedding, OpenAI, Llama3 (not really linked to LLMs)
+- later: experiment with temperature > 0.0. Value 0.0 is easiest but higher values might give better results because this will likely lower the answer correctness, which might bring it closer to the student answer.
+
 
 
 
