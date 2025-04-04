@@ -8,4 +8,4 @@
 
 # local application/library specific imports
 from example_formatter.build import build_example_formatter
-from example_formatter.example_formatter import build_A
+from example_formatter.example_formatter import build_no_quotes, build_quotes

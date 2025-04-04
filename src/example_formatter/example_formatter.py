@@ -21,9 +21,9 @@ from tools.constants import (
 )
 
 
-@EXAMPLE_FORMATTER_REGISTRY.register("A")
-def build_A(dataset: pd.DataFrame) -> pd.DataFrame:
-    """Build example formatter A.
+@EXAMPLE_FORMATTER_REGISTRY.register("no_quotes")
+def build_no_quotes(dataset: pd.DataFrame) -> pd.DataFrame:
+    """Build example formatter no_quotes.
 
     Parameters
     ----------
@@ -48,6 +48,44 @@ def build_A(dataset: pd.DataFrame) -> pd.DataFrame:
     def output_fmt(row: pd.Series) -> str:
         """Create human-readable output text from a row of a DataFrame."""
         return f"Student answer: {row[S_OPTION_ID]}"
+
+    df_out = pd.DataFrame()
+    df_out[INPUT] = dataset.apply(input_fmt, axis=1)
+    df_out[OUTPUT] = dataset.apply(output_fmt, axis=1)
+    df_out[STUDENT_ID] = dataset[STUDENT_ID]
+    df_out[QUESTION_ID] = dataset[QUESTION_ID]
+    df_out[INTERACT_ID] = dataset[INTERACT_ID]
+    df_out[Q_TEXT] = dataset[Q_TEXT]
+    return df_out
+
+
+@EXAMPLE_FORMATTER_REGISTRY.register("quotes")
+def build_quotes(dataset: pd.DataFrame) -> pd.DataFrame:
+    """Build example formatter quotes.
+
+    Parameters
+    ----------
+    datasets : pd.DataFrame
+        Dataset.
+
+    Returns
+    -------
+    pd.DataFrame
+        Formatted questions-answer records.
+    """
+
+    def input_fmt(row: pd.Series) -> str:
+        """Create human-readable input text from a row of a DataFrame."""
+        # NOTE: this is flexible wrt the number of answer options
+        text = f'Question:\n"{row[Q_TEXT]}"\n\nOptions:\n'
+        for i, option in enumerate(row[Q_OPTION_TEXTS]):
+            text += f'{i+1}. "{option}"\n'
+        text += f'\nCorrect answer: "{row[Q_CORRECT_OPTION_ID]}"'
+        return text
+
+    def output_fmt(row: pd.Series) -> str:
+        """Create human-readable output text from a row of a DataFrame."""
+        return f'Student answer: "{row[S_OPTION_ID]}"'
 
     df_out = pd.DataFrame()
     df_out[INPUT] = dataset.apply(input_fmt, axis=1)

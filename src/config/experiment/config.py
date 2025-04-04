@@ -42,7 +42,7 @@ _C.LOADER.RUN_LARGE_VAL = False
 # example formatter
 _C.EXAMPLE_FORMATTER = CN()
 # example formatter name
-_C.EXAMPLE_FORMATTER.NAME = "A"
+_C.EXAMPLE_FORMATTER.NAME = "quotes"
 
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
