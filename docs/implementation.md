@@ -13,14 +13,11 @@ Notes:
 TODO: 
 - can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
 - langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to log this on a per-observation basis? "correct" and "output_valid". -> don't know how to do it on a per-observation basis. I only implemented on a per batch basis (accuracy) -> see notebook Kate!
-- example formatter with quotes?
-- DBE-KT22: 
+- DBE-KT22:
     - LLaSA sampling: they only use students that filled out all 212 questions! -> these students have accuracy of 80% while general student population has accuracy 77%.
-    - what to do with students that answered questions multiple times? keep first!
     - use IRT estimation to get ground truth in DBE-KT22!
     - how to filter out 6 questions (212 -> 206)? -> check number of student answers per question, if too low -> remove question
 - from Kate "I'd map student histories or questions as embeddings in train/val/test to ensure subsets are representative."
-- splitting: split on question_id! (not interactions)
 - can we avoid merging the questions.csv and interactions.csv? See new setup with misconceptions!
 - make student persona more explicit. E.g., add background field of study for DBE-KT22
 - New misconception prompt:

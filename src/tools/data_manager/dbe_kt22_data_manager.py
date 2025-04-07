@@ -158,14 +158,17 @@ class DBEKT22Datamanager:
     ) -> pd.DataFrame:
         # student-question interactions
         df_interact = pd.read_csv(os.path.join(read_dir, "Transaction.csv"))
+        # NOTE: remove interactions where student answered the question multiple times
+        df_interact = df_interact.drop_duplicates(
+            subset=["question_id", "student_id"], keep="first"
+        )
         # NOTE: omit records where hint is used
         df_interact = df_interact[df_interact["hint_used"] == False]
         # remove invalid interactions (manually identified)
         df_interact = df_interact[df_interact["id"] != 2878]
         # only keep students that answered all questions
         num_logs = (
-            df_interact.drop_duplicates(subset=["question_id", "student_id"])
-            .groupby("student_id")["question_id"]
+            df_interact.groupby("student_id")["question_id"]
             .count()
             .sort_values(ascending=False)
             .reset_index()

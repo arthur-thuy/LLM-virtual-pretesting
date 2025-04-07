@@ -15,6 +15,7 @@ from tools.constants import (
     Q_OPTION_TEXTS,
     VALSMALL,
     VALLARGE,
+    QUESTION_ID,
 )
 from tools.utils import set_seed
 
@@ -36,9 +37,7 @@ class DataLoader:
         df_questions[Q_OPTION_TEXTS] = df_questions[Q_OPTION_TEXTS].apply(eval)
         return df_questions
 
-    def read_splitted_data(
-        self, join_key: str
-    ) -> dict[str, pd.DataFrame]:
+    def read_splitted_data(self, join_key: str) -> dict[str, pd.DataFrame]:
         """Read data from disk.
 
         Parameters
@@ -58,7 +57,9 @@ class DataLoader:
         # read pre-splitted interactions
         for split in [TRAIN, VALSMALL, VALLARGE, TEST]:
             df_interactions = pd.read_csv(
-                os.path.join(self.read_dir, f"{self.dataset_name}_interactions_{split}.csv")
+                os.path.join(
+                    self.read_dir, f"{self.dataset_name}_interactions_{split}.csv"
+                )
             )
             datasets[split] = pd.merge(df_interactions, df_questions, on=join_key)
             logger.info(
@@ -97,16 +98,39 @@ class DataLoader:
         set_seed(seed)
 
         # train-validation-test split
-        idx_trainval, idx_test = train_test_split(
-            df_interactions[INTERACT_ID], test_size=test_size
+        ## first split the question_ids
+        q_ids_trainval, q_ids_test = train_test_split(
+            df_interactions[QUESTION_ID].unique(), test_size=0.20
         )
+        q_ids_train, q_ids_val = train_test_split(
+            q_ids_trainval, test_size=0.2 / (1 - 0.20)
+        )
+        ## then split the interactions
+        idx_train = df_interactions[df_interactions[QUESTION_ID].isin(q_ids_train)][
+            INTERACT_ID
+        ].tolist()
+        idx_val = df_interactions[df_interactions[QUESTION_ID].isin(q_ids_val)][
+            INTERACT_ID
+        ]
         if isinstance(val_size, int):
-            idx_train, idx_val = train_test_split(idx_trainval, test_size=val_size)
+            idx_val = idx_val.sample(val_size).tolist()
         else:
-            idx_train, idx_val = train_test_split(
-                idx_trainval, test_size=val_size / (1 - test_size)
+            frac_val = min(
+                1, val_size * len(df_interactions[QUESTION_ID]) / len(idx_val)
             )
+            idx_val = idx_val.sample(frac=frac_val).tolist()
         idx_valsmall, idx_vallarge = train_test_split(idx_val, test_size=(5 / 6))
+        idx_test = df_interactions[df_interactions[QUESTION_ID].isin(q_ids_test)][
+            INTERACT_ID
+        ]
+        if isinstance(test_size, int):
+            idx_test = idx_test.sample(test_size).tolist()
+        else:
+            frac_test = min(
+                1, test_size * len(df_interactions[QUESTION_ID]) / len(idx_test)
+            )
+            idx_test = idx_test.sample(frac=frac_test).tolist()
+
         splits = {
             TRAIN: idx_train,
             VALSMALL: idx_valsmall,
@@ -128,4 +152,10 @@ class DataLoader:
             logger.info(
                 f"Writing {split} split",
                 num_interactions=len(datasets[split]),
+                num_distinct_questions=len(
+                    datasets[split][QUESTION_ID].unique(),
+                ),
+                num_distinct_students=len(
+                    datasets[split]["student_id"].unique(),
+                ),
             )
