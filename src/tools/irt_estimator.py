@@ -10,7 +10,7 @@ from pyirt import irt
 from typing import Tuple, Dict
 
 # local application/library specific imports
-from src.tools.constants import (
+from tools.constants import (
     DIFFICULTY_MIN,
     DIFFICULTY_MAX,
     DEFAULT_DISCRIMINATION,
@@ -32,6 +32,7 @@ def irt_estimation(
         DEFAULT_DISCRIMINATION,
     ),
     guess: float = DEFAULT_GUESS,
+    mode: str = "debug",
 ) -> Tuple[Dict[str, float], Dict[str, float], Dict[str, float]]:
     """Estimate IRT parameters.
 

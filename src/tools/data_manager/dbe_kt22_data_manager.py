@@ -12,6 +12,7 @@ import structlog
 
 # local application/library specific imports
 from tools.data_manager.utils import count_answer_options
+from tools.irt_estimator import irt_estimation
 from tools.utils import set_seed
 from tools.constants import (
     INTERACT_ID,
@@ -57,6 +58,9 @@ class DBEKT22Datamanager:
             sample_student_ids=sample_student_ids,
         )
         df_questions = df_questions.drop(columns=[Q_OPTION_IDS])
+        df_questions = self._compute_irt(
+            df_interactions=df_interactions, df_questions=df_questions
+        )
         if save_dataset:
             output_path = os.path.join(write_dir, f"{self.name}_questions.csv")
             logger.info("Saving questions dataset", path=output_path)
@@ -201,3 +205,16 @@ class DBEKT22Datamanager:
         )
 
         return df_interact
+
+    def _compute_irt(
+        self, df_interactions: pd.DataFrame, df_questions: pd.DataFrame
+    ) -> pd.DataFrame:
+        """Compute IRT parameters for questions and add them to the questions dataframe."""
+        # Compute IRT parameters
+        _, difficulty_dict, discrimination_dict = irt_estimation(
+            interactions_df=df_interactions
+        )
+        df_q_tmp = df_questions.copy()
+        df_q_tmp[Q_DIFFICULTY] = df_questions[QUESTION_ID].map(difficulty_dict)
+        df_q_tmp[Q_DISCRIMINATION] = df_questions[QUESTION_ID].map(discrimination_dict)
+        return df_q_tmp
