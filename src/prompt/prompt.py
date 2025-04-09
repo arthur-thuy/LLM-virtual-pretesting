@@ -51,3 +51,24 @@ def build_teacher_A(few_shot_prompt, native_str_output: bool) -> list:
         ("human", human2_prompt_str),
     ]
     return messages
+
+
+@PROMPT_REGISTRY.register("teacher_B")
+def build_teacher_B(few_shot_prompt, native_str_output: bool) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "
+        "You will be shown a student's responses to previous questions, and asked to identify the possible misconceptions that led to the errors. "
+        "Next, you will be shown a new multiple choice question, and asked to discuss how the student would answer it, keeping in mind the misconceptions identified earlier. "
+    )
+    human1_prompt_str = "Identify the misconceptions that caused incorrect answers in the following question-answer records:"
+    human2_prompt_str = "Inspect this new multiple choice question and discuss how the student would answer it, keeping in mind the misconceptions identified earlier:\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human1_prompt_str),
+        few_shot_prompt,
+        ("human", human2_prompt_str),
+    ]
+    return messages
