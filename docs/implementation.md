@@ -11,7 +11,6 @@ Notes:
 
 
 TODO: 
-- can we simplify model building by using the [`init_chat_model`](https://python.langchain.com/api_reference/langchain/chat_models/langchain.chat_models.base.init_chat_model.html) function from langchain?
 - langfuse custom scores ([link](https://langfuse.com/docs/scores/custom)). Does it make sense to log this on a per-observation basis? "correct" and "output_valid". -> don't know how to do it on a per-observation basis. I only implemented on a per batch basis (accuracy) -> see notebook Kate!
 - DBE-KT22:
     - LLaSA sampling: they only use students that filled out all 212 questions! -> these students have accuracy of 80% while general student population has accuracy 77%.
@@ -24,12 +23,14 @@ TODO:
     1. Find misconceptions in the examples
     1. Present the target question and ask which misconceptions are relevant
     1. Ask for the student answer and explanation
+- embedding models: just try which performs best, e.g., BERT sentence embedding, OpenAI, Llama3 (not really linked to LLMs)
+
+TODOs for later:
 - passive learning
     - check performance when reducing the dataset size\ 
     DBE-KT22: samples questions or interactions and decide on the stratification\
     CUPA: filter on target CEFR level made by the exam creators
-- embedding models: just try which performs best, e.g., BERT sentence embedding, OpenAI, Llama3 (not really linked to LLMs)
-- later: experiment with temperature > 0.0. Value 0.0 is easiest but higher values might give better results because this will likely lower the answer correctness, which might bring it closer to the student answer.
+- experiment with temperature > 0.0. Value 0.0 is easiest but higher values might give better results because this will likely lower the answer correctness, which might bring it closer to the student answer.
 
 
 
