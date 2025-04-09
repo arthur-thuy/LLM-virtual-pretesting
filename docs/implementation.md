@@ -18,6 +18,8 @@ TODO:
 - from Kate "I'd map student histories or questions as embeddings in train/val/test to ensure subsets are representative."
 - can we avoid merging the questions.csv and interactions.csv? See new setup with misconceptions!
 - make student persona more explicit. E.g., add background field of study for DBE-KT22
+- add time metadata to pinecode documents
+- new example selector: studentid_recency (k most recent question-answer records)
 - New misconception prompt:
     1. Select relevant examples from student history (most recent, most similar, mix of correct/incorrect 50/50, history of specific student or of other students with similar abilities (low, medium, high))
     1. Find misconceptions in the examples
