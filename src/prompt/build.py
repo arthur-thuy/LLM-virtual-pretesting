@@ -24,7 +24,7 @@ logger = structlog.get_logger(__name__)
 
 
 def build_prompt(
-    cfg: CfgNode, examples: list[dict], str_output: BaseModel
+    cfg: CfgNode, examples: list[dict], struc_output: BaseModel
 ) -> ChatPromptTemplate:
     """Build the prompt.
 
@@ -34,7 +34,7 @@ def build_prompt(
         Config node.
     examples : list[dict]
         List of examples.
-    str_output : BaseModel
+    struc_output : BaseModel
         Pydantic model for structured output.
 
     Returns
@@ -49,21 +49,14 @@ def build_prompt(
         example_selector=cfg.EXAMPLE_SELECTOR.NAME,
         num_examples=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
     )
-    # build system prompt string
-    prompt_dict = PROMPT_REGISTRY[cfg.PROMPT.NAME]()
-    if not cfg.MODEL.NATIVE_STRUCTURED_OUTPUT:
-        prompt_dict[
-            "system"
-        ] += "{format_instructions}"
+
     # Set up a parser (not used if model supports structured output)
     parser = PydanticOutputParser(
-        pydantic_object=str_output
+        pydantic_object=struc_output
     )  # TODO: rename because "str" of structured is confusing with string
 
     # build few_shot_prompt
-    example_selector, input_vars = build_example_selector(
-        cfg, examples=examples
-    )
+    example_selector, input_vars = build_example_selector(cfg, examples=examples)
     few_shot_prompt = FewShotChatMessagePromptTemplate(
         # The input variables select the values to pass to the example_selector
         input_variables=input_vars,
@@ -74,14 +67,11 @@ def build_prompt(
         ),
     )
 
-    # Create the messages list conditionally
-    messages = [
-        ("system", prompt_dict["system"])
-    ]
-    if prompt_dict["human1"]:
-        messages.append(("human", prompt_dict["human1"] + "{input}"))
-    messages.append(few_shot_prompt)
-    messages.append(("human", prompt_dict["human2"] + "{input}"))
+    # get the messages list
+    messages = PROMPT_REGISTRY[cfg.PROMPT.NAME](
+        few_shot_prompt=few_shot_prompt,
+        native_str_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+    )
     # Create the template from the messages list
     final_prompt = ChatPromptTemplate.from_messages(messages).partial(
         format_instructions=parser.get_format_instructions(),

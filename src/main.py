@@ -104,15 +104,15 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     set_seed(cfg.SEED + run_n)
 
     # structured output
-    StrOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
+    StrucOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
 
     # prompt
-    prompt, _ = build_prompt(cfg=cfg, examples=list_train, str_output=StrOutput)
+    prompt, _ = build_prompt(cfg=cfg, examples=list_train, struc_output=StrucOutput)
 
     # model
     model = build_model(model_cfg=cfg.MODEL)
     if cfg.MODEL.NATIVE_STRUCTURED_OUTPUT:
-        model = model.with_structured_output(StrOutput, include_raw=True)
+        model = model.with_structured_output(StrucOutput, include_raw=True)
 
     # chain
     chain = prompt | model
@@ -123,7 +123,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         data=list_val,
         prefix="val",
         structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
-        json_schema=StrOutput,
+        json_schema=StrucOutput,
         langfuse_handler=langfuse_handler,
     )
     val_result = evaluate(

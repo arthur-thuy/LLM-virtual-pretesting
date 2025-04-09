@@ -64,3 +64,27 @@ def validate_output(outputs: list, schema) -> list:
         outputs_validated.append(output_validated)
 
     return outputs_validated
+
+
+def prepare_str_output(text: str, native_str_output: bool) -> str:
+    """Prepare the string output for the model.
+
+    Parameters
+    ----------
+    text : str
+        Text to be prepared.
+    native_str_output : bool
+        Whether the model supports structured output or not.
+
+    Returns
+    -------
+    str
+        Prepared string output.
+    """
+    if native_str_output:
+        # NOTE: do nothing
+        return text
+    else:
+        # NOTE: add placeholder for format instructions
+        text += "{format_instructions}"
+        return text
