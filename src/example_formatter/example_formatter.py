@@ -18,6 +18,7 @@ from tools.constants import (
     S_OPTION_ID,
     QUESTION_ID,
     INTERACT_ID,
+    TIME,
 )
 
 
@@ -56,6 +57,7 @@ def build_no_quotes(dataset: pd.DataFrame) -> pd.DataFrame:
     df_out[QUESTION_ID] = dataset[QUESTION_ID]
     df_out[INTERACT_ID] = dataset[INTERACT_ID]
     df_out[Q_TEXT] = dataset[Q_TEXT]
+    df_out[TIME] = dataset[TIME]
     return df_out
 
 
@@ -94,4 +96,5 @@ def build_quotes(dataset: pd.DataFrame) -> pd.DataFrame:
     df_out[QUESTION_ID] = dataset[QUESTION_ID]
     df_out[INTERACT_ID] = dataset[INTERACT_ID]
     df_out[Q_TEXT] = dataset[Q_TEXT]
+    df_out[TIME] = dataset[TIME]
     return df_out
