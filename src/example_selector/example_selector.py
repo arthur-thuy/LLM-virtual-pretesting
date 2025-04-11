@@ -4,6 +4,7 @@
 import random
 
 # related third party imports
+import structlog
 import numpy as np
 from langchain_core.example_selectors.base import BaseExampleSelector
 from yacs.config import CfgNode
@@ -13,11 +14,11 @@ from example_selector.build import EXAMPLE_SELECTOR_REGISTRY
 from tools.constants import MODEL_TO_EMBEDDING
 from tools.vector_db import get_vector_store
 
+logger = structlog.get_logger()
+
 
 @EXAMPLE_SELECTOR_REGISTRY.register("random")
-def build_random(
-    cfg: CfgNode, examples: list[dict]
-) -> BaseExampleSelector:
+def build_random(cfg: CfgNode, examples: list[dict]) -> BaseExampleSelector:
     input_vars = []
     selector = RandomExampleSelector(
         examples=examples,
@@ -27,9 +28,7 @@ def build_random(
 
 
 @EXAMPLE_SELECTOR_REGISTRY.register("studentid_random")
-def build_studentid_random(
-    cfg: CfgNode, examples: list[dict]
-) -> BaseExampleSelector:
+def build_studentid_random(cfg: CfgNode, examples: list[dict]) -> BaseExampleSelector:
     input_vars = ["student_id"]
     selector = StudentIDRandomExampleSelector(
         examples=examples,
@@ -39,9 +38,7 @@ def build_studentid_random(
 
 
 @EXAMPLE_SELECTOR_REGISTRY.register("studentid_semantic")
-def build_studentid_semantic(
-    cfg: CfgNode, examples: list[dict]
-) -> BaseExampleSelector:
+def build_studentid_semantic(cfg: CfgNode, examples: list[dict]) -> BaseExampleSelector:
     input_vars = ["student_id", "question_id", "q_text"]
     selector = StudentIDSemanticExampleSelector(
         examples=examples,
@@ -52,8 +49,19 @@ def build_studentid_semantic(
     return (selector, input_vars)
 
 
+@EXAMPLE_SELECTOR_REGISTRY.register("studentid_recency")
+def build_studentid_recency(cfg: CfgNode, examples: list[dict]) -> BaseExampleSelector:
+    input_vars = ["student_id", "time"]
+    selector = StudentIDRecencyExampleSelector(
+        examples=examples,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+    )
+    return (selector, input_vars)
+
+
 class RandomExampleSelector(BaseExampleSelector):
     """Randomly select examples."""
+
     def __init__(self, examples: list[dict], k: int) -> None:
         """Initialize the example selector.
 
@@ -79,6 +87,7 @@ class RandomExampleSelector(BaseExampleSelector):
 
 class StudentIDRandomExampleSelector(BaseExampleSelector):
     """Filter examples of the same student_id and randomly select."""
+
     def __init__(self, examples: list[dict], k: int):
         """Initialize the example selector.
 
@@ -115,13 +124,13 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
 class StudentIDSemanticExampleSelector(BaseExampleSelector):
     """Filter examples of the same student_id and select based on semantic similarity."""
 
-    def __init__(
-        self, examples: list, k: int, model_name: str, namespace: str
-    ) -> None:
+    def __init__(self, examples: list, k: int, model_name: str, namespace: str) -> None:
         """Initialize the example selector.
 
         Parameters
         ----------
+        examples :  list[dict]
+            List of examples
         k : int
             k-shot prompting
         model_name : str
@@ -134,7 +143,9 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
 
         embedding_name = MODEL_TO_EMBEDDING[model_name]
         self.vectorstore = get_vector_store(
-            index_name=embedding_name, embedding_name=embedding_name, namespace=namespace
+            index_name=embedding_name,
+            embedding_name=embedding_name,
+            namespace=namespace,
         )
 
     def add_example(self, example: list) -> None:
@@ -157,12 +168,13 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
         student_id = input_variables["student_id"]
         question_id = input_variables["question_id"]
         q_text = input_variables["q_text"]
+        time = input_variables["time"]
 
-        # find all questions answered by this student
+        # find all questions answered by this student, before the current time
         student_interactions = [
             interact
             for interact in self.examples
-            if interact["student_id"] == student_id
+            if interact["student_id"] == student_id and interact["time"] <= time
         ]
         q_answered = set([interact["question_id"] for interact in student_interactions])
         q_answered = list(
@@ -217,3 +229,68 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
         #     {"input": interact["input"], "output": interact["output"]}
         #     for interact in interactions_selected
         # ]
+
+
+class StudentIDRecencyExampleSelector(BaseExampleSelector):
+    """Filter examples of the same student_id and select based on recency."""
+
+    def __init__(self, examples: list, k: int) -> None:
+        """Initialize the example selector.
+
+        Parameters
+        ----------
+        examples :  list[dict]
+            List of examples
+        k : int
+            k-shot prompting
+        """
+        self.examples = examples
+        self.k = k
+
+    def add_example(self, example: list) -> None:
+        self.examples.append(example)
+
+    def select_examples(self, input_variables: dict) -> list[dict[str, str]]:
+        """Select examples based on semantic similarity.
+
+        Parameters
+        ----------
+        input_variables : dict[str, str]
+            A dict containing info about a single observation.
+
+        Returns
+        -------
+        list[dict[str, str]]
+            The selected examples.
+        """
+        # information of target observation
+        student_id = input_variables["student_id"]
+        time = input_variables["time"]
+
+        # find all questions answered by this student
+        student_interactions = [
+            interact
+            for interact in self.examples
+            if interact["student_id"] == student_id
+        ]
+        interact_times = [interact["time"] for interact in student_interactions]
+        interact_times = np.array(interact_times)
+        diff = time - interact_times
+
+        # Get indices of interactions sorted by recency (smallest time difference first)
+        # Only consider interactions that happened before the current time (diff > 0)
+        valid_indices = np.where(diff > 0)[0]
+        if len(valid_indices) == 0:
+            # No previous interactions found
+            logger.warning("No previous interactions found for this student")
+
+        # Sort valid indices by time difference (ascending)
+        sorted_indices = valid_indices[np.argsort(diff[valid_indices])]
+
+        # Select the k most recent interactions
+        recent_k_indices = sorted_indices[: min(self.k, len(sorted_indices))]
+
+        # Get the selected interactions
+        selected_interactions = [student_interactions[i] for i in recent_k_indices]
+
+        return selected_interactions

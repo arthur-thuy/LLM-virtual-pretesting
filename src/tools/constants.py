@@ -33,6 +33,7 @@ INTERACT_ID = "interact_id"
 STUDENT_ID = "student_id"
 S_OPTION_ID = "student_option_id"
 S_OPTION_CORRECT = "student_option_correct"
+TIME = "time"
 
 # Parameters for IRT estimation
 DIFFICULTY_MIN = -5

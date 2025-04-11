@@ -4,6 +4,7 @@
 import os
 import re
 from typing import Optional
+from datetime import datetime
 
 # related third party imports
 import numpy as np
@@ -28,6 +29,7 @@ from tools.constants import (
     Q_DISCRIMINATION,
     S_OPTION_ID,
     S_OPTION_CORRECT,
+    TIME,
 )
 
 
@@ -162,6 +164,12 @@ class DBEKT22Datamanager:
     ) -> pd.DataFrame:
         # student-question interactions
         df_interact = pd.read_csv(os.path.join(read_dir, "Transaction.csv"))
+        df_interact[TIME] = pd.to_datetime(
+            df_interact["end_time"].str[:-6], format="%Y-%m-%d %H:%M:%S.%f"
+        )
+        df_interact[TIME] = df_interact[TIME].apply(
+            lambda x: x.timestamp() - datetime(2019, 8, 1).timestamp()
+        ).round(3)  # NOTE: first interaction on 07/08/2019
         # NOTE: remove interactions where student answered the question multiple times
         df_interact = df_interact.drop_duplicates(
             subset=["question_id", "student_id"], keep="first"
@@ -181,7 +189,7 @@ class DBEKT22Datamanager:
         df_interact = df_interact[df_interact["student_id"].isin(students_all_q)]
 
         df_interact = df_interact[
-            ["id", STUDENT_ID, QUESTION_ID, "answer_choice_id", "answer_state"]
+            ["id", STUDENT_ID, QUESTION_ID, "answer_choice_id", "answer_state", TIME]
         ]
         df_interact = df_interact.rename(
             columns={
