@@ -118,7 +118,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     chain = prompt | model
 
     # predict & evaluate
-    val_preds = predict(
+    val_preds_raw = predict(
         chain=chain,
         data=list_val,
         prefix="val",
@@ -126,8 +126,8 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         json_schema=StrucOutput,
         langfuse_handler=langfuse_handler,
     )
-    val_result = evaluate(
-        preds_validated=val_preds["val_preds_validated"],
+    val_metrics, val_preds = evaluate(
+        preds_validated=val_preds_raw["val_preds_validated"],
         dataset=datasets[VALIDATION],
         prefix="val",
         langfuse_session=langfuse_session,
@@ -135,18 +135,19 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     )
 
     # TODO: also for test set
-    # test_result = evaluate(
+    # test_metrics, test_preds = evaluate(
     #     preds_validated=test_preds["test_preds_validated"],
     #     dataset=datasets[TEST],
     #     prefix="test",
+    #     langfuse_session=langfuse_session,
     #     trace_id=trace_id,
     # )
 
     write_pickle(
         {
-            **val_preds,
-            **val_result,
-            # **test_result,
+            "metrics": {**val_metrics},
+            "preds_raw": {**val_preds_raw},
+            "preds": {**val_preds},
         },
         save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID),
         fname=f"run_{run_n}",

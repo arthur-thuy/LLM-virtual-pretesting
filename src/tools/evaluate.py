@@ -140,12 +140,7 @@ def evaluate(
         y_val_student=y_val_student,
     )
     logger.info("Evaluate - end", accuracy=metrics["acc_student_pred"])
-    logs = {
-        f"{prefix}_metrics": metrics,
-        f"{prefix}_y_pred": y_val_pred,
-        f"{prefix}_y_true": y_val_true,
-        f"{prefix}_y_student": y_val_student,
-    }
+
     if trace_id is not None:
         langfuse_session.score(
             trace_id=trace_id,
@@ -159,4 +154,10 @@ def evaluate(
             value=metrics["prop_invalid"],
             data_type="NUMERIC",
         )
-    return logs
+    metrics = {f"{prefix}_{k}": v for k, v in metrics.items()}
+    preds = {
+        f"{prefix}_y_pred": y_val_pred,
+        f"{prefix}_y_true": y_val_true,
+        f"{prefix}_y_student": y_val_student,
+    }
+    return metrics, preds
