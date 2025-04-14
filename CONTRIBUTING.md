@@ -6,7 +6,7 @@ $ git clone git@github.com:your_name_here/LLM-virtual-pretesting.git
 $ cd src
 ```
 2. Download the processed datasets from the Google Drive folder and paste them in `data/processed/`.
-3. Create a `.env` file at the root level with the following contents:
+3. Create a `.env` file at the root level with the following contents (see `example.env`):
 ```bash
 OPENAI_API_KEY="..."
 LANGFUSE_SECRET_KEY="..."
