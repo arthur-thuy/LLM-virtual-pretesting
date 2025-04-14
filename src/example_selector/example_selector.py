@@ -107,18 +107,21 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
     def select_examples(self, input_variables):
         # student_id of target student
         student_id = input_variables["student_id"]
+        time = input_variables["time"]
 
-        match_idx = []
-        # Iterate through each example
-        for idx, example in enumerate(self.examples):
-            if example["student_id"] == student_id:
-                match_idx.append(idx)
+        # find all interactions of this student, before the current time
+        student_interactions = [
+            interact
+            for interact in self.examples
+            if interact["student_id"] == student_id and interact["time"] <= time
+        ]
+        # NOTE: there can be max 1 interaction per question_id and student_id
 
-        # Sample k random examples without replacement
-        # (if k >= len(examples), returns all examples in random order)
-        k = min(self.k, len(match_idx))
-        idx_out = random.sample(match_idx, k)
-        return [self.examples[i] for i in idx_out]
+        # randomly select from questions
+        k = min(self.k, len(student_interactions))
+        interactions_selected = random.sample(student_interactions, k)
+
+        return interactions_selected
 
 
 class StudentIDSemanticExampleSelector(BaseExampleSelector):
@@ -190,7 +193,6 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
         question_ids_selected = list(
             map(int, [res.metadata["question_id"] for res in results])
         )
-        # print(f"{question_ids_selected=}")  # TODO: remove
 
         # find interactions of selected question_ids and student_id
         interactions_selected = [
@@ -201,28 +203,6 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
                 and interact["student_id"] == student_id
             )
         ]
-        # if a Q has multiple interactions, randomly select one
-        if len(interactions_selected) > self.k:
-            # find duplicate Q IDs
-            question_ids_interacted = np.array(
-                [interact["question_id"] for interact in interactions_selected]
-            )
-            unique, counts = np.unique(question_ids_interacted, return_counts=True)
-            duplicate_q_ids = unique[np.where(counts > 1)]
-
-            # sample from duplicate Q IDs
-            for q_id in duplicate_q_ids:
-                # find indexes to remove
-                idxs = np.where(question_ids_interacted == q_id)[0].tolist()
-                idx_to_remove = random.sample(idxs, len(idxs) - 1)
-                for idx in idx_to_remove:
-                    interactions_selected.pop(idx)
-        if len(interactions_selected) < self.k:
-            raise NotImplementedError(
-                "TODO: do we randomly select interactions or leave them empty?"
-            )
-            # TODO
-
         return interactions_selected
         # NOTE: can decide to only return input and output
         # return [
