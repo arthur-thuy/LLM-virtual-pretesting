@@ -47,9 +47,11 @@ _C.EXAMPLE_FORMATTER.NAME = "quotes"
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
 # example selector name
-_C.EXAMPLE_SELECTOR.NAME = "studentid_recency"  # "studentid_semantic"  # "random"
+_C.EXAMPLE_SELECTOR.NAME = "studentid_semantic"  # "studentid_recency"  # "random"
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 3
+# example selector embedding model
+_C.EXAMPLE_SELECTOR.EMBEDDING = "llama3"
 
 # systemprompt
 _C.PROMPT = CN()

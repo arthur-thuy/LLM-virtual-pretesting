@@ -11,7 +11,6 @@ from yacs.config import CfgNode
 
 # local application/library specific imports
 from example_selector.build import EXAMPLE_SELECTOR_REGISTRY
-from tools.constants import MODEL_TO_EMBEDDING
 from tools.vector_db import get_vector_store
 
 logger = structlog.get_logger()
@@ -43,7 +42,7 @@ def build_studentid_semantic(cfg: CfgNode, examples: list[dict]) -> BaseExampleS
     selector = StudentIDSemanticExampleSelector(
         examples=examples,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
-        model_name=cfg.MODEL.NAME,
+        embedding=cfg.EXAMPLE_SELECTOR.EMBEDDING,
         namespace=cfg.LOADER.NAME,
     )
     return (selector, input_vars)
@@ -127,7 +126,7 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
 class StudentIDSemanticExampleSelector(BaseExampleSelector):
     """Filter examples of the same student_id and select based on semantic similarity."""
 
-    def __init__(self, examples: list, k: int, model_name: str, namespace: str) -> None:
+    def __init__(self, examples: list, k: int, embedding: str, namespace: str) -> None:
         """Initialize the example selector.
 
         Parameters
@@ -136,18 +135,17 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
             List of examples
         k : int
             k-shot prompting
-        model_name : str
-            The name of the LLM.
+        embedding : str
+            The name of the embedding model.
         namespace : str
             The namespace of the Pinecone index.
         """
         self.examples = examples
         self.k = k
 
-        embedding_name = MODEL_TO_EMBEDDING[model_name]
         self.vectorstore = get_vector_store(
-            index_name=embedding_name,
-            embedding_name=embedding_name,
+            index_name=embedding,
+            embedding_name=embedding,
             namespace=namespace,
         )
 
