@@ -17,8 +17,9 @@ ANTHROPIC_API_KEY="..."
 ```
 4. Create and ctivate your virtual environment:
 ```bash
-conda env create -f environment.yml
-conda activate llm_virtual_pretesting
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r requirements.txt
 ```
 5. Create a new branch from `main`:
 ```bash
@@ -29,6 +30,7 @@ $ git checkout fix_bug
 6. Create a new experiment in e.g., `config/experiment_kate/`. This should hold a `config.py` file and at least one yaml file. See `config/experiment/` for an example. The `config.py` file has all the defaults; each yaml file can override the defaults.
 7. Run the experiment:
 ```bash
+cd src
 python main.py experiment_kate
 ```
 > Optional argument: `--dry-run` to predict only for 10 examples.

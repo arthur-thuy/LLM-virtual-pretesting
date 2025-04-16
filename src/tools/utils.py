@@ -15,9 +15,7 @@ import dotenv
 import click
 import numpy as np
 import structlog
-import torch
 import matplotlib.pyplot as plt
-from torch.backends import cudnn
 from yacs.config import CfgNode
 from uuid import UUID
 from tqdm.auto import tqdm
@@ -114,12 +112,8 @@ def set_seed(seed: Optional[int] = None) -> None:
     else:
         random.seed(seed)
         np.random.seed(seed)
-        torch.manual_seed(seed)
-        torch.cuda.manual_seed(seed)
-        cudnn.deterministic = True
-        cudnn.benchmark = False
         os.environ["PYTHONHASHSEED"] = str(seed)
-        logger.info(f"Set seed ({seed})")
+        logger.info("Seting seed", value=seed)
 
 
 def print_elapsed_time(start_time: float, run_id: int) -> None:

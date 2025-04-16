@@ -23,7 +23,6 @@ TODO:
     1. Find misconceptions in the examples
     1. Present the target question and ask which misconceptions are relevant
     1. Ask for the student answer and explanation
-- embedding models: just try which performs best, e.g., BERT sentence embedding, OpenAI, Llama3 (not really linked to LLMs)
 
 TODOs for later:
 - passive learning

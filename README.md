@@ -1,18 +1,24 @@
 # LLM-virtual-pretesting
 Repo for the project on virtual pretesting with LLMs using in-context learning
 
-## Activate virtual environment
+## Run instructions
+
+## Short
+
+Activate the virtual environment:
 ```
-cd "/home/abthuy/Documents/PhD research/LLM-virtual-pretesting/src"
-conda activate llm_virtual_pretesting
+source .venv/bin/activate
 ```
 
-## Run instructions
 With configurations in e.g., `config/experiment/`:
 ```
+cd src
 python main.py experiment
 ```
 Optional argument: `--dry-run` to predict only for 10 examples
+
+## Detailed
+More detailed instructions are available in in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## API keys
 Create an `.env` file at the root level with contents:
