@@ -75,5 +75,5 @@ PROMPT_INFO = {
 _VALID_TYPES = {tuple, list, str, int, float, bool, NoneType}
 
 # vector DB
-EMBEDDINGS_DIM = {"llama3": 4096}
+EMBEDDINGS_DIM = {"llama3": 4096, "text-embedding-3-large": 3072}
 EMBEDDING_PROVIDER = {"llama3": "ollama", "text-embedding-3-large": "openai"}

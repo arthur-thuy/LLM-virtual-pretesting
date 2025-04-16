@@ -51,7 +51,7 @@ _C.EXAMPLE_SELECTOR.NAME = "studentid_semantic"  # "studentid_recency"  # "rando
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 3
 # example selector embedding model
-_C.EXAMPLE_SELECTOR.EMBEDDING = "llama3"
+_C.EXAMPLE_SELECTOR.EMBEDDING = "llama3"  # "text-embedding-3-large"
 
 # systemprompt
 _C.PROMPT = CN()
