@@ -3,7 +3,6 @@ format:
 	black src/
 
 lint:
-	
 	flake8 src/
 
 docs:
