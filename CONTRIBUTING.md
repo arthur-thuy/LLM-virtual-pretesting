@@ -62,7 +62,12 @@ def build_studentid_random(cfg: CfgNode, examples: list[dict]) -> BaseExampleSel
 
 4. In your configuration folder, change the `config.py` or a yaml file to use this new building block.
 5. As usual, run with `python main.py experiment_kate` and inspect the results in `analysis.ipynb`.
-
+6. Commit the changes and push to your remote branch:
+```bash
+$ git add src/example_selector/example_selector.py
+$ git commit -m "Add new example selector"
+$ git push origin fix_bug
+```
 
 
 

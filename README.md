@@ -6,12 +6,13 @@ Repo for the project on virtual pretesting with LLMs using in-context learning
 ## Short
 
 Activate the virtual environment:
-```
+```bash
+cd "/home/abthuy/Documents/PhD research/LLM-virtual-pretesting"  # your own path
 source .venv/bin/activate
 ```
 
 With configurations in e.g., `config/experiment/`:
-```
+```bash
 cd src
 python main.py experiment
 ```
