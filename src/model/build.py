@@ -55,6 +55,7 @@ def build_embedding(embedding_name: str, provider: str) -> Embeddings:
         return OllamaEmbeddings(model=embedding_name)
     elif provider == "openai":
         return OpenAIEmbeddings(model=embedding_name)
-    # elif provider == "anthropic":  # TODO: add anthropic
+    elif provider == "anthropic":
+        raise ValueError(f"{provider} does not support embeddings in their API.")
     else:
         raise ValueError(f"Unsupported embedding provider: {provider}")
