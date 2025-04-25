@@ -15,13 +15,21 @@ from model.build import MODEL_PROVIDER_REGISTRY
 
 @MODEL_PROVIDER_REGISTRY.register("openai")
 def build_openai_model(model_cfg: CfgNode) -> ChatOpenAI:
-    model = ChatOpenAI(
-        model=model_cfg.NAME,
-        temperature=model_cfg.TEMPERATURE,
-        max_tokens=model_cfg.MAX_TOKENS,
-        timeout=model_cfg.TIMEOUT,
-        max_retries=model_cfg.MAX_RETRIES,
-    )
+    if model_cfg.NAME.startswith('o'):
+        model = ChatOpenAI(
+            model=model_cfg.NAME,
+            max_tokens=model_cfg.MAX_TOKENS,
+            timeout=model_cfg.TIMEOUT,
+            max_retries=model_cfg.MAX_RETRIES,
+        )
+    else:
+        model = ChatOpenAI(
+            model=model_cfg.NAME,
+            temperature=model_cfg.TEMPERATURE,
+            max_tokens=model_cfg.MAX_TOKENS,
+            timeout=model_cfg.TIMEOUT,
+            max_retries=model_cfg.MAX_RETRIES,
+        )
     return model
 
 

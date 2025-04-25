@@ -13,7 +13,7 @@ _C.RUNS = 1
 # model architecture
 _C.MODEL = CN()
 # model name
-_C.MODEL.NAME = "gpt-4o"
+_C.MODEL.NAME = "o3-mini"
 # model provider
 _C.MODEL.PROVIDER = "openai"
 # model temperature

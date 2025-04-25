@@ -53,6 +53,7 @@ MODEL_STRUCTURED_OUTPUT = {
     "olmo2:7b": False,
     "gpt-4o": True,
     "gpt-4o-mini": True,
+    "o3-mini": True
 }
 
 # prompt info
