@@ -47,7 +47,7 @@ def namespace_exists(index: Index, namespace: str) -> bool:
 def prepare_empty_vector_store(
     index_name: str, embedding_name: str, namespace: str
 ) -> PineconeVectorStore:
-    """Get an empty Pinecode vector store.
+    """Get an empty Pinecone vector store.
 
     Parameters
     ----------
@@ -153,7 +153,7 @@ def populate_vector_store(
 def get_vector_store(
     index_name: str, embedding_name: str, namespace: str
 ) -> PineconeVectorStore:
-    """Get the Pinecode vector store.
+    """Get the Pinecone vector store.
 
     Parameters
     ----------
