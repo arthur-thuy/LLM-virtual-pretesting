@@ -98,9 +98,13 @@ def compute_metrics(
         "acc_true_student": accuracy_score(y_true=y_val_true, y_pred=y_val_student),
         "acc_true_pred": accuracy_score(y_true=y_val_true, y_pred=y_val_pred),
         "prop_invalid": np.mean(y_val_pred == -1),
-        "f1_student_pred": f1_score(y_true=y_val_student,y_pred=y_val_pred),
-        "f1_true_student": f1_score(y_true=y_val_true,y_pred=y_val_student),
-        "f1_true_pred": f1_score(y_true=y_val_true,y_pred=y_val_pred),
+        "f1_student_pred": f1_score(
+            y_true=y_val_student, y_pred=y_val_pred, average="micro"
+        ),
+        "f1_true_student": f1_score(
+            y_true=y_val_true, y_pred=y_val_student, average="micro"
+        ),
+        "f1_true_pred": f1_score(y_true=y_val_true, y_pred=y_val_pred, average="micro"),
     }
     return metrics
 
