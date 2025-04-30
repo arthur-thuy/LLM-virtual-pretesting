@@ -1,3 +1,2 @@
 MODEL:
   NAME: "gpt-4o-mini"
-  PROVIDER: "openai"
