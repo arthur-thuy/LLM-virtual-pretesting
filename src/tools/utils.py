@@ -16,7 +16,6 @@ import click
 import numpy as np
 import structlog
 import matplotlib.pyplot as plt
-from yacs.config import CfgNode
 from uuid import UUID
 from tqdm.auto import tqdm
 from langchain_core.callbacks import BaseCallbackHandler
@@ -153,25 +152,25 @@ def format_time(elp: float, format: str = "H:M:S") -> str:
         raise ValueError(f"Unknown format: {format}")
 
 
-def delete_previous_content(cfg: CfgNode) -> None:
-    """Delete previous content in output directory.
+def delete_previous_content(dir_name: str) -> None:
+    """Delete previous content in a directory.
 
     Parameters
     ----------
-    cfg : CfgNode
-        Config
+    dir_name : str
+        Directory to delete content from
     """
-    if os.path.isdir(cfg.OUTPUT_DIR):
-        if not os.listdir(cfg.OUTPUT_DIR):
+    if os.path.isdir(dir_name):
+        if not os.listdir(dir_name):
             logger.info("Directory is empty and will be removed")
         else:
             if click.confirm(
-                f"Proceed to delete previous content in {cfg.OUTPUT_DIR}?",
+                f"Proceed to delete previous content in {dir_name}?",
                 default=False,
             ):
                 logger.info("Deleting previous content...")
                 subprocess.run(
-                    f"rm -r {os.path.join(cfg.OUTPUT_DIR, '*')}",
+                    f"rm -r {os.path.join(dir_name, '*')}",
                     shell=True,
                     check=False,
                 )

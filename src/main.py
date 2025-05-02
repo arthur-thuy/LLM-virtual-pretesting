@@ -164,7 +164,7 @@ def main() -> None:
     configs = load_configs(args.config)
 
     # remove previous contents (take dir form first cfg)
-    delete_previous_content(configs[0])
+    delete_previous_content(configs[0].OUTPUT_DIR)
 
     # logical checks before start running
     for cfg in configs:
