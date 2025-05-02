@@ -35,7 +35,7 @@ def build_model(model_cfg: CfgNode):
     logger.info(
         "Building model", name=model_cfg.NAME, provider=MODEL_PROVIDER[model_cfg.NAME]
     )
-    model = MODEL_PROVIDER_REGISTRY[model_cfg.PROVIDER](model_cfg)
+    model = MODEL_PROVIDER_REGISTRY[MODEL_PROVIDER[model_cfg.NAME]](model_cfg)
     return model
 
 
