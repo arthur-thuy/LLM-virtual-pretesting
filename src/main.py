@@ -1,4 +1,4 @@
-"""Module for fine-tuning."""
+"""Script for replicating student behaviour."""
 
 # standard library imports
 import argparse
