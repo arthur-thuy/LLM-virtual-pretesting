@@ -79,8 +79,9 @@ def _add_derived_configs(
     """
     # add derived config variables at runtime
     cfg.ID = create_config_id(cfg)
-    cfg.TUNE_ID = create_tuning_config_id(cfg)
+    cfg.ID_ROLEPLAY = create_roleplay_config_id(cfg)
     cfg.OUTPUT_DIR = os.path.join(".", "output", config_dir)
+    cfg.OUTPUT_DIR_ROLEPLAY = os.path.join(".", "output", f"tune_{config_dir}")
     cfg.MODEL.NATIVE_STRUCTURED_OUTPUT = MODEL_STRUCTURED_OUTPUT[cfg.MODEL.NAME]
     if freeze:
         cfg.freeze()
@@ -144,10 +145,8 @@ def create_config_id(cfg: CfgNode) -> str:
     return cfg_id
 
 
-def create_tuning_config_id(cfg: CfgNode) -> str:
-    """Create identifier for config during tuning.
-
-    NOTE: this ID should not include the hyperparams that are being tuned.
+def create_roleplay_config_id(cfg: CfgNode) -> str:
+    """Create identifier for config during roleplaying.
 
     Parameters
     ----------
@@ -160,6 +159,7 @@ def create_tuning_config_id(cfg: CfgNode) -> str:
         Config identifier.
     """
     cfg_id = create_config_id(cfg)
+    # TODO: include number of roleplays per test question
     return cfg_id
 
 
