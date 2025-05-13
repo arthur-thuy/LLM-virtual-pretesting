@@ -1,0 +1,6 @@
+#!/bin/bash
+
+python main.py experiment_kate_gpt4_studentaprompt_highttemp
+python main.py experiment_kate_gpt4_studentaprompt_zerotemp
+python main.py experiment_kate_gpt4_teacherbprompt_hightemp
+python main.py experiment_kate_gpt4_teacherbprompt_zerotemp
