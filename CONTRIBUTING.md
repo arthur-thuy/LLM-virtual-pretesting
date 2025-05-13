@@ -40,6 +40,29 @@ python main.py experiment_kate
 10. To inspect the prompt structure, refer to the [Langfuse dashboard](https://cloud.langfuse.com/project/cm8n8clg300k7ad07l3pjqklk).
 
 
+# Handling a large number of configurations
+
+If you want to run a large number of configurations, it is cumbersome to create them manually. You can create them automatically as follows:
+1. Create a new configuration folder that ends in `"_template"`, e.g., `config/kate_auto_template`.
+2. Create a `config.py` file in this folder that holds the default values for the parameters you want to change.
+3. Create a new yaml file `template.yaml` in this folder where you define a list for each parameter you want to change. For example:
+```yaml
+MODEL:
+  NAME: ["llama3", "gpt-4o", "olmo2:7b"]
+
+EXAMPLE_SELECTOR:
+  NAME: ["random", "studentid_random", "studentid_semantic", "studentid_recency"]
+```
+
+4. Run the script `explode_cfg_tempalate.py` in the `src` folder. This will create a new configuration folder for each combination of parameters in the template. The new folder will be named `kate_auto` (so without the `"_template"` suffix). Run as follows:
+```bash
+python explode_cfg_template.py kate_auto_template
+```
+5. You can now run the `kate_auto` experiment as usual:
+```bash
+python main.py kate_auto
+```
+
 # Implementing changes
 
 If you want to change any of the building blocks, e.g., example selector, prompt structure, structured JSON output, etc, do the following.

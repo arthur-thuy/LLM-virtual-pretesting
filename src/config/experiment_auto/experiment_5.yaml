@@ -1,0 +1,4 @@
+EXAMPLE_SELECTOR:
+  NAME: random
+MODEL:
+  NAME: gpt-4o

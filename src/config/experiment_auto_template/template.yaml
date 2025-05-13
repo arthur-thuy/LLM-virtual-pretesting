@@ -1,0 +1,5 @@
+MODEL:
+  NAME: ["llama3", "gpt-4o", "olmo2:7b"]
+
+EXAMPLE_SELECTOR:
+  NAME: ["random", "studentid_random", "studentid_semantic", "studentid_recency"]

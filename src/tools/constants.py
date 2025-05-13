@@ -55,6 +55,13 @@ MODEL_STRUCTURED_OUTPUT = {
     "gpt-4o-mini": True,
     "o3-mini": True
 }
+MODEL_PROVIDER = {
+    "llama3": "ollama",
+    "llama3.2": "ollama",
+    "olmo2:7b": "ollama",
+    "gpt-4o": "openai",
+    "gpt-4o-mini": "openai",
+}
 
 # prompt info
 DICT_CEFR_DESCRIPTIONS = {

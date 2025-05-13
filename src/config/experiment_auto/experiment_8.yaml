@@ -1,0 +1,4 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_recency
+MODEL:
+  NAME: gpt-4o

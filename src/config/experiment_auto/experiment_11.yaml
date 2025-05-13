@@ -1,0 +1,4 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_semantic
+MODEL:
+  NAME: olmo2:7b

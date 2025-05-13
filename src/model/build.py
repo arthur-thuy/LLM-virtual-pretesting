@@ -12,6 +12,7 @@ from langchain_openai import OpenAIEmbeddings
 
 # local application/library specific imports
 from tools.registry import Registry
+from tools.constants import MODEL_PROVIDER
 
 MODEL_PROVIDER_REGISTRY = Registry()
 
@@ -31,8 +32,10 @@ def build_model(model_cfg: CfgNode):
     model
         Model
     """
-    logger.info("Building model", name=model_cfg.NAME, provider=model_cfg.PROVIDER)
-    model = MODEL_PROVIDER_REGISTRY[model_cfg.PROVIDER](model_cfg)
+    logger.info(
+        "Building model", name=model_cfg.NAME, provider=MODEL_PROVIDER[model_cfg.NAME]
+    )
+    model = MODEL_PROVIDER_REGISTRY[MODEL_PROVIDER[model_cfg.NAME]](model_cfg)
     return model
 
 

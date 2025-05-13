@@ -12,6 +12,7 @@ from typing import Any, Optional, Tuple
 import numpy as np
 import scipy
 import structlog
+import pandas as pd
 from tabulate import tabulate
 from numpy.typing import NDArray
 
@@ -297,6 +298,107 @@ def print_table_from_dict(
         with open(save_kwargs["fname"], "w", encoding="UTF-8") as text_file:
             text_file.write(tabu_table)
     print(tabu_table)
+
+
+def print_df_from_dict(
+    eval_dict: dict,
+    exp_name: Optional[str] = None,
+    exclude_metrics: Optional[list[str]] = None,
+    config2legend: Optional[dict] = None,
+    metric2legend: Optional[dict] = None,
+    legend_exact: bool = False,
+    save: bool = False,
+    save_kwargs: Optional[dict] = None,
+) -> pd.DataFrame:
+    """Get df of results, for all configs, averaged over runs.
+
+    Parameters
+    ----------
+    eval_dict : dict
+        Dictionary with evaluation results
+    exp_name : Optional[str], optional
+        Experiment name, by default None
+    exclude_metrics : Optional[list[str]], optional
+        List of metrics to exclude, by default None
+    config2legend : Optional[dict], optional
+        Mapping from config to legend name, by default None
+    metric2legend : Optional[dict], optional
+        Mapping from metric to legend name, by default None
+    legend_exact : bool, optional
+        Whether to find exact match in config2legend, by default False
+    decimals : int, optional
+        Number of decimals, by default 4
+    save : bool, optional
+        Whether to save the table, by default False
+    save_kwargs : Optional[dict], optional
+        Dictionary with save arguments, by default None
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with the results
+
+    Raises
+    ------
+    ValueError
+        If experiment name is not provided when saving
+    ValueError
+        If type is unknown
+    """
+    if save and exp_name is None:
+        raise ValueError("Please provide the experiment name.")
+    if exclude_metrics is None:
+        exclude_metrics = []
+
+    # get list of metric names
+    metric_names = []
+    config_ids = list(eval_dict.keys())
+    for metric_key in eval_dict[config_ids[0]].keys():
+        if metric_key in exclude_metrics:
+            continue
+        metric_name_print = get_config_id_print(
+            config_id=metric_key, config2legend=metric2legend, exact=legend_exact
+        )
+        metric_names.append(metric_name_print)
+
+    # prepare multiindex for columns
+    num_metrics = len(metric_names)
+    arrays = [
+        [name for name in metric_names for _ in range(2)],
+        ["mean", "stderr"] * num_metrics,
+    ]
+    tuples = list(zip(*arrays))
+    index = pd.MultiIndex.from_tuples(tuples, names=["first", "second"])
+
+    table = []
+    config_names = []
+    # iterate over configs and append rows to table
+    for config_id in eval_dict.keys():
+        config_id_print = get_config_id_print(
+            config_id=config_id, config2legend=config2legend, exact=legend_exact
+        )
+        config_names.append(config_id_print)
+        row = []
+        for metric_key, metric_value in eval_dict[config_id].items():
+            if metric_key in exclude_metrics:
+                continue
+            if isinstance(metric_value, dict):
+                entry = [metric_value["mean"], metric_value["stderr"]]
+            elif isinstance(metric_value, float):
+                entry = [metric_value, None]
+            else:
+                raise ValueError("Unknown type.")
+            row.extend(entry)
+        table.append(row)
+
+    df = pd.DataFrame(table, index=config_names, columns=index)
+    df.index.name = "config_id"
+    df.columns.names = ["metric", "statistic"]
+
+    if save:
+        ensure_dir(os.path.dirname(save_kwargs["fname"]))
+        df.to_csv(save_kwargs["fname"], index=True)
+    return df
 
 
 def merge_run_results(output_dir: str) -> list:

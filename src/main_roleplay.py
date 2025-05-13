@@ -1,4 +1,4 @@
-"""Script for replicating student behaviour."""
+"""Script for LLM roleplaying."""
 
 # standard library imports
 import argparse
@@ -58,9 +58,9 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # update trace attributes (e.g, name, session_id, user_id)
     langfuse_context.update_current_trace(
         # name="custom-trace",
-        session_id=f"{cfg.ID}~Run{run_n}",
+        session_id=f"{cfg.ID_ROLEPLAY}~Run{run_n}",
         metadata=convert_to_dict(cfg),
-        tags=["dry-run" if args.dry_run else "full-run"],
+        tags=["roleplay", "dry-run" if args.dry_run else "full-run"],
     )
     # get the langchain handler for the current trace
     langfuse_handler = langfuse_context.get_current_langchain_handler()
@@ -68,6 +68,8 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     start_time = time.time()
     print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
+
+    # TODO: build roleplay dataset!
 
     # load data
     datasets = build_dataset(cfg.LOADER)
@@ -149,7 +151,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
             "preds_raw": {**val_preds_raw},
             "preds": {**val_preds},
         },
-        save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID),
+        save_dir=os.path.join(cfg.OUTPUT_DIR_ROLEPLAY, cfg.ID),
         fname=f"run_{run_n}",
     )
     print_elapsed_time(start_time, run_n)
@@ -161,10 +163,10 @@ def main() -> None:
     args = parser.parse_args()
 
     # config
-    configs = load_configs(args.config)
+    configs = load_configs(args.config, freeze=False)
 
     # remove previous contents (take dir form first cfg)
-    delete_previous_content(configs[0].OUTPUT_DIR)
+    delete_previous_content(configs[0].OUTPUT_DIR_ROLEPLAY)
 
     # logical checks before start running
     for cfg in configs:
@@ -182,7 +184,7 @@ def main() -> None:
                 cfg=cfg, run_n=run_n, args=args, langfuse_session=langfuse_session
             )
 
-        save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
+        save_config(cfg, save_dir=cfg.OUTPUT_DIR_ROLEPLAY, fname=cfg.ID)
 
 
 if __name__ == "__main__":

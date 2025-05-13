@@ -8,6 +8,7 @@ import pandas as pd
 import structlog
 from langchain_core.exceptions import OutputParserException
 from langchain_core.output_parsers import PydanticOutputParser
+from pydantic import BaseModel
 
 # local application/library specific imports
 # /
@@ -36,6 +37,33 @@ def df_to_listdict(df: pd.DataFrame) -> list[dict]:
     return list_out
 
 
+def create_dummy_instance(model_class: BaseModel) -> BaseModel:
+    """Create a dummy instance of a Pydantic model
+
+    It has empty strings for string fields and -1 for integer fields.
+
+    Parameters
+    ----------
+    model_class : BaseModel
+        Pydantic model class to create a dummy instance of.
+
+    Returns
+    -------
+    BaseModel
+        Dummy instance of the Pydantic model.
+    """
+    field_values = {}
+
+    for field_name, field_info in model_class.__annotations__.items():
+        if field_info == str or getattr(field_info, "__origin__", None) == str:
+            field_values[field_name] = ""
+        elif field_info == int or getattr(field_info, "__origin__", None) == int:
+            field_values[field_name] = -1
+        # Add more type checking as needed for other field types
+
+    return model_class(**field_values)
+
+
 def validate_output(outputs: list, schema) -> list:
     """Validate the LLM outputs against the schema.
 
@@ -60,7 +88,8 @@ def validate_output(outputs: list, schema) -> list:
         except OutputParserException as e:
             logger.warning("Invalid output", index=i)
             print(e)
-            output_validated = schema(explanation="", student_answer=-1)
+            # NOTE: flexible to structured outputter
+            output_validated = create_dummy_instance(schema)
         outputs_validated.append(output_validated)
 
     return outputs_validated
