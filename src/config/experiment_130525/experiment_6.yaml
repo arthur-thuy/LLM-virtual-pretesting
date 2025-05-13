@@ -1,0 +1,9 @@
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: studentid_random
+  NUM_EXAMPLES: 5
+MODEL:
+  NAME: gpt-4o-mini
+  TEMPERATURE: 0.0
+PROMPT:
+  NAME: student_A

@@ -61,6 +61,7 @@ MODEL_PROVIDER = {
     "olmo2:7b": "ollama",
     "gpt-4o": "openai",
     "gpt-4o-mini": "openai",
+    "o3-mini": "openai"
 }
 
 # prompt info

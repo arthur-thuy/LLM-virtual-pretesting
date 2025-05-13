@@ -1,0 +1,9 @@
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: studentid_random
+  NUM_EXAMPLES: 1
+MODEL:
+  NAME: o3-mini
+  TEMPERATURE: 2.0
+PROMPT:
+  NAME: student_A

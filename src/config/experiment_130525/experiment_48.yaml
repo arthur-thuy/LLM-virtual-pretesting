@@ -1,0 +1,9 @@
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: studentid_recency
+  NUM_EXAMPLES: 5
+MODEL:
+  NAME: gpt-4o
+  TEMPERATURE: 0.0
+PROMPT:
+  NAME: student_A

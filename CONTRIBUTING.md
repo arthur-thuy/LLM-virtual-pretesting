@@ -54,7 +54,7 @@ EXAMPLE_SELECTOR:
   NAME: ["random", "studentid_random", "studentid_semantic", "studentid_recency"]
 ```
 
-4. Run the script `explode_cfg_tempalate.py` in the `src` folder. This will create a new configuration folder for each combination of parameters in the template. The new folder will be named `kate_auto` (so without the `"_template"` suffix). Run as follows:
+4. Run the script `explode_cfg_template.py` in the `src` folder. This will create a new configuration folder for each combination of parameters in the template. The new folder will be named `kate_auto` (so without the `"_template"` suffix). Run as follows:
 ```bash
 python explode_cfg_template.py kate_auto_template
 ```
