@@ -15,6 +15,8 @@ import structlog
 from tools.constants import (
     SILVER_DIR,
     TRAIN,
+    RATE_LIMIT,
+    EMBEDDING_PROVIDER,
 )
 from data_loader.data_loader import DataLoader
 from tools.vector_db import prepare_empty_vector_store, populate_vector_store
@@ -22,7 +24,7 @@ from tools.vector_db import prepare_empty_vector_store, populate_vector_store
 # set logger
 logger = structlog.get_logger()
 
-EMBEDDING_NAMES = ["llama3", "text-embedding-3-large"]
+EMBEDDING_NAMES = ["llama3", "text-embedding-3-large", "gemini-embedding-exp-03-07"]
 
 
 def main() -> None:
@@ -47,6 +49,7 @@ def main() -> None:
         populate_vector_store(
             vector_store=vector_store,
             data=train_dataset,
+            requests_per_minute=RATE_LIMIT[EMBEDDING_PROVIDER[embedding_name]],
         )
 
 

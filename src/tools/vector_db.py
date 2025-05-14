@@ -3,6 +3,8 @@
 # standard library imports
 import os
 import sys
+import time
+from typing import Optional
 
 # related third party imports
 import click
@@ -11,6 +13,7 @@ import pandas as pd
 from langchain_core.documents import Document
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec, Index
+from tqdm import tqdm
 
 # local application/library specific imports
 from model.build import build_embedding
@@ -118,9 +121,72 @@ def prepare_empty_vector_store(
     return vector_store
 
 
+# def populate_vector_store(
+#     vector_store: PineconeVectorStore,
+#     data: pd.DataFrame,
+# ) -> None:
+#     """Populate the vector store with documents.
+
+#     Parameters
+#     ----------
+#     vector_store : PineconeVectorStore
+#         The vector store to populate.
+#     data : pd.DataFrame
+#         The data to populate the vector store with.
+#     """
+#     vector_input_df = data.drop_duplicates(subset=QUESTION_ID)
+
+#     vector_input_doc = [
+#         Document(
+#             page_content=row[Q_TEXT],
+#             metadata={
+#                 QUESTION_ID: str(row[QUESTION_ID]),
+#             },
+#         )
+#         for _, row in vector_input_df.iterrows()
+#     ]
+#     vector_input_id = vector_input_df[QUESTION_ID].astype(str).tolist()
+#     logger.info(
+#         "Adding documents to vector store",
+#         num_docs=len(vector_input_doc),
+#     )
+#     _ = vector_store.add_documents(documents=vector_input_doc, ids=vector_input_id)
+
+
+def populate_vector_store_single_batch(
+    vector_store: PineconeVectorStore,
+    batch_df: pd.DataFrame,
+) -> None:
+    """Populate the vector store with documents.
+
+    Parameters
+    ----------
+    vector_store : PineconeVectorStore
+        The vector store to populate.
+    batch_df : pd.DataFrame
+        The data to populate the vector store with.
+    """
+    vector_input_doc = [
+        Document(
+            page_content=row[Q_TEXT],
+            metadata={
+                QUESTION_ID: str(row[QUESTION_ID]),
+            },
+        )
+        for _, row in batch_df.iterrows()
+    ]
+    vector_input_id = batch_df[QUESTION_ID].astype(str).tolist()
+    logger.info(
+        "Adding documents to vector store",
+        num_docs=len(vector_input_doc),
+    )
+    _ = vector_store.add_documents(documents=vector_input_doc, ids=vector_input_id)
+
+
 def populate_vector_store(
     vector_store: PineconeVectorStore,
     data: pd.DataFrame,
+    requests_per_minute: Optional[int] = None,
 ) -> None:
     """Populate the vector store with documents.
 
@@ -130,24 +196,40 @@ def populate_vector_store(
         The vector store to populate.
     data : pd.DataFrame
         The data to populate the vector store with.
+    requests_per_minute : int, optional
+        Number of requests per minute to the vector store.
+        If None, no rate limit is applied.
     """
     vector_input_df = data.drop_duplicates(subset=QUESTION_ID)
 
-    vector_input_doc = [
-        Document(
-            page_content=row[Q_TEXT],
-            metadata={
-                QUESTION_ID: str(row[QUESTION_ID]),
-            },
+    if requests_per_minute is None:
+        populate_vector_store_single_batch(
+            vector_store=vector_store,
+            batch_df=vector_input_df,
         )
-        for _, row in vector_input_df.iterrows()
-    ]
-    vector_input_id = vector_input_df[QUESTION_ID].astype(str).tolist()
-    logger.info(
-        "Adding documents to vector store",
-        num_docs=len(vector_input_doc),
-    )
-    _ = vector_store.add_documents(documents=vector_input_doc, ids=vector_input_id)
+    else:
+        # Process in batches
+        total_docs = len(vector_input_df)
+        logger.info(
+            "Preparing to add documents to vector store in batches",
+            total_docs=total_docs,
+            batch_size=requests_per_minute,
+        )
+        for i in tqdm(range(0, total_docs, requests_per_minute)):
+            batch_df = vector_input_df.iloc[i : i + requests_per_minute]
+
+            populate_vector_store_single_batch(
+                vector_store=vector_store,
+                batch_df=batch_df,
+            )
+
+            # Sleep between batches (except for the last one)
+            sleep_time = 61.0
+            if i + requests_per_minute < total_docs:
+                logger.info(
+                    f"Rate limit sleep: waiting {sleep_time} seconds before next batch"
+                )
+                time.sleep(sleep_time)
 
 
 def get_vector_store(

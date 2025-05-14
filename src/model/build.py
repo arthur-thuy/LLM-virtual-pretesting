@@ -9,6 +9,7 @@ from yacs.config import CfgNode
 from langchain_core.embeddings import Embeddings
 from langchain_ollama import OllamaEmbeddings
 from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 # local application/library specific imports
 from tools.registry import Registry
@@ -59,5 +60,9 @@ def build_embedding(embedding_name: str, provider: str) -> Embeddings:
     elif provider == "openai":
         return OpenAIEmbeddings(model=embedding_name)
     # elif provider == "anthropic":  # TODO: add anthropic
+    elif provider == "google":
+        return GoogleGenerativeAIEmbeddings(
+            model=f"models/{embedding_name}", task_type="RETRIEVAL_DOCUMENT"
+        )
     else:
         raise ValueError(f"Unsupported embedding provider: {provider}")
