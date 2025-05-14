@@ -53,6 +53,8 @@ MODEL_STRUCTURED_OUTPUT = {
     "olmo2:7b": False,
     "gpt-4o": True,
     "gpt-4o-mini": True,
+    "gemini-2.0-flash": True,
+    "gemini-2.5-pro-preview-05-06": True,
 }
 MODEL_PROVIDER = {
     "llama3": "ollama",
@@ -60,6 +62,8 @@ MODEL_PROVIDER = {
     "olmo2:7b": "ollama",
     "gpt-4o": "openai",
     "gpt-4o-mini": "openai",
+    "gemini-2.0-flash": "google",
+    "gemini-2.5-pro-preview-05-06": "google",
 }
 
 # prompt info
@@ -82,5 +86,13 @@ PROMPT_INFO = {
 _VALID_TYPES = {tuple, list, str, int, float, bool, NoneType}
 
 # vector DB
-EMBEDDINGS_DIM = {"llama3": 4096, "text-embedding-3-large": 3072}
-EMBEDDING_PROVIDER = {"llama3": "ollama", "text-embedding-3-large": "openai"}
+EMBEDDINGS_DIM = {
+    "llama3": 4096,
+    "text-embedding-3-large": 3072,
+    "gemini-embedding-exp-03-07": 3072,
+}
+EMBEDDING_PROVIDER = {
+    "llama3": "ollama",
+    "text-embedding-3-large": "openai",
+    "gemini-embedding-exp-03-07": "google",
+}

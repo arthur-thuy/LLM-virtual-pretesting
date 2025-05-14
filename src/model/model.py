@@ -8,6 +8,7 @@ from yacs.config import CfgNode
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langchain_anthropic import ChatAnthropic
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # local application/library specific imports
 from model.build import MODEL_PROVIDER_REGISTRY
@@ -45,5 +46,17 @@ def build_ollama_model(model_cfg: CfgNode) -> ChatOllama:
         temperature=model_cfg.TEMPERATURE,
         num_predict=model_cfg.MAX_TOKENS,
         format="json",
+    )
+    return model
+
+
+@MODEL_PROVIDER_REGISTRY.register("google")
+def build_google_model(model_cfg: CfgNode) -> ChatGoogleGenerativeAI:
+    model = ChatGoogleGenerativeAI(
+        model=model_cfg.NAME,
+        temperature=model_cfg.TEMPERATURE,
+        max_tokens=model_cfg.MAX_TOKENS,
+        timeout=model_cfg.TIMEOUT,
+        # NOTE: leave max_retries at default value (6)
     )
     return model

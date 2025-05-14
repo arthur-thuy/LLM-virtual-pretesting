@@ -83,6 +83,13 @@ def validate_output(outputs: list, schema) -> list:
     parser = PydanticOutputParser(pydantic_object=schema)
     outputs_validated = []
     for i, output in enumerate(outputs):
+        # NOTE: for Google Gemini, need to extract the function call
+        if output.content == "":
+            try:
+                output.content = output.additional_kwargs["function_call"]["arguments"]
+            except KeyError:
+                logger.warning("No function call in raw output", index=i)
+                continue
         try:
             output_validated = parser.invoke(output)
         except OutputParserException as e:
