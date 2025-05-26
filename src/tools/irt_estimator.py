@@ -18,6 +18,8 @@ from tools.constants import (
     QUESTION_ID,
     STUDENT_ID,
     S_OPTION_CORRECT,
+    STUDENT_LEVEL,
+    STUDENT_LEVEL_GROUP,
 )
 
 # set up logger
@@ -120,3 +122,60 @@ def irt_estimation(
         discrimination_dict[question_id] = question_params["alpha"]
     student_dict = {x[0]: x[1] for x in user_params.items()}
     return student_dict, difficulty_dict, discrimination_dict
+
+
+def group_student_levels(
+    df_interactions: pd.DataFrame, num_groups: int
+) -> pd.DataFrame:
+    """Group students into levels based on their estimated ability.
+
+    Parameters
+    ----------
+    df_interactions : pd.DataFrame
+        DataFrame containing student interactions with columns:
+            - STUDENT_ID: Unique identifier for students.
+    num_groups : int
+        Number of groups to divide students into based on their ability.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with an additional column 'student_level_group' indicating the group of each student.
+    """
+    assert set([STUDENT_ID, QUESTION_ID, S_OPTION_CORRECT]).issubset(
+        df_interactions.columns
+    ), "Missing required columns in interactions DataFrame."
+    # Compute IRT parameters
+    student_dict, _, _ = irt_estimation(interactions_df=df_interactions)
+    df_interactions_tmp = df_interactions.copy()
+    df_interactions_tmp[STUDENT_LEVEL] = df_interactions_tmp[STUDENT_ID].map(student_dict)
+    df_interactions_tmp[STUDENT_LEVEL_GROUP] = pd.qcut(
+        df_interactions_tmp[STUDENT_LEVEL], q=num_groups, labels=False
+    )
+
+    return df_interactions_tmp
+
+
+def explode_student_levels(df_questions: pd.DataFrame, num_groups: int) -> pd.DataFrame:
+    """Explode student levels into multiple rows for each question.
+
+    Parameters
+    ----------
+    df_questions : pd.DataFrame
+        Questions to be exploded for each student level.
+    num_groups : int
+        Number of student level groups to create.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with an additional column 'student_level_group'.
+    """
+    student_level_groups_list = [
+        f"{i} (1 is the lowest level; {num_groups+1} is the highest level)"
+        for i in range(1, num_groups + 1)
+    ]
+    df_tmp = df_questions.copy()
+    df_tmp[STUDENT_LEVEL_GROUP] = [student_level_groups_list] * len(df_tmp)
+    df_tmp = df_tmp.explode(STUDENT_LEVEL_GROUP)
+    return df_tmp.reset_index(drop=True)
