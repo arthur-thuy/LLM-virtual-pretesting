@@ -9,6 +9,7 @@ CUPA = "cupa"
 # paths
 BRONZE_DIR = "../data/raw"
 SILVER_DIR = "../data/processed"
+GOLD_DIR = "../data/gold"
 
 VALIDATION = "validation"
 VALSMALL = "valsmall"
