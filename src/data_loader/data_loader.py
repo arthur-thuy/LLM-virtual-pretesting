@@ -1,6 +1,6 @@
 # standard library imports
 import os
-from typing import Union
+from typing import Union, Optional
 
 # related third party imports
 import structlog
@@ -15,6 +15,7 @@ from tools.constants import (
     Q_OPTION_TEXTS,
     VALSMALL,
     VALLARGE,
+    VALIDATION,
     QUESTION_ID,
 )
 from tools.utils import set_seed
@@ -159,3 +160,155 @@ class DataLoader:
                     datasets[split]["student_id"].unique(),
                 ),
             )
+
+
+class DataLoaderRoleplay:
+    def __init__(self, read_dir: str, write_dir: str, dataset_name: str) -> None:
+        """Constructor."""
+        self.read_dir = read_dir
+        self.write_dir = write_dir
+        self.dataset_name = dataset_name
+
+    def _read_questions(self) -> pd.DataFrame:
+        # questions
+        df_questions = pd.read_csv(
+            os.path.join(self.read_dir, f"{self.dataset_name}_questions.csv")
+        )
+        # convert string back to list
+        df_questions[Q_OPTION_TEXTS] = df_questions[Q_OPTION_TEXTS].apply(eval)
+        return df_questions
+
+    def read_splitted_data(self) -> dict[str, pd.DataFrame]:
+        """Read data from disk.
+
+        Returns
+        -------
+        dict[str, pd.DataFrame]
+            Dictionary of dataframes for each split
+        """
+        questions = dict()
+        # read pre-splitted questions
+        for split in [TRAIN, VALIDATION, TEST]:
+            df_questions_tmp = pd.read_csv(
+                os.path.join(
+                    self.write_dir,
+                    f"{self.dataset_name}_roleplay_questions_{split}.csv",
+                )
+            )
+            # convert string back to list
+            df_questions_tmp[Q_OPTION_TEXTS] = df_questions_tmp[Q_OPTION_TEXTS].apply(
+                eval
+            )
+            questions[split] = df_questions_tmp
+            logger.info(
+                f"Reading {split} split questions",
+                num_questions=len(questions[split]),
+            )
+        # read train interactions
+        interact_train = pd.read_csv(
+            os.path.join(
+                self.write_dir, f"{self.dataset_name}_roleplay_interactions_train.csv"
+            )
+        )
+        logger.info(
+            "Reading train split interactions",
+            num_interactions=len(interact_train),
+            num_distinct_questions=len(
+                interact_train[QUESTION_ID].unique(),
+            ),
+            num_distinct_students=len(
+                interact_train["student_id"].unique(),
+            ),
+        )
+        return questions, interact_train
+
+    def split_data(
+        self,
+        val_size: float,
+        test_size: float,
+        split_interactions: bool,  # True for DBE-KT22, False for CFE
+        seed: int,
+        join_key: Optional[str] = None,
+    ) -> None:
+        """Split interactions into train, validation, and test sets.
+
+        Parameters
+        ----------
+        val_size : float
+            Fraction of the dataset to include in the val split
+        test_size : float
+            Fraction of the dataset to include in the test split
+        seed : int
+            Random seed
+        """
+        # questions
+        df_questions = self._read_questions()
+
+        # interactions
+        df_interactions = pd.read_csv(
+            os.path.join(self.read_dir, f"{self.dataset_name}_interactions.csv")
+        )
+
+        # seed
+        set_seed(seed)
+
+        # train-validation-test split
+        # split the question_ids
+        # TODO: stratified sampling on knowledge concepts!
+        q_ids_trainval, q_ids_test = train_test_split(
+            df_questions[QUESTION_ID].unique(), test_size=test_size
+        )
+        q_ids_train, q_ids_val = train_test_split(
+            q_ids_trainval, test_size=val_size / (1 - test_size)
+        )
+        q_splits = {
+            TRAIN: q_ids_train,
+            VALIDATION: q_ids_val,
+            TEST: q_ids_test,
+        }
+
+        # writing questions
+        for split in q_splits.keys():
+            q_split = df_questions[
+                df_questions[QUESTION_ID].isin(q_splits[split])
+            ].copy()
+            q_split.to_csv(
+                os.path.join(
+                    self.write_dir,
+                    f"{self.dataset_name}_roleplay_questions_{split}.csv",
+                ),
+                index=False,
+            )
+            logger.info(
+                f"Writing {split} split questions",
+                num_questions=len(q_split),
+            )
+        # writing interactions
+        if split_interactions:
+            # filter out the train questions
+            interact_train = df_interactions[
+                df_interactions[QUESTION_ID].isin(q_splits[TRAIN])
+            ].copy()
+        else:
+            # we can keep all interactions
+            interact_train = df_interactions.copy()
+        if join_key is not None:
+            interact_train = pd.merge(
+                interact_train, df_questions, on=join_key, how="left"
+            )
+        interact_train.to_csv(
+            os.path.join(
+                self.write_dir, f"{self.dataset_name}_roleplay_interactions_train.csv"
+            ),
+            index=False,
+        )
+        logger.info(
+            "Writing train split interactions",
+            num_interactions=len(interact_train),
+            num_distinct_questions=len(
+                interact_train[QUESTION_ID].unique(),
+            ),
+            num_distinct_students=len(
+                interact_train["student_id"].unique(),
+            ),
+        )
