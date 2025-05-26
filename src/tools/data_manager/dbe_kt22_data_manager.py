@@ -167,9 +167,11 @@ class DBEKT22Datamanager:
         df_interact[TIME] = pd.to_datetime(
             df_interact["end_time"].str[:-6], format="%Y-%m-%d %H:%M:%S.%f"
         )
-        df_interact[TIME] = df_interact[TIME].apply(
-            lambda x: x.timestamp() - datetime(2019, 8, 1).timestamp()
-        ).round(3)  # NOTE: first interaction on 07/08/2019
+        df_interact[TIME] = (
+            df_interact[TIME]
+            .apply(lambda x: x.timestamp() - datetime(2019, 8, 1).timestamp())
+            .round(3)
+        )  # NOTE: first interaction on 07/08/2019
         # NOTE: remove interactions where student answered the question multiple times
         df_interact = df_interact.drop_duplicates(
             subset=["question_id", "student_id"], keep="first"
@@ -217,7 +219,8 @@ class DBEKT22Datamanager:
     def _compute_irt(
         self, df_interactions: pd.DataFrame, df_questions: pd.DataFrame
     ) -> pd.DataFrame:
-        """Compute IRT parameters for questions and add them to the questions dataframe."""
+        """Compute IRT parameters for questions and add them to the
+        questions dataframe."""
         # Compute IRT parameters
         _, difficulty_dict, discrimination_dict = irt_estimation(
             interactions_df=df_interactions
