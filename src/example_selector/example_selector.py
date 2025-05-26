@@ -17,7 +17,9 @@ logger = structlog.get_logger()
 
 
 @EXAMPLE_SELECTOR_REGISTRY.register("random")
-def build_random(cfg: CfgNode, examples: list[dict]) -> BaseExampleSelector:
+def build_random(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
     input_vars = []
     selector = RandomExampleSelector(
         examples=examples,
@@ -27,7 +29,9 @@ def build_random(cfg: CfgNode, examples: list[dict]) -> BaseExampleSelector:
 
 
 @EXAMPLE_SELECTOR_REGISTRY.register("studentid_random")
-def build_studentid_random(cfg: CfgNode, examples: list[dict]) -> BaseExampleSelector:
+def build_studentid_random(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
     input_vars = ["student_id"]
     selector = StudentIDRandomExampleSelector(
         examples=examples,
@@ -37,7 +41,9 @@ def build_studentid_random(cfg: CfgNode, examples: list[dict]) -> BaseExampleSel
 
 
 @EXAMPLE_SELECTOR_REGISTRY.register("studentid_semantic")
-def build_studentid_semantic(cfg: CfgNode, examples: list[dict]) -> BaseExampleSelector:
+def build_studentid_semantic(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
     input_vars = ["student_id", "question_id", "q_text"]
     selector = StudentIDSemanticExampleSelector(
         examples=examples,
@@ -49,10 +55,26 @@ def build_studentid_semantic(cfg: CfgNode, examples: list[dict]) -> BaseExampleS
 
 
 @EXAMPLE_SELECTOR_REGISTRY.register("studentid_recency")
-def build_studentid_recency(cfg: CfgNode, examples: list[dict]) -> BaseExampleSelector:
+def build_studentid_recency(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
     input_vars = ["student_id", "time"]
     selector = StudentIDRecencyExampleSelector(
         examples=examples,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("studentlevel_random")
+def build_studentlevel_random(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    """Build a random example selector based on student levels."""
+    input_vars = ["student_level_group"]
+    selector = StudentLevelRandomExampleSelector(
+        examples=examples,
+        q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
     )
     return (selector, input_vars)
@@ -272,3 +294,44 @@ class StudentIDRecencyExampleSelector(BaseExampleSelector):
         selected_interactions = [student_interactions[i] for i in recent_k_indices]
 
         return selected_interactions
+
+
+class StudentLevelRandomExampleSelector(BaseExampleSelector):
+    """Filter examples of the same student level and randomly select."""
+
+    def __init__(self, examples: list[dict], q_ids_train: list[int], k: int) -> None:
+        """Initialize the example selector.
+
+        Parameters
+        ----------
+        examples :  list[dict]
+            List of examples
+        q_ids_train : list[int]
+            List of question IDs in the training set.
+        k : int
+            k-shot prompting
+        """
+        self.examples = examples
+        self.q_ids_train = q_ids_train
+        self.k = k
+
+    def add_example(self, example):
+        self.examples.append(example)
+
+    def select_examples(self, input_variables):
+        # student_level_group of target student
+        student_level_group = input_variables["student_level_group"]
+
+        # find all interactions of this student level group
+        student_interactions = [
+            interact
+            for interact in self.examples
+            if interact["student_level_group"] == student_level_group
+            and interact["question_id"] in self.q_ids_train
+        ]
+
+        # randomly select from questions
+        k = min(self.k, len(student_interactions))
+        interactions_selected = random.sample(student_interactions, k)
+
+        return interactions_selected

@@ -1,7 +1,7 @@
 """Build file for system prompt."""
 
 # standard library imports
-# /
+from typing import Optional
 
 # related third party imports
 import structlog
@@ -24,7 +24,10 @@ logger = structlog.get_logger(__name__)
 
 
 def build_prompt(
-    cfg: CfgNode, examples: list[dict], struc_output: BaseModel
+    cfg: CfgNode,
+    examples: list[dict],
+    struc_output: BaseModel,
+    q_ids_train: Optional[list[int]] = None,
 ) -> ChatPromptTemplate:
     """Build the prompt.
 
@@ -36,6 +39,8 @@ def build_prompt(
         List of examples.
     struc_output : BaseModel
         Pydantic model for structured output.
+    q_ids_train : Optional[list[int]], optional
+        List of question IDs for training interactions, by default None
 
     Returns
     -------
@@ -51,12 +56,12 @@ def build_prompt(
     )
 
     # Set up a parser (not used if model supports structured output)
-    parser = PydanticOutputParser(
-        pydantic_object=struc_output
-    )
+    parser = PydanticOutputParser(pydantic_object=struc_output)
 
     # build few_shot_prompt
-    example_selector, input_vars = build_example_selector(cfg, examples=examples)
+    example_selector, input_vars = build_example_selector(
+        cfg, examples=examples, q_ids_train=q_ids_train
+    )
     few_shot_prompt = FewShotChatMessagePromptTemplate(
         # The input variables select the values to pass to the example_selector
         input_variables=input_vars,
