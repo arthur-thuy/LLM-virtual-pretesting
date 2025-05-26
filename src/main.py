@@ -93,6 +93,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     datasets_fmt = build_example_formatter(
         example_formatter_cfg=cfg.EXAMPLE_FORMATTER,
         datasets=datasets,
+        is_interaction=True,
     )
 
     # list of dicts
@@ -107,7 +108,9 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     StrucOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
 
     # prompt
-    prompt, _ = build_prompt(cfg=cfg, examples=list_train, struc_output=StrucOutput)
+    prompt, _ = build_prompt(
+        cfg=cfg, examples=list_train, struc_output=StrucOutput, q_ids_train=None
+    )
 
     # model
     model = build_model(model_cfg=cfg.MODEL)
