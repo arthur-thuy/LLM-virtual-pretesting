@@ -19,17 +19,21 @@ from tools.constants import (
     QUESTION_ID,
     INTERACT_ID,
     TIME,
+    S_OPTION_CORRECT,
 )
 
 
 @EXAMPLE_FORMATTER_REGISTRY.register("no_quotes")
-def build_no_quotes(dataset: pd.DataFrame) -> pd.DataFrame:
+def build_no_quotes(dataset: pd.DataFrame, is_interaction: bool) -> pd.DataFrame:
     """Build example formatter no_quotes.
 
     Parameters
     ----------
     datasets : pd.DataFrame
         Dataset.
+    is_interaction : bool
+        Whether the dataset is an interaction dataset.
+        If not, it is a questions dataset.
 
     Returns
     -------
@@ -52,23 +56,28 @@ def build_no_quotes(dataset: pd.DataFrame) -> pd.DataFrame:
 
     df_out = pd.DataFrame()
     df_out[INPUT] = dataset.apply(input_fmt, axis=1)
-    df_out[OUTPUT] = dataset.apply(output_fmt, axis=1)
-    df_out[STUDENT_ID] = dataset[STUDENT_ID]
     df_out[QUESTION_ID] = dataset[QUESTION_ID]
-    df_out[INTERACT_ID] = dataset[INTERACT_ID]
     df_out[Q_TEXT] = dataset[Q_TEXT]
-    df_out[TIME] = dataset[TIME]
+    if is_interaction:
+        df_out[OUTPUT] = dataset.apply(output_fmt, axis=1)
+        df_out[STUDENT_ID] = dataset[STUDENT_ID]
+        df_out[INTERACT_ID] = dataset[INTERACT_ID]
+        df_out[TIME] = dataset[TIME]
+        df_out[S_OPTION_CORRECT] = dataset[S_OPTION_CORRECT]
     return df_out
 
 
 @EXAMPLE_FORMATTER_REGISTRY.register("quotes")
-def build_quotes(dataset: pd.DataFrame) -> pd.DataFrame:
+def build_quotes(dataset: pd.DataFrame, is_interaction: bool) -> pd.DataFrame:
     """Build example formatter quotes.
 
     Parameters
     ----------
     datasets : pd.DataFrame
         Dataset.
+    is_interaction : bool
+        Whether the dataset is an interaction dataset.
+        If not, it is a questions dataset.
 
     Returns
     -------
@@ -91,10 +100,12 @@ def build_quotes(dataset: pd.DataFrame) -> pd.DataFrame:
 
     df_out = pd.DataFrame()
     df_out[INPUT] = dataset.apply(input_fmt, axis=1)
-    df_out[OUTPUT] = dataset.apply(output_fmt, axis=1)
-    df_out[STUDENT_ID] = dataset[STUDENT_ID]
     df_out[QUESTION_ID] = dataset[QUESTION_ID]
-    df_out[INTERACT_ID] = dataset[INTERACT_ID]
     df_out[Q_TEXT] = dataset[Q_TEXT]
-    df_out[TIME] = dataset[TIME]
+    if is_interaction:
+        df_out[OUTPUT] = dataset.apply(output_fmt, axis=1)
+        df_out[STUDENT_ID] = dataset[STUDENT_ID]
+        df_out[INTERACT_ID] = dataset[INTERACT_ID]
+        df_out[TIME] = dataset[TIME]
+        df_out[S_OPTION_CORRECT] = dataset[S_OPTION_CORRECT]
     return df_out

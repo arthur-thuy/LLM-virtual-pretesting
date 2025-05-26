@@ -18,7 +18,9 @@ logger = structlog.get_logger(__name__)
 
 
 def build_example_formatter(
-    example_formatter_cfg: CfgNode, datasets: dict[str, pd.DataFrame]
+    example_formatter_cfg: CfgNode,
+    datasets: dict[str, pd.DataFrame],
+    is_interaction: bool,
 ) -> dict[str, pd.DataFrame]:
     """Build the example formatter.
 
@@ -28,6 +30,9 @@ def build_example_formatter(
         Config node for the example formatter.
     datasets : dict[str, pd.DataFrame]
         Dict of datasets, per split.
+    is_interaction : bool
+        Whether the datasets are interaction datasets.
+        If not, they are questions datasets.
 
     Returns
     -------
@@ -40,9 +45,12 @@ def build_example_formatter(
         splits=list(datasets.keys()),
     )
     formatter = EXAMPLE_FORMATTER_REGISTRY[example_formatter_cfg.NAME]
-    dataset_fmt = {
-        TRAIN: formatter(datasets[TRAIN]),
-        VALIDATION: formatter(datasets[VALIDATION]),
-        TEST: formatter(datasets[TEST]),
-    }
+    # dataset_fmt = {  # TODO: remove
+    #     TRAIN: formatter(datasets[TRAIN]),
+    #     VALIDATION: formatter(datasets[VALIDATION]),
+    #     TEST: formatter(datasets[TEST]),
+    # }
+    dataset_fmt = dict()
+    for split, df in datasets.items():
+        dataset_fmt[split] = formatter(dataset=df, is_interaction=is_interaction)
     return dataset_fmt
