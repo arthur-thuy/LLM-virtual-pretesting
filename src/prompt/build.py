@@ -53,7 +53,7 @@ def build_prompt(
     # Set up a parser (not used if model supports structured output)
     parser = PydanticOutputParser(
         pydantic_object=struc_output
-    )  # TODO: rename because "str" of structured is confusing with string
+    )
 
     # build few_shot_prompt
     example_selector, input_vars = build_example_selector(cfg, examples=examples)
