@@ -17,7 +17,7 @@ from langfuse.decorators import langfuse_context, observe
 from langfuse import Langfuse
 
 # local application/library specific imports
-from data_loader.build import build_dataset
+from data_loader.build import build_roleplay_dataset
 from tools.configurator import check_cfg, load_configs, save_config, convert_to_dict
 from tools.utils import (
     delete_previous_content,
@@ -26,7 +26,13 @@ from tools.utils import (
     set_seed,
 )
 from prompt.utils import df_to_listdict
-from tools.constants import TRAIN, TEST, VALSMALL, VALLARGE, VALIDATION  # noqa
+from tools.constants import (
+    TRAIN,
+    TEST,
+    VALIDATION,
+    QUESTION_ID,
+)  # noqa
+from tools.irt_estimator import group_student_levels, explode_student_levels
 from prompt.build import build_prompt
 from model.build import build_model
 from tools.evaluate import evaluate, predict
@@ -70,37 +76,47 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
 
     # TODO: build roleplay dataset!
-
-    # load data
-    datasets = build_dataset(cfg.LOADER)
-    # choose small or large validation set
-    if cfg.LOADER.RUN_LARGE_VAL:
-        datasets[VALIDATION] = datasets.pop(VALLARGE)
-        datasets.pop(VALSMALL)
-    else:
-        datasets[VALIDATION] = datasets.pop(VALSMALL)
-        datasets.pop(VALLARGE)
-    logger.info(
-        "Choosing validation set",
-        name=(VALLARGE if cfg.LOADER.RUN_LARGE_VAL else VALSMALL),
-        num_interactions=len(datasets[VALIDATION]),
+    questions, interact_train = build_roleplay_dataset(
+        loader_cfg=cfg.LOADER,
     )
 
     # subset
     if args.dry_run:
-        logger.info("Dry run: using only 10 observations")
-        datasets[VALIDATION] = datasets[VALIDATION].iloc[:10, :]
+        logger.info("Dry run: using only 2 questions")
+        questions[VALIDATION] = questions[VALIDATION].iloc[:2, :]
+        questions[TEST] = questions[TEST].iloc[:2, :]
 
     # dataframes
-    datasets_fmt = build_example_formatter(
+    interact_train_fmt = build_example_formatter(
         example_formatter_cfg=cfg.EXAMPLE_FORMATTER,
-        datasets=datasets,
+        datasets={TRAIN: interact_train},
+        is_interaction=True,
+    )[TRAIN]
+    questions_fmt = build_example_formatter(
+        example_formatter_cfg=cfg.EXAMPLE_FORMATTER,
+        datasets=questions,
+        is_interaction=False,
     )
 
+    # Compute IRT parameters
+    interact_train_fmt = group_student_levels(
+        df_interactions=interact_train_fmt, num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS
+    )
+    print(interact_train_fmt.columns)
+
+    # TODO: multiply val & test datasets because need 1 for every student level!
+    # Define student level in each row so we can match it with the student_ids for few-shots!
+    for split, df_q in questions_fmt.items():
+        questions_fmt[split] = explode_student_levels(
+            df_questions=df_q, num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS
+        )
+
     # list of dicts
-    list_train = df_to_listdict(datasets_fmt[TRAIN])
-    list_val = df_to_listdict(datasets_fmt[VALIDATION])
-    # list_test = df_to_listdict(datasets_fmt[TEST])  # noqa  # TODO
+    list_train = df_to_listdict(interact_train_fmt)
+    list_val = df_to_listdict(questions_fmt[VALIDATION])
+    # list_test = df_to_listdict(questions_fmt[TEST])  # TODO
+
+    print(list_train[:2])  # print first 2 examples for debugging  TODO: remove
 
     # seed
     set_seed(cfg.SEED + run_n)
@@ -108,8 +124,14 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # structured output
     StrucOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
 
+    # TODO: define new prompt because it needs to use the student_level
+    # TODO: create new example selector (add student_level to input_vars) that filters examples based on student level
+
     # prompt
-    prompt, _ = build_prompt(cfg=cfg, examples=list_train, struc_output=StrucOutput)
+    q_ids_train = list(questions_fmt[TRAIN][QUESTION_ID].unique())
+    prompt, _ = build_prompt(
+        cfg=cfg, examples=list_train, q_ids_train=q_ids_train, struc_output=StrucOutput
+    )
 
     # model
     model = build_model(model_cfg=cfg.MODEL)
@@ -120,6 +142,8 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     chain = prompt | model
 
     # predict & evaluate
+    # TODO: can we recycle this function?
+    # TODO: need to save the student level of each question in the validation set
     val_preds_raw = predict(
         chain=chain,
         data=list_val,
@@ -128,28 +152,23 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         json_schema=StrucOutput,
         langfuse_handler=langfuse_handler,
     )
-    val_metrics, val_preds = evaluate(
-        preds_validated=val_preds_raw["val_preds_validated"],
-        dataset=datasets[VALIDATION],
-        prefix="val",
-        langfuse_session=langfuse_session,
-        trace_id=trace_id,
-    )
-
-    # TODO: also for test set
-    # test_metrics, test_preds = evaluate(
-    #     preds_validated=test_preds["test_preds_validated"],
-    #     dataset=datasets[TEST],
-    #     prefix="test",
+    # TODO: create accuracy metrics per group of students
+    # val_metrics, val_preds = evaluate(
+    #     preds_validated=val_preds_raw["val_preds_validated"],
+    #     dataset=datasets[VALIDATION],
+    #     prefix="val",
     #     langfuse_session=langfuse_session,
     #     trace_id=trace_id,
     # )
 
+    # TODO: compute IRT on all output preds
+    # TODO: evaluate predicted difficulty on questions to true difficulty
+
     write_pickle(
         {
-            "metrics": {**val_metrics},
+            # "metrics": {**val_metrics},
             "preds_raw": {**val_preds_raw},
-            "preds": {**val_preds},
+            # "preds": {**val_preds},
         },
         save_dir=os.path.join(cfg.OUTPUT_DIR_ROLEPLAY, cfg.ID),
         fname=f"run_{run_n}",
