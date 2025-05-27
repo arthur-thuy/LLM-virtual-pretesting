@@ -35,7 +35,7 @@ from tools.constants import (
 from tools.irt_estimator import group_student_levels, explode_student_levels
 from prompt.build import build_prompt
 from model.build import build_model
-from tools.evaluate import evaluate, predict
+from tools.evaluate import evaluate_roleplay, predict
 from example_formatter.build import build_example_formatter
 from structured_outputter.build import build_structured_outputter
 
@@ -75,12 +75,12 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     start_time = time.time()
     print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
 
-    # TODO: build roleplay dataset!
+    # build dataset
     questions, interact_train = build_roleplay_dataset(
         loader_cfg=cfg.LOADER,
     )
 
-    # subset
+    # subset for dry-run
     if args.dry_run:
         logger.info("Dry run: using only 2 questions")
         questions[VALIDATION] = questions[VALIDATION].iloc[:2, :]
@@ -98,14 +98,13 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         is_interaction=False,
     )
 
-    # Compute IRT parameters
+    # Compute IRT parameters and group students
     interact_train_fmt = group_student_levels(
         df_interactions=interact_train_fmt, num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS
     )
     print(interact_train_fmt.columns)
 
-    # TODO: multiply val & test datasets because need 1 for every student level!
-    # Define student level in each row so we can match it with the student_ids for few-shots!
+    # create one row for each student level
     for split, df_q in questions_fmt.items():
         questions_fmt[split] = explode_student_levels(
             df_questions=df_q, num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS
@@ -116,16 +115,11 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     list_val = df_to_listdict(questions_fmt[VALIDATION])
     # list_test = df_to_listdict(questions_fmt[TEST])  # TODO
 
-    print(list_train[:2])  # print first 2 examples for debugging  TODO: remove
-
     # seed
     set_seed(cfg.SEED + run_n)
 
     # structured output
     StrucOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
-
-    # TODO: define new prompt because it needs to use the student_level
-    # TODO: create new example selector (add student_level to input_vars) that filters examples based on student level
 
     # prompt
     q_ids_train = list(questions_fmt[TRAIN][QUESTION_ID].unique())
@@ -141,8 +135,9 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # chain
     chain = prompt | model
 
+    # print(f"{questions_fmt[VALIDATION].columns=}")  # TODO: remove
+
     # predict & evaluate
-    # TODO: can we recycle this function?
     # TODO: need to save the student level of each question in the validation set
     val_preds_raw = predict(
         chain=chain,
@@ -152,23 +147,22 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         json_schema=StrucOutput,
         langfuse_handler=langfuse_handler,
     )
-    # TODO: create accuracy metrics per group of students
-    # val_metrics, val_preds = evaluate(
-    #     preds_validated=val_preds_raw["val_preds_validated"],
-    #     dataset=datasets[VALIDATION],
-    #     prefix="val",
-    #     langfuse_session=langfuse_session,
-    #     trace_id=trace_id,
-    # )
+    val_metrics, val_preds = evaluate_roleplay(
+        preds_validated=val_preds_raw["val_preds_validated"],
+        dataset=questions_fmt[VALIDATION],
+        prefix="val",
+    )
 
     # TODO: compute IRT on all output preds
     # TODO: evaluate predicted difficulty on questions to true difficulty
 
+    # compute_q_difficulty()
+
     write_pickle(
         {
-            # "metrics": {**val_metrics},
+            "metrics": {**val_metrics},
             "preds_raw": {**val_preds_raw},
-            # "preds": {**val_preds},
+            "preds": {**val_preds},
         },
         save_dir=os.path.join(cfg.OUTPUT_DIR_ROLEPLAY, cfg.ID),
         fname=f"run_{run_n}",

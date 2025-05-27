@@ -179,3 +179,9 @@ def explode_student_levels(df_questions: pd.DataFrame, num_groups: int) -> pd.Da
     df_tmp[STUDENT_LEVEL_GROUP] = [student_level_groups_list] * len(df_tmp)
     df_tmp = df_tmp.explode(STUDENT_LEVEL_GROUP)
     return df_tmp.reset_index(drop=True)
+
+
+# def compute_q_difficulty(
+        
+# ):
+#     pass
