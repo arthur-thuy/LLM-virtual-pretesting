@@ -10,7 +10,6 @@ import pandas as pd
 
 # local application/library specific imports
 from tools.registry import Registry
-from tools.constants import TRAIN, VALIDATION, TEST
 
 EXAMPLE_FORMATTER_REGISTRY = Registry()
 
@@ -45,11 +44,6 @@ def build_example_formatter(
         splits=list(datasets.keys()),
     )
     formatter = EXAMPLE_FORMATTER_REGISTRY[example_formatter_cfg.NAME]
-    # dataset_fmt = {  # TODO: remove
-    #     TRAIN: formatter(datasets[TRAIN]),
-    #     VALIDATION: formatter(datasets[VALIDATION]),
-    #     TEST: formatter(datasets[TEST]),
-    # }
     dataset_fmt = dict()
     for split, df in datasets.items():
         dataset_fmt[split] = formatter(dataset=df, is_interaction=is_interaction)
