@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from langfuse import Langfuse
 
 # local application/library specific imports
-from tools.constants import Q_CORRECT_OPTION_ID, S_OPTION_ID
+from tools.constants import Q_CORRECT_OPTION_ID, S_OPTION_ID, STUDENT_LEVEL_GROUP
 from tools.utils import format_time, BatchCallback
 from prompt.utils import validate_output
 
@@ -168,3 +168,93 @@ def evaluate(
         f"{prefix}_y_student": y_val_student,
     }
     return metrics, preds
+
+
+def compute_metrics_roleplay(
+    y_val_pred: ArrayLike,
+    y_val_true: ArrayLike,
+) -> dict[str, Any]:
+    """Compute metrics.
+
+    Parameters
+    ----------
+    y_val_pred : ArrayLike
+        Predicted values.
+    y_val_true : ArrayLike
+        True values.
+    y_val_student : ArrayLike
+        Student values.
+
+    Returns
+    -------
+    dict[str, Any]
+        Metrics
+    """
+    # compute metrics
+    metrics = {
+        "accuracy": accuracy_score(y_true=y_val_true, y_pred=y_val_pred),
+        "prop_invalid": np.mean(y_val_pred == -1),
+        "f1": f1_score(y_true=y_val_true, y_pred=y_val_pred, average="micro"),
+    }
+    return metrics
+
+
+def evaluate_roleplay(
+    preds_validated: list,
+    dataset: pd.DataFrame,
+    prefix: Literal["val", "test"],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Evaluate.
+
+    Parameters
+    ----------
+    preds_validated : list
+        Validated predictions.
+    dataset : pd.Dataframe
+        Dataset.
+    prefix : Literal["val", "test"]
+        Prefix.
+
+    Returns
+    -------
+    tuple[dict[str, Any], dict[str, Any]]
+        Metrics and predictions.
+    """
+    logger.info("Evaluate - start", split=prefix)
+    # NOTE: "student_answer" refers to the structured output class
+    y_val_pred = np.array([output.student_answer for output in preds_validated])
+    y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
+    student_level_groups = dataset[
+        STUDENT_LEVEL_GROUP
+    ].unique()  # TODO: order this alphabetically?
+    # calculate metrics per student group
+    metrics = dict()
+    for student_level in student_level_groups:
+        y_val_pred_student = y_val_pred[dataset[STUDENT_LEVEL_GROUP] == student_level]
+        y_val_true_student = y_val_true[dataset[STUDENT_LEVEL_GROUP] == student_level]
+        if len(y_val_pred_student) > 0:
+            metrics_group = compute_metrics_roleplay(
+                y_val_pred=y_val_pred_student,
+                y_val_true=y_val_true_student,
+            )
+            logger.info(
+                "Evaluate - student group",
+                student_level=student_level,
+                num_students=len(y_val_pred_student),
+                accuracy=metrics_group["accuracy"],
+            )
+            metrics[student_level] = {
+                f"{prefix}_{k}": v for k, v in metrics_group.items()
+            }
+    logger.info("Evaluate - end")
+    # NOTE: invert metrics dict
+    inverted_metrics = {
+        metric: {level: metrics[level][metric] for level in metrics}
+        for metric in metrics[list(metrics.keys())[0]].keys()
+    }
+    preds = {
+        f"{prefix}_y_pred": y_val_pred,
+        f"{prefix}_y_true": y_val_true,
+        f"{prefix}_{STUDENT_LEVEL_GROUP}": student_level_groups,
+    }
+    return inverted_metrics, preds

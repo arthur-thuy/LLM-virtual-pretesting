@@ -58,6 +58,7 @@ def build_no_quotes(dataset: pd.DataFrame, is_interaction: bool) -> pd.DataFrame
     df_out[INPUT] = dataset.apply(input_fmt, axis=1)
     df_out[QUESTION_ID] = dataset[QUESTION_ID]
     df_out[Q_TEXT] = dataset[Q_TEXT]
+    df_out[Q_CORRECT_OPTION_ID] = dataset[Q_CORRECT_OPTION_ID]
     if is_interaction:
         df_out[OUTPUT] = dataset.apply(output_fmt, axis=1)
         df_out[STUDENT_ID] = dataset[STUDENT_ID]
@@ -102,6 +103,7 @@ def build_quotes(dataset: pd.DataFrame, is_interaction: bool) -> pd.DataFrame:
     df_out[INPUT] = dataset.apply(input_fmt, axis=1)
     df_out[QUESTION_ID] = dataset[QUESTION_ID]
     df_out[Q_TEXT] = dataset[Q_TEXT]
+    df_out[Q_CORRECT_OPTION_ID] = dataset[Q_CORRECT_OPTION_ID]
     if is_interaction:
         df_out[OUTPUT] = dataset.apply(output_fmt, axis=1)
         df_out[STUDENT_ID] = dataset[STUDENT_ID]
