@@ -81,7 +81,7 @@ def _add_derived_configs(
     cfg.ID = create_config_id(cfg)
     cfg.ID_ROLEPLAY = create_roleplay_config_id(cfg)
     cfg.OUTPUT_DIR = os.path.join(".", "output", config_dir)
-    cfg.OUTPUT_DIR_ROLEPLAY = os.path.join(".", "output", f"tune_{config_dir}")
+    cfg.OUTPUT_DIR_ROLEPLAY = os.path.join(".", "output", f"roleplay_{config_dir}")
     cfg.MODEL.NATIVE_STRUCTURED_OUTPUT = MODEL_STRUCTURED_OUTPUT[cfg.MODEL.NAME]
     if freeze:
         cfg.freeze()
