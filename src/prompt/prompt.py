@@ -100,7 +100,7 @@ def build_roleplay_teacher_A(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
         "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "
-        "You will be shown previous question-answer records from students of level {student_level_group}. Identify the possible misconceptions that led to the errors. "
+        "You will be shown previous question-answer records from students of level {student_level_group} {student_scale}. Identify the possible misconceptions that led to the errors. "
         "Next, you will be shown a new multiple choice question. Discuss how a student of that level would answer it, keeping in mind the misconceptions identified earlier. "
     )
     human1_prompt_str = "Question-answer records:"

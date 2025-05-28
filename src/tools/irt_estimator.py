@@ -110,7 +110,8 @@ def irt_estimation(
         )
     except Exception:
         raise ValueError(
-            "Problem in irt_estimation. Check if there are items with only correct/wrong answers."
+            "Problem in irt_estimation. "
+            "Check if there are items with only correct/wrong answers."
         )
 
     difficulty_dict = dict()
@@ -148,10 +149,12 @@ def group_student_levels(
     # Compute IRT parameters
     student_dict, _, _ = irt_estimation(interactions_df=df_interactions)
     df_interactions_tmp = df_interactions.copy()
-    df_interactions_tmp[STUDENT_LEVEL] = df_interactions_tmp[STUDENT_ID].map(student_dict)
+    df_interactions_tmp[STUDENT_LEVEL] = df_interactions_tmp[STUDENT_ID].map(
+        student_dict
+    )
     df_interactions_tmp[STUDENT_LEVEL_GROUP] = pd.qcut(
         df_interactions_tmp[STUDENT_LEVEL], q=num_groups, labels=False
-    )
+    ).astype(str)
 
     return df_interactions_tmp
 
@@ -171,17 +174,31 @@ def explode_student_levels(df_questions: pd.DataFrame, num_groups: int) -> pd.Da
     pd.DataFrame
         DataFrame with an additional column 'student_level_group'.
     """
-    student_level_groups_list = [
-        f"{i} (1 is the lowest level; {num_groups+1} is the highest level)"
-        for i in range(1, num_groups + 1)
-    ]
+    student_level_groups_list = [str(i) for i in range(1, num_groups + 1)]
     df_tmp = df_questions.copy()
     df_tmp[STUDENT_LEVEL_GROUP] = [student_level_groups_list] * len(df_tmp)
     df_tmp = df_tmp.explode(STUDENT_LEVEL_GROUP)
     return df_tmp.reset_index(drop=True)
 
 
+def write_student_scale(num_groups: int) -> str:
+    """Write the student scale based on the number of groups.
+
+    Parameters
+    ----------
+    num_groups : int
+        Number of student level groups.
+
+    Returns
+    -------
+    str
+        Student scale string.
+    """
+    scale = f"(1 is the lowest level; {num_groups} is the highest level)"
+    return scale
+
+
 # def compute_q_difficulty(
-        
+
 # ):
 #     pass

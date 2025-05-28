@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from tools.registry import Registry
 from example_selector.build import build_example_selector
 from tools.constants import PROMPT_INFO
+from tools.irt_estimator import write_student_scale
 
 PROMPT_REGISTRY = Registry()
 
@@ -81,6 +82,7 @@ def build_prompt(
     final_prompt = ChatPromptTemplate.from_messages(messages).partial(
         format_instructions=parser.get_format_instructions(),
         exam_type=PROMPT_INFO[cfg.LOADER.NAME]["exam_type"],
+        student_scale=write_student_scale(num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS),
     )
     # NOTE: unused variables are simply ignored
 
