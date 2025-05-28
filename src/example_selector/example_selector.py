@@ -329,6 +329,11 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
             if interact["student_level_group"] == student_level_group
             and interact["question_id"] in self.q_ids_train
         ]
+        if len(student_interactions) == 0:
+            logger.warning(
+                f"No interactions found for student level group {student_level_group}"
+            )
+            return []
 
         # randomly select from questions
         k = min(self.k, len(student_interactions))
