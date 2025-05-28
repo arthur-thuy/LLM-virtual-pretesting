@@ -27,8 +27,9 @@ logger = structlog.get_logger(__name__)
 # Override pyirt's logging configuration (which is set to DEBUG)
 logging.basicConfig(
     level=logging.INFO,  # Set to INFO or WARNING
-    format='%(asctime)s %(levelname)s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S')
+    format="%(asctime)s %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 
 def irt_estimation(
@@ -159,7 +160,9 @@ def group_student_levels(
         student_dict
     )
     df_interactions_tmp[STUDENT_LEVEL_GROUP] = pd.qcut(
-        df_interactions_tmp[STUDENT_LEVEL], q=num_groups, labels=False
+        df_interactions_tmp[STUDENT_LEVEL],
+        q=num_groups,
+        labels=[str(i) for i in range(1, num_groups + 1)],
     ).astype(str)
 
     return df_interactions_tmp
@@ -204,7 +207,4 @@ def write_student_scale(num_groups: int) -> str:
     return scale
 
 
-# def compute_q_difficulty(
 
-# ):
-#     pass
