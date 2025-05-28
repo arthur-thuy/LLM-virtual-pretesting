@@ -1,12 +1,12 @@
 """IRT estimation."""
 
 # standard library imports
-# /
+import logging
 
 # related third party imports
 import pandas as pd
 import structlog
-from pyirt import irt
+import pyirt
 from typing import Tuple, Dict
 
 # local application/library specific imports
@@ -24,6 +24,11 @@ from tools.constants import (
 
 # set up logger
 logger = structlog.get_logger(__name__)
+# Override pyirt's logging configuration (which is set to DEBUG)
+logging.basicConfig(
+    level=logging.INFO,  # Set to INFO or WARNING
+    format='%(asctime)s %(levelname)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def irt_estimation(
@@ -100,13 +105,14 @@ def irt_estimation(
     interactions_list.extend([("p_bad", itemID, False) for itemID in list_q_to_augment])
 
     try:
-        item_params, user_params = irt(
+        item_params, user_params = pyirt.irt(
             interactions_list,
             theta_bnds=difficulty_range,
             beta_bnds=difficulty_range,
             alpha_bnds=discrimination_range,
             in_guess_param={q: guess for q in interactions_df[QUESTION_ID].unique()},
             max_iter=100,
+            mode=mode,
         )
     except Exception:
         raise ValueError(
