@@ -9,14 +9,23 @@ import structlog
 import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, root_mean_squared_error
 from pydantic import BaseModel
 from langfuse import Langfuse
 
 # local application/library specific imports
-from tools.constants import Q_CORRECT_OPTION_ID, S_OPTION_ID, STUDENT_LEVEL_GROUP
+from tools.constants import (
+    Q_CORRECT_OPTION_ID,
+    S_OPTION_ID,
+    STUDENT_LEVEL_GROUP,
+    STUDENT_ID,
+    QUESTION_ID,
+    S_OPTION_CORRECT,
+    Q_DIFFICULTY,
+)
 from tools.utils import format_time, BatchCallback
 from prompt.utils import validate_output
+from tools.irt_estimator import irt_estimation
 
 # set up logger
 logger = structlog.get_logger(__name__)
@@ -258,3 +267,43 @@ def evaluate_roleplay(
         f"{prefix}_{STUDENT_LEVEL_GROUP}": student_level_groups,
     }
     return inverted_metrics, preds
+
+
+def evaluate_q_difficulty(
+    preds_validated: list,
+    dataset: pd.DataFrame,
+    df_questions: pd.DataFrame,
+    prefix: Literal["val", "test"],
+):
+    logger.info("Evaluate question difficulty - start", split=prefix)
+    # prepare data for IRT estimation
+    y_val_pred = np.array([output.student_answer for output in preds_validated])
+    y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
+    df = pd.DataFrame(
+        {
+            STUDENT_ID: dataset[STUDENT_LEVEL_GROUP],
+            QUESTION_ID: dataset[QUESTION_ID],
+            S_OPTION_CORRECT: (y_val_pred == y_val_true).astype(int),
+        }
+    )
+    # Compute IRT parameters
+    _, difficulty_dict, _ = irt_estimation(interactions_df=df)
+    df_q_tmp = df_questions.copy()
+    df_q_tmp["q_diff_pred"] = df_q_tmp[QUESTION_ID].map(difficulty_dict)
+    # compute RMSE
+    metrics = {
+        f"{prefix}_rmse": root_mean_squared_error(
+            y_true=df_q_tmp[Q_DIFFICULTY].to_numpy(),
+            y_pred=df_q_tmp["q_diff_pred"].to_numpy(),
+        )
+    }
+    logger.info(
+        "Evaluate question difficulty - end",
+        split=prefix,
+        rmse=metrics[f"{prefix}_rmse"],
+    )
+    preds = {
+        f"{prefix}_qdiff_pred": df_q_tmp["q_diff_pred"].to_numpy(),
+        f"{prefix}_qdiff_true": df_q_tmp[Q_DIFFICULTY].to_numpy(),
+    }
+    return metrics, preds

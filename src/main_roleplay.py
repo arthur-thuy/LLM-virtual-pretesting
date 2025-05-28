@@ -35,7 +35,7 @@ from tools.constants import (
 from tools.irt_estimator import group_student_levels, explode_student_levels
 from prompt.build import build_prompt
 from model.build import build_model
-from tools.evaluate import evaluate_roleplay, predict
+from tools.evaluate import evaluate_roleplay, predict, evaluate_q_difficulty
 from example_formatter.build import build_example_formatter
 from structured_outputter.build import build_structured_outputter
 
@@ -70,7 +70,6 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     )
     # get the langchain handler for the current trace
     langfuse_handler = langfuse_context.get_current_langchain_handler()
-    trace_id = langfuse_context.get_current_trace_id()
 
     start_time = time.time()
     print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
@@ -86,7 +85,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         questions[VALIDATION] = questions[VALIDATION].iloc[:2, :]
         questions[TEST] = questions[TEST].iloc[:2, :]
 
-    # dataframes
+    # format questions/interactions for prompt
     interact_train_fmt = build_example_formatter(
         example_formatter_cfg=cfg.EXAMPLE_FORMATTER,
         datasets={TRAIN: interact_train},
@@ -102,7 +101,6 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     interact_train_fmt = group_student_levels(
         df_interactions=interact_train_fmt, num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS
     )
-    print(interact_train_fmt.columns)
 
     # create one row for each student level
     for split, df_q in questions_fmt.items():
@@ -122,9 +120,9 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     StrucOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
 
     # prompt
-    q_ids_train = list(questions_fmt[TRAIN][QUESTION_ID].unique())
+    q_ids_train = list(questions_fmt[TRAIN][QUESTION_ID].unique().tolist())
     prompt, _ = build_prompt(
-        cfg=cfg, examples=list_train, q_ids_train=q_ids_train, struc_output=StrucOutput
+        cfg=cfg, examples=list_train, struc_output=StrucOutput, q_ids_train=q_ids_train
     )
 
     # model
@@ -134,8 +132,6 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     # chain
     chain = prompt | model
-
-    # print(f"{questions_fmt[VALIDATION].columns=}")  # TODO: remove
 
     # predict & evaluate
     # TODO: need to save the student level of each question in the validation set
@@ -147,22 +143,27 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         json_schema=StrucOutput,
         langfuse_handler=langfuse_handler,
     )
-    val_metrics, val_preds = evaluate_roleplay(
+    val_metrics_answers, val_preds_answers = evaluate_roleplay(
         preds_validated=val_preds_raw["val_preds_validated"],
         dataset=questions_fmt[VALIDATION],
         prefix="val",
     )
 
-    # TODO: compute IRT on all output preds
-    # TODO: evaluate predicted difficulty on questions to true difficulty
-
-    # compute_q_difficulty()
+    # compute IRT and evaluate question difficulty
+    val_metrics_qdiff, val_preds_qdiff = evaluate_q_difficulty(
+        preds_validated=val_preds_raw["val_preds_validated"],
+        dataset=questions_fmt[VALIDATION],
+        df_questions=questions_fmt[VALIDATION],
+        prefix="val",
+    )
 
     write_pickle(
         {
-            "metrics": {**val_metrics},
             "preds_raw": {**val_preds_raw},
-            "preds": {**val_preds},
+            "metrics_answers": {**val_metrics_answers},
+            "metrics_qdiff": {**val_metrics_qdiff},
+            "preds_answers": {**val_preds_answers},
+            "preds_qdiff": {**val_preds_qdiff},
         },
         save_dir=os.path.join(cfg.OUTPUT_DIR_ROLEPLAY, cfg.ID),
         fname=f"run_{run_n}",
