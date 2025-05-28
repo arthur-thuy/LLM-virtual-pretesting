@@ -13,13 +13,8 @@ from tools.constants import (
     OUTPUT,
     Q_TEXT,
     Q_OPTION_TEXTS,
-    STUDENT_ID,
     Q_CORRECT_OPTION_ID,
     S_OPTION_ID,
-    QUESTION_ID,
-    INTERACT_ID,
-    TIME,
-    S_OPTION_CORRECT,
 )
 
 
@@ -54,17 +49,11 @@ def build_no_quotes(dataset: pd.DataFrame, is_interaction: bool) -> pd.DataFrame
         """Create human-readable output text from a row of a DataFrame."""
         return f"Student answer: {row[S_OPTION_ID]}"
 
-    df_out = pd.DataFrame()
+    df_out = dataset.copy()
+    # Create input and output columns
     df_out[INPUT] = dataset.apply(input_fmt, axis=1)
-    df_out[QUESTION_ID] = dataset[QUESTION_ID]
-    df_out[Q_TEXT] = dataset[Q_TEXT]
-    df_out[Q_CORRECT_OPTION_ID] = dataset[Q_CORRECT_OPTION_ID]
     if is_interaction:
         df_out[OUTPUT] = dataset.apply(output_fmt, axis=1)
-        df_out[STUDENT_ID] = dataset[STUDENT_ID]
-        df_out[INTERACT_ID] = dataset[INTERACT_ID]
-        df_out[TIME] = dataset[TIME]
-        df_out[S_OPTION_CORRECT] = dataset[S_OPTION_CORRECT]
     return df_out
 
 
@@ -99,15 +88,9 @@ def build_quotes(dataset: pd.DataFrame, is_interaction: bool) -> pd.DataFrame:
         """Create human-readable output text from a row of a DataFrame."""
         return f'Student answer: "{row[S_OPTION_ID]}"'
 
-    df_out = pd.DataFrame()
+    df_out = dataset.copy()
+    # Create input and output columns
     df_out[INPUT] = dataset.apply(input_fmt, axis=1)
-    df_out[QUESTION_ID] = dataset[QUESTION_ID]
-    df_out[Q_TEXT] = dataset[Q_TEXT]
-    df_out[Q_CORRECT_OPTION_ID] = dataset[Q_CORRECT_OPTION_ID]
     if is_interaction:
         df_out[OUTPUT] = dataset.apply(output_fmt, axis=1)
-        df_out[STUDENT_ID] = dataset[STUDENT_ID]
-        df_out[INTERACT_ID] = dataset[INTERACT_ID]
-        df_out[TIME] = dataset[TIME]
-        df_out[S_OPTION_CORRECT] = dataset[S_OPTION_CORRECT]
     return df_out
