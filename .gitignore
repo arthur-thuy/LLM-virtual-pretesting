@@ -178,3 +178,6 @@ cython_debug/
 
 # draft
 draft.ipynb
+
+# PyCharm folder
+.idea/
