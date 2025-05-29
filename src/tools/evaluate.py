@@ -182,6 +182,7 @@ def evaluate(
 def compute_metrics_roleplay(
     y_val_pred: ArrayLike,
     y_val_true: ArrayLike,
+    prefix: Literal["val", "test"],
 ) -> dict[str, Any]:
     """Compute metrics.
 
@@ -201,9 +202,13 @@ def compute_metrics_roleplay(
     """
     # compute metrics
     metrics = {
-        "accuracy": accuracy_score(y_true=y_val_true, y_pred=y_val_pred),
-        "prop_invalid": np.mean(y_val_pred == -1),
-        "f1": f1_score(y_true=y_val_true, y_pred=y_val_pred, average="micro"),
+        f"answers_{prefix}_accuracy": accuracy_score(
+            y_true=y_val_true, y_pred=y_val_pred
+        ),
+        f"answers_{prefix}_invalid": np.mean(y_val_pred == -1),
+        f"answers_{prefix}_f1": f1_score(
+            y_true=y_val_true, y_pred=y_val_pred, average="micro"
+        ),
     }
     return metrics
 
@@ -245,16 +250,15 @@ def evaluate_roleplay(
             metrics_group = compute_metrics_roleplay(
                 y_val_pred=y_val_pred_student,
                 y_val_true=y_val_true_student,
+                prefix=prefix,
             )
             logger.info(
                 "Evaluate - student group",
                 student_level=student_level,
                 num_students=len(y_val_pred_student),
-                accuracy=metrics_group["accuracy"],
+                accuracy=metrics_group[f"answers_{prefix}_accuracy"],
             )
-            metrics[student_level] = {
-                f"{prefix}_{k}": v for k, v in metrics_group.items()
-            }
+            metrics[student_level] = metrics_group
     logger.info("Evaluate - end")
     # NOTE: invert metrics dict
     inverted_metrics = {
@@ -303,7 +307,7 @@ def evaluate_q_difficulty(
         rmse=metrics[f"{prefix}_rmse"],
     )
     preds = {
-        f"{prefix}_qdiff_pred": df_q_tmp["q_diff_pred"].to_numpy(),
-        f"{prefix}_qdiff_true": df_q_tmp[Q_DIFFICULTY].to_numpy(),
+        f"{prefix}_y_pred": df_q_tmp["q_diff_pred"].to_numpy(),
+        f"{prefix}_y_true": df_q_tmp[Q_DIFFICULTY].to_numpy(),
     }
     return metrics, preds

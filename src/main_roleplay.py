@@ -134,7 +134,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     chain = prompt | model
 
     # predict & evaluate
-    # TODO: need to save the student level of each question in the validation set
+    # TODO: same for test
     val_preds_raw = predict(
         chain=chain,
         data=list_val,
@@ -160,8 +160,8 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     write_pickle(
         {
             "preds_raw": {**val_preds_raw},
+            "metrics": {**val_metrics_qdiff},
             "metrics_answers": {**val_metrics_answers},
-            "metrics_qdiff": {**val_metrics_qdiff},
             "preds_answers": {**val_preds_answers},
             "preds_qdiff": {**val_preds_qdiff},
         },
