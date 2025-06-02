@@ -52,3 +52,4 @@ if __name__ == '__main__':
     # val (small) acc: 0.77
     # val (large) acc: 0.84
     # test acc: 0.793
+    # Please note this is to predict correct/wrong answer, hence random baseline in 50%, not 25%.
