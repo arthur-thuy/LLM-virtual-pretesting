@@ -243,6 +243,7 @@ class DataLoaderRoleplay:
         """
         # questions
         df_questions = self._read_questions()
+        # TODO: also include knowledge concepts here so we can use it in splitting
 
         # interactions
         df_interactions = pd.read_csv(
