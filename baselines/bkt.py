@@ -17,7 +17,7 @@ def convert_df_for_pybkt(df: pd.DataFrame) -> pd.DataFrame:
         'question_id': 'multilearn',
         'student_option_correct': 'correct',
     })
-    df['skill_name'] = 'default_skill'  # TODO: there are no skills in the data, right? At least, we don't model them.
+    df['skill_name'] = 'default_skill'
     df['multiprior'] = df['correct']
     df['multipair'] = df['multilearn']
     df['multigs'] = df['multilearn']
