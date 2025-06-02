@@ -56,6 +56,10 @@ _C.PROMPT = CN()
 # system prompt name
 _C.PROMPT.NAME = "teacher_A"  # "student_A"  #
 
+_C.ROLEPLAY = CN()
+# number of student levels to simulate
+_C.ROLEPLAY.NUM_STUDENT_LEVELS = 5
+
 
 def get_cfg_defaults() -> CN:
     """Get a yacs CfgNode object with default values."""
