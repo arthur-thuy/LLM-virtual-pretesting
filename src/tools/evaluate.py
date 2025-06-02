@@ -101,6 +101,10 @@ def compute_metrics(
     dict[str, Any]
         Metrics
     """
+    # helpers for knowledge tracing
+    student_correct = np.equal(y_val_student, y_val_true)
+    llm_correct = np.equal(y_val_pred, y_val_true)
+
     # compute metrics
     metrics = {
         "acc_student_pred": accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
@@ -114,6 +118,9 @@ def compute_metrics(
             y_true=y_val_true, y_pred=y_val_student, average="micro"
         ),
         "f1_true_pred": f1_score(y_true=y_val_true, y_pred=y_val_pred, average="micro"),
+        # knowledge tracing
+        "acc_kt": accuracy_score(y_true=student_correct, y_pred=llm_correct),
+        "f1_kt": f1_score(y_true=student_correct, y_pred=llm_correct, average="micro"),
     }
     return metrics
 
@@ -155,7 +162,11 @@ def evaluate(
         y_val_true=y_val_true,
         y_val_student=y_val_student,
     )
-    logger.info("Evaluate - end", accuracy=metrics["acc_student_pred"])
+    logger.info(
+        "Evaluate - end",
+        accuracy=metrics["acc_student_pred"],
+        accuracy_kt=metrics["acc_kt"],
+    )
 
     if trace_id is not None:
         langfuse_session.score(
