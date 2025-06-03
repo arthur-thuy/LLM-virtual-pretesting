@@ -44,3 +44,20 @@ class StrOutputB(BaseModel):
     student_answer: int = Field(
         description="The index of the answer selected by the student"
     )
+
+
+@STRUCTURED_OUTPUTTER_REGISTRY.register("luca_emnlp")
+class StrOutputLucaEMNLP(BaseModel):
+    """Answer to a multiple-choice question."""
+
+    question_level: float = Field(description="difficulty level of the question")
+    answer_explanation: str = Field(
+        description=(
+            "the list of steps that the students of this level would follow to select "
+            "the answer, including the misconceptions that might cause them to make "
+            "mistakes"
+        )
+    )
+    student_answer: int = Field(
+        description="integer index of the answer chosen by a student of this level"
+    )

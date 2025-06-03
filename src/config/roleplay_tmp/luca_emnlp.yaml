@@ -1,0 +1,12 @@
+PROMPT:
+  NAME: "roleplay_luca_emnlp"
+
+STRUCTURED_OUTPUTTER:
+  NAME: "luca_emnlp"
+
+EXAMPLE_SELECTOR:
+  NUM_EXAMPLES: 0
+
+ROLEPLAY:
+  NUM_STUDENT_LEVELS: 5
+
