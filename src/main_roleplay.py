@@ -165,7 +165,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
             "preds_answers": {**val_preds_answers},
             "preds_qdiff": {**val_preds_qdiff},
         },
-        save_dir=os.path.join(cfg.OUTPUT_DIR_ROLEPLAY, cfg.ID),
+        save_dir=os.path.join(cfg.OUTPUT_DIR_ROLEPLAY, cfg.ID_ROLEPLAY),
         fname=f"run_{run_n}",
     )
     print_elapsed_time(start_time, run_n)
@@ -190,7 +190,7 @@ def main() -> None:
     langfuse_session = Langfuse()
 
     for cfg in configs:
-        print("\n", "=" * 10, f"Config: {cfg.ID}", "=" * 10)
+        print("\n", "=" * 10, f"Config: {cfg.ID_ROLEPLAY}", "=" * 10)
 
         # start experiment loop
         for run_n in range(1, cfg.RUNS + 1):
@@ -198,7 +198,7 @@ def main() -> None:
                 cfg=cfg, run_n=run_n, args=args, langfuse_session=langfuse_session
             )
 
-        save_config(cfg, save_dir=cfg.OUTPUT_DIR_ROLEPLAY, fname=cfg.ID)
+        save_config(cfg, save_dir=cfg.OUTPUT_DIR_ROLEPLAY, fname=cfg.ID_ROLEPLAY)
 
 
 if __name__ == "__main__":
