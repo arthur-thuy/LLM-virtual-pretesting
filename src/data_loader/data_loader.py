@@ -1,6 +1,7 @@
 # standard library imports
 import os
 from typing import Union, Optional
+from statistics import multimode
 
 # related third party imports
 import structlog
@@ -17,6 +18,7 @@ from tools.constants import (
     VALLARGE,
     VALIDATION,
     QUESTION_ID,
+    KC,
 )
 from tools.utils import set_seed
 
@@ -176,6 +178,7 @@ class DataLoaderRoleplay:
         )
         # convert string back to list
         df_questions[Q_OPTION_TEXTS] = df_questions[Q_OPTION_TEXTS].apply(eval)
+        df_questions[KC] = df_questions[KC].apply(eval)
         return df_questions
 
     def read_splitted_data(self) -> dict[str, pd.DataFrame]:
@@ -227,6 +230,7 @@ class DataLoaderRoleplay:
         val_size: float,
         test_size: float,
         split_interactions: bool,  # True for DBE-KT22, False for CFE
+        stratified: bool,  # True for DBE-KT22
         seed: int,
         join_key: Optional[str] = None,
     ) -> None:
@@ -256,12 +260,17 @@ class DataLoaderRoleplay:
         # train-validation-test split
         # split the question_ids
         # TODO: stratified sampling on knowledge concepts!
-        q_ids_trainval, q_ids_test = train_test_split(
-            df_questions[QUESTION_ID].unique(), test_size=test_size
-        )
-        q_ids_train, q_ids_val = train_test_split(
-            q_ids_trainval, test_size=val_size / (1 - test_size)
-        )
+        if stratified:
+            q_ids_train, q_ids_val, q_ids_test = self._stratified_split(
+                df_questions, val_size, test_size
+            )
+        else:
+            q_ids_trainval, q_ids_test = train_test_split(
+                df_questions[QUESTION_ID].unique(), test_size=test_size
+            )
+            q_ids_train, q_ids_val = train_test_split(
+                q_ids_trainval, test_size=val_size / (1 - test_size)
+            )
         q_splits = {
             TRAIN: q_ids_train,
             VALIDATION: q_ids_val,
@@ -313,3 +322,73 @@ class DataLoaderRoleplay:
                 interact_train["student_id"].unique(),
             ),
         )
+
+    def _stratified_split(
+        self, df_questions: pd.DataFrame, val_size: float, test_size: float
+    ) -> tuple[list, list, list]:
+        # Get the most common KC for each question (for stratification)
+        # If a question has multiple KCs, use the most frequent one in the dataset
+        def get_primary_kc(kc_list):
+            kc_mode = multimode(kc_list)
+            if len(kc_mode) == 1:
+                return kc_mode[0]
+            if len(kc_mode) > 1:
+                # If there are multiple modes, return the one with highest count in the dataset  # noqa
+                all_kcs = []
+                for kc_list in df_questions[KC]:
+                    all_kcs.extend(kc_list)
+
+                # Count the occurrences of each knowledge component
+                kc_counts = pd.Series(all_kcs).value_counts().reset_index()
+                kc_counts.columns = ["knowledgecomponent_id", "count"]
+
+                # Sort by count in descending order
+                kc_counts = kc_counts.sort_values("count", ascending=False)
+                kc_frequencies = {
+                    kc: kc_counts[kc_counts["knowledgecomponent_id"] == kc][
+                        "count"
+                    ].values[0]
+                    for kc in kc_mode
+                    if kc in kc_counts["knowledgecomponent_id"].values
+                }
+                return max(kc_frequencies, key=kc_frequencies.get)
+
+        df_questions["primary_kc"] = df_questions[KC].apply(get_primary_kc)
+
+        # First split: train and temp (val+test)
+        train_questions, temp_questions = train_test_split(
+            df_questions,
+            test_size=val_size + test_size,
+            stratify=df_questions["primary_kc"],
+        )
+
+        # Second split: val and test from temp
+        val_size_adjusted = val_size / (val_size + test_size)
+        val_questions, test_questions = train_test_split(
+            temp_questions,
+            test_size=(1 - val_size_adjusted),
+            stratify=temp_questions["primary_kc"],
+        )
+
+        # TODO: remove
+        # # Verify KC distribution
+        # for split_name, split_df in [
+        #     ("Train", train_questions),
+        #     ("Val", val_questions),
+        #     ("Test", test_questions),
+        # ]:
+        #     kc_in_split = []
+        #     for kc_list in split_df[KC]:
+        #         kc_in_split.extend(kc_list)
+
+        #     # Get the KCs in this split
+        #     kc_dist = pd.Series(kc_in_split).value_counts()
+        #     print(f"\n{split_name} KC distribution:")
+        #     print(kc_dist)
+
+        # Drop the added columns and return to original format
+        q_ids_train = train_questions[QUESTION_ID].tolist()
+        q_ids_val = val_questions[QUESTION_ID].tolist()
+        q_ids_test = test_questions[QUESTION_ID].tolist()
+
+        return q_ids_train, q_ids_val, q_ids_test
