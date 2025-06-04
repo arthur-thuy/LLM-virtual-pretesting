@@ -80,6 +80,22 @@ def build_studentlevel_random(
     return (selector, input_vars)
 
 
+@EXAMPLE_SELECTOR_REGISTRY.register("studentlevel_semantic")
+def build_studentlevel_semantic(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    """Build a semantic example selector based on student levels."""
+    input_vars = ["student_level_group", "question_id", "q_text"]
+    selector = StudentLevelSemanticExampleSelector(
+        examples=examples,
+        q_ids_train=q_ids_train,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        embedding=cfg.EXAMPLE_SELECTOR.EMBEDDING,
+        namespace=cfg.LOADER.NAME,
+    )
+    return (selector, input_vars)
+
+
 class RandomExampleSelector(BaseExampleSelector):
     """Randomly select examples."""
 
@@ -338,5 +354,112 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
         # randomly select from questions
         k = min(self.k, len(student_interactions))
         interactions_selected = random.sample(student_interactions, k)
+
+        return interactions_selected
+
+
+class StudentLevelSemanticExampleSelector(BaseExampleSelector):
+    """Filter examples of the same student level and select based on semantic similarity."""
+
+    def __init__(
+        self,
+        examples: list,
+        q_ids_train: list[int],
+        k: int,
+        embedding: str,
+        namespace: str,
+    ) -> None:
+        """Initialize the example selector.
+
+        Parameters
+        ----------
+        examples :  list[dict]
+            List of examples
+        q_ids_train : list[int]
+            List of question IDs in the training set.
+        k : int
+            k-shot prompting
+        embedding : str
+            The name of the embedding model.
+        namespace : str
+            The namespace of the Pinecone index.
+        """
+        self.examples = examples
+        self.q_ids_train = q_ids_train
+        self.k = k
+
+        self.vectorstore = get_vector_store(
+            index_name=embedding,
+            embedding_name=embedding,
+            namespace=namespace,
+        )
+
+    def add_example(self, example: list) -> None:
+        self.examples.append(example)
+
+    def select_examples(self, input_variables: dict) -> list[dict[str, str]]:
+        """Select examples based on semantic similarity.
+
+        Parameters
+        ----------
+        input_variables : dict[str, str]
+            A dict containing info about a single observation.
+
+        Returns
+        -------
+        list[dict[str, str]]
+            The selected examples.
+        """
+        # information of target observation
+        student_level_group = input_variables["student_level_group"]
+        q_text = input_variables["q_text"]
+
+        # find all questions answered by this student level group
+        student_interactions = [
+            interact
+            for interact in self.examples
+            if interact["student_level_group"] == student_level_group
+            and interact["question_id"] in self.q_ids_train
+        ]
+
+        if len(student_interactions) == 0:
+            logger.warning(
+                f"No interactions found for student level group {student_level_group}"
+            )
+            return []
+
+        # semantic search on question text
+        results = self.vectorstore.similarity_search(
+            query=q_text,
+            k=self.k,
+            filter={
+                "question_id": {
+                    "$in": [
+                        interact["question_id"] for interact in student_interactions
+                    ]
+                }
+            },
+        )
+
+        question_ids_selected = list(
+            map(int, [res.metadata["question_id"] for res in results])
+        )
+
+        # find interactions of selected question_ids and student_level_group
+        interactions_selected = []
+        for question_id in question_ids_selected:
+            # select random interaction for each question_id
+            interactions_for_question = [
+                interact
+                for interact in self.examples
+                if (
+                    interact["question_id"] == question_id
+                    and interact["student_level_group"] == student_level_group
+                )
+            ]
+            selected_interaction = random.sample(interactions_for_question)
+            interactions_selected.append(selected_interaction)
+
+        assert len(interactions_selected) == len(question_ids_selected)
 
         return interactions_selected
