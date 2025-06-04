@@ -55,10 +55,10 @@ def main():
     # DBE-KT22
     logger.info("Starting preparation DBE-KT22")
     # NOTE: already built
-    # dbekt22_dm = DBEKT22Datamanager()
-    # _, _ = dbekt22_dm.build_dataset(
-    #     read_dir=BRONZE_DIR, write_dir=SILVER_DIR
-    # )
+    dbekt22_dm = DBEKT22Datamanager()
+    _, _ = dbekt22_dm.build_dataset(
+        read_dir=BRONZE_DIR, write_dir=SILVER_DIR
+    )
     # create fixed split
     data_loader = DataLoaderRoleplay(
         read_dir=SILVER_DIR,
@@ -69,6 +69,7 @@ def main():
         val_size=0.15,
         test_size=0.25,
         split_interactions=True,
+        stratified=True,
         seed=42,
         join_key="question_id",
     )
