@@ -10,6 +10,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import structlog
+import networkx as nx
 
 # local application/library specific imports
 from tools.data_manager.utils import count_answer_options
@@ -30,6 +31,7 @@ from tools.constants import (
     S_OPTION_ID,
     S_OPTION_CORRECT,
     TIME,
+    KC,
 )
 
 
@@ -146,13 +148,47 @@ class DBEKT22Datamanager:
             r'<img src="http://latex\.codecogs\.com/gif\.latex\?([^"]+)" border="0"/>'
         )
         df[Q_TEXT] = df[Q_TEXT].apply(lambda row: re.sub(pattern, r"\1", row))
+
+        # add KC clusters to df
+        ## compute KC subgraphs
+        df_kc_rel = pd.read_csv(os.path.join(read_dir, "KC_Relationships.csv"))
+        kc_relations = list(
+            df_kc_rel[
+                ["from_knowledgecomponent_id", "to_knowledgecomponent_id"]
+            ].itertuples(index=False, name=None)
+        )
+        graph = nx.DiGraph()
+        graph.add_edges_from(kc_relations)
+        ud_graph = graph.to_undirected()
+        subgraphs = [ud_graph.subgraph(c) for c in nx.connected_components(ud_graph)]
+        cluster_map = {}
+        for i, sg in enumerate(subgraphs):
+            cluster_map.update({n: i for n in sg.nodes()})
+        ## map KC clusters onto KCs
+        df_questions_kc = pd.read_csv(
+            os.path.join(read_dir, "Question_KC_Relationships.csv")
+        )
+        df_questions_kc["kc_cluster"] = df_questions_kc["knowledgecomponent_id"].map(
+            cluster_map
+        )
+        question_kc_clusters = (
+            df_questions_kc.groupby("question_id")["kc_cluster"].agg(list).reset_index()
+        )
+        question_kc_clusters = question_kc_clusters.rename(columns={"kc_cluster": KC})
+        ## merge the KC clusters list into the main dataframe
+        df = df.merge(
+            question_kc_clusters,
+            on=QUESTION_ID,
+            how="left",
+        )
+
         return df
 
     def _process_interact_row(self, row, df_q: pd.DataFrame) -> int:
         option_ids = df_q[df_q[QUESTION_ID] == row[QUESTION_ID]].iloc[0][Q_OPTION_IDS]
         assert (
             row[S_OPTION_ID] in option_ids
-        ), f"Option id {row[S_OPTION_ID]} not in {option_ids} of question ID {row[QUESTION_ID]}"
+        ), f"Option id {row[S_OPTION_ID]} not in {option_ids} of question ID {row[QUESTION_ID]}"  # noqa
         # NOTE: this one-indexing aligns with one-indexing in prompt
         return option_ids.index(row[S_OPTION_ID]) + 1  # NOTE: one-indexing
 

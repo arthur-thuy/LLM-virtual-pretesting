@@ -28,6 +28,7 @@ Q_CORRECT_OPTION_ID = "correct_option_id"
 Q_CONTEXT_TEXT = "context_text"
 Q_CONTEXT_ID = "context_id"
 Q_DISCRIMINATION = "q_discrimination"
+KC = "knowledge_components"
 
 ## interactions
 INTERACT_ID = "interact_id"
