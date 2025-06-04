@@ -7,6 +7,7 @@ import logging
 import pandas as pd
 import structlog
 import pyirt
+import numpy as np
 from typing import Tuple, Dict
 
 # local application/library specific imports
@@ -159,12 +160,33 @@ def group_student_levels(
     df_interactions_tmp[STUDENT_LEVEL] = df_interactions_tmp[STUDENT_ID].map(
         student_dict
     )
-    df_interactions_tmp[STUDENT_LEVEL_GROUP] = pd.qcut(
-        df_interactions_tmp[STUDENT_LEVEL],
-        q=num_groups,
-        labels=[str(i) for i in range(1, num_groups + 1)],
+
+    # discretize student levels into groups
+    ###################################
+    ## equally spaced bins
+    diff_range = (DIFFICULTY_MIN, DIFFICULTY_MAX)
+    bin_edges = np.histogram_bin_edges(None, bins=num_groups, range=diff_range).astype(
+        np.float32
+    )
+    # NOTE: increase last bin edge by epsilon to include the last value
+    bin_edges = np.nextafter(bin_edges, bin_edges + (bin_edges == bin_edges[-1]))
+
+    df_interactions_tmp[STUDENT_LEVEL_GROUP] = np.digitize(
+        df_interactions_tmp[STUDENT_LEVEL], bin_edges
     ).astype(str)
 
+    # value counts of primary KCs
+    level_value_counts = df_interactions_tmp[STUDENT_LEVEL_GROUP].value_counts().reset_index()
+    level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
+    print(level_value_counts)
+    ###################################
+    ## equal number of students per group
+    # df_interactions_tmp[STUDENT_LEVEL_GROUP] = pd.qcut(
+    #     df_interactions_tmp[STUDENT_LEVEL],
+    #     q=num_groups,
+    #     labels=[str(i) for i in range(1, num_groups + 1)],
+    # ).astype(str)
+    ###################################
     return df_interactions_tmp
 
 
@@ -205,6 +227,3 @@ def write_student_scale(num_groups: int) -> str:
     """
     scale = f"(1 is the lowest level; {num_groups} is the highest level)"
     return scale
-
-
-
