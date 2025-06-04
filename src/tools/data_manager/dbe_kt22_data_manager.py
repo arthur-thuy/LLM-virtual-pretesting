@@ -216,14 +216,15 @@ class DBEKT22Datamanager:
         df_interact = df_interact[df_interact["hint_used"] == False]
         # remove invalid interactions (manually identified)
         df_interact = df_interact[df_interact["id"] != 2878]
-        # only keep students that answered all questions
+        # only keep students that answered at least 30 questions
+        # NOTE: this removes students with very few interactions
         num_logs = (
             df_interact.groupby("student_id")["question_id"]
             .count()
             .sort_values(ascending=False)
             .reset_index()
         )
-        students_all_q = num_logs[num_logs["question_id"] == 212]["student_id"].tolist()
+        students_all_q = num_logs[num_logs["question_id"] > 30]["student_id"].tolist()
         df_interact = df_interact[df_interact["student_id"].isin(students_all_q)]
 
         df_interact = df_interact[
