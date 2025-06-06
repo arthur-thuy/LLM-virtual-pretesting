@@ -205,7 +205,9 @@ def group_student_levels(
     return df_interactions_tmp
 
 
-def explode_student_levels(df_questions: pd.DataFrame, num_groups: int) -> pd.DataFrame:
+def explode_student_levels(
+    df_questions: pd.DataFrame, student_scale_map: Dict[str, str]
+) -> pd.DataFrame:
     """Explode student levels into multiple rows for each question.
 
     Parameters
@@ -220,7 +222,7 @@ def explode_student_levels(df_questions: pd.DataFrame, num_groups: int) -> pd.Da
     pd.DataFrame
         DataFrame with an additional column 'student_level_group'.
     """
-    student_level_groups_list = [str(i) for i in range(1, num_groups + 1)]
+    student_level_groups_list = list(student_scale_map.values())
     df_tmp = df_questions.copy()
     df_tmp[STUDENT_LEVEL_GROUP] = [student_level_groups_list] * len(df_tmp)
     df_tmp = df_tmp.explode(STUDENT_LEVEL_GROUP)

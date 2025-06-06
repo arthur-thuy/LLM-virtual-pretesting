@@ -113,7 +113,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # create one row for each student level
     for split, df_q in questions_fmt.items():
         questions_fmt[split] = explode_student_levels(
-            df_questions=df_q, num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS
+            df_questions=df_q, student_scale_map=student_scale_map
         )
 
     # list of dicts
