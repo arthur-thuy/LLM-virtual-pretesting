@@ -40,13 +40,48 @@ def build_digits_str(num_groups: int) -> tuple[dict[str, str], str]:
 @STUDENT_SCALE_REGISTRY.register("american")
 def build_american(num_groups: int) -> tuple[dict[str, str], str]:
     if num_groups != 5:
-        raise ValueError(
-            "The 'american' student scale is only defined for 5 groups."
-        )
+        raise ValueError("The 'american' student scale is only defined for 5 groups.")
     student_levels_base = list(range(1, num_groups + 1))
     student_levels_american = ["E", "D", "C", "B", "A"]  # NOTE: reverse order!
-    mapping = {
-        str(i): student_levels_american[i - 1] for i in student_levels_base}
+    mapping = {str(i): student_levels_american[i - 1] for i in student_levels_base}
+    list_string = (
+        f"(with {mapping[str(student_levels_base[0])]} as the lowest level "
+        f"and {mapping[str(student_levels_base[-1])]} as the highest level)"
+    )
+    return mapping, list_string
+
+
+@STUDENT_SCALE_REGISTRY.register("proficiency_3_str")
+def build_proficiency_3_str(num_groups: int) -> tuple[dict[str, str], str]:
+    if num_groups != 3:
+        raise ValueError(
+            "The 'proficiency_3_str' student scale is only defined for 3 groups."
+        )
+    student_levels_base = list(range(1, num_groups + 1))
+    student_levels = ["beginner", "intermediate", "advanced"]  # NOTE: reverse order!
+    mapping = {str(i): student_levels[i - 1] for i in student_levels_base}
+    list_string = (
+        f"(with {mapping[str(student_levels_base[0])]} as the lowest level "
+        f"and {mapping[str(student_levels_base[-1])]} as the highest level)"
+    )
+    return mapping, list_string
+
+
+@STUDENT_SCALE_REGISTRY.register("proficiency_5_str")
+def build_proficiency_5_str(num_groups: int) -> tuple[dict[str, str], str]:
+    if num_groups != 5:
+        raise ValueError(
+            "The 'proficiency_5_str' student scale is only defined for 5 groups."
+        )
+    student_levels_base = list(range(1, num_groups + 1))
+    student_levels = [
+        "Fundamental Awareness",
+        "Novice",
+        "Intermediate",
+        "Advanced",
+        "Expert",
+    ]  # NOTE: reverse order!
+    mapping = {str(i): student_levels[i - 1] for i in student_levels_base}
     list_string = (
         f"(with {mapping[str(student_levels_base[0])]} as the lowest level "
         f"and {mapping[str(student_levels_base[-1])]} as the highest level)"
