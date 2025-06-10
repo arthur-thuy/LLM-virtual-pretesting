@@ -159,10 +159,11 @@ def create_roleplay_config_id(cfg: CfgNode) -> str:
         Config identifier.
     """
     cfg_id = cfg.MODEL.NAME
-    cfg_id += f"~T{cfg.MODEL.TEMPERATURE}"
+    cfg_id += f"~T:{cfg.MODEL.TEMPERATURE}"
     cfg_id += f"~SO:{cfg.STRUCTURED_OUTPUTTER.NAME}"
     cfg_id += f"~L:{cfg.ROLEPLAY.NUM_STUDENT_LEVELS}"
     cfg_id += f"~SP:{cfg.PROMPT.NAME}"
+    cfg_id += f"~SS:{cfg.ROLEPLAY.STUDENT_SCALE}"
     cfg_id += f"~EF:{cfg.EXAMPLE_FORMATTER.NAME}"
     cfg_id += f"~ES:{cfg.EXAMPLE_SELECTOR.NAME}{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
     return cfg_id
