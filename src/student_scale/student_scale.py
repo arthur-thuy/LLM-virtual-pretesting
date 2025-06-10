@@ -58,7 +58,7 @@ def build_proficiency_3_str(num_groups: int) -> tuple[dict[str, str], str]:
             "The 'proficiency_3_str' student scale is only defined for 3 groups."
         )
     student_levels_base = list(range(1, num_groups + 1))
-    student_levels = ["beginner", "intermediate", "advanced"]  # NOTE: reverse order!
+    student_levels = ["Beginner", "Intermediate", "Advanced"]  # NOTE: reverse order!
     mapping = {str(i): student_levels[i - 1] for i in student_levels_base}
     list_string = (
         f"(with {mapping[str(student_levels_base[0])]} as the lowest level "
