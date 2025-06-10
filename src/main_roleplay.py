@@ -38,6 +38,7 @@ from model.build import build_model
 from tools.evaluate import evaluate_roleplay, predict, evaluate_q_difficulty
 from example_formatter.build import build_example_formatter
 from structured_outputter.build import build_structured_outputter
+from student_scale.build import build_student_scale
 
 
 # set up logger
@@ -97,15 +98,22 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         is_interaction=False,
     )
 
+    # get student scale mapping
+    student_scale_map, student_scale_str = build_student_scale(
+        cfg=cfg
+    )
+
     # Compute IRT parameters and group students
     interact_train_fmt = group_student_levels(
-        df_interactions=interact_train_fmt, num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS
+        df_interactions=interact_train_fmt,
+        num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS,
+        student_scale_map=student_scale_map,
     )
 
     # create one row for each student level
     for split, df_q in questions_fmt.items():
         questions_fmt[split] = explode_student_levels(
-            df_questions=df_q, num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS
+            df_questions=df_q, student_scale_map=student_scale_map
         )
 
     # list of dicts
@@ -122,7 +130,11 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # prompt
     q_ids_train = list(questions_fmt[TRAIN][QUESTION_ID].unique().tolist())
     prompt, _ = build_prompt(
-        cfg=cfg, examples=list_train, struc_output=StrucOutput, q_ids_train=q_ids_train
+        cfg=cfg,
+        examples=list_train,
+        struc_output=StrucOutput,
+        student_scale_str=student_scale_str,
+        q_ids_train=q_ids_train,
     )
 
     # model

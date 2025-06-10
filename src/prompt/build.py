@@ -28,6 +28,7 @@ def build_prompt(
     cfg: CfgNode,
     examples: list[dict],
     struc_output: BaseModel,
+    student_scale_str: str,
     q_ids_train: Optional[list[int]] = None,
 ) -> ChatPromptTemplate:
     """Build the prompt.
@@ -40,6 +41,8 @@ def build_prompt(
         List of examples.
     struc_output : BaseModel
         Pydantic model for structured output.
+    student_scale_str : str
+        String representation of the student scale.
     q_ids_train : Optional[list[int]], optional
         List of question IDs for training interactions, by default None
 
@@ -86,7 +89,7 @@ def build_prompt(
     final_prompt = ChatPromptTemplate.from_messages(messages).partial(
         format_instructions=parser.get_format_instructions(),
         exam_type=PROMPT_INFO[cfg.LOADER.NAME]["exam_type"],
-        student_scale=write_student_scale(num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS),
+        student_scale=student_scale_str,
     )
     # NOTE: unused variables are simply ignored
 

@@ -134,7 +134,7 @@ def irt_estimation(
 
 
 def group_student_levels(
-    df_interactions: pd.DataFrame, num_groups: int
+    df_interactions: pd.DataFrame, num_groups: int, student_scale_map: Dict[str, str]
 ) -> pd.DataFrame:
     """Group students into levels based on their estimated ability.
 
@@ -171,12 +171,27 @@ def group_student_levels(
     # NOTE: increase last bin edge by epsilon to include the last value
     bin_edges = np.nextafter(bin_edges, bin_edges + (bin_edges == bin_edges[-1]))
 
+    # find all student levels (digits) and determine for each interaction row
+    student_levels_base = list(range(1, num_groups + 1))
+    assert (
+        len(student_levels_base) == len(bin_edges) - 1
+    ), "Number of student levels should be one less than the number of bin edges."
     df_interactions_tmp[STUDENT_LEVEL_GROUP] = np.digitize(
         df_interactions_tmp[STUDENT_LEVEL], bin_edges
     ).astype(str)
+    assert (
+        len(df_interactions_tmp[STUDENT_LEVEL_GROUP].unique()) <= num_groups
+    ), "Number of unique student level groups should not exceed the number of groups."
+
+    # NOTE: map student levels (digits) onto the real values (which can be strings)
+    df_interactions_tmp[STUDENT_LEVEL_GROUP] = df_interactions_tmp[
+        STUDENT_LEVEL_GROUP
+    ].map(student_scale_map)
 
     # value counts of primary KCs
-    level_value_counts = df_interactions_tmp[STUDENT_LEVEL_GROUP].value_counts().reset_index()
+    level_value_counts = (
+        df_interactions_tmp[STUDENT_LEVEL_GROUP].value_counts().reset_index()
+    )
     level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
     print(level_value_counts)
     ###################################
@@ -190,7 +205,9 @@ def group_student_levels(
     return df_interactions_tmp
 
 
-def explode_student_levels(df_questions: pd.DataFrame, num_groups: int) -> pd.DataFrame:
+def explode_student_levels(
+    df_questions: pd.DataFrame, student_scale_map: Dict[str, str]
+) -> pd.DataFrame:
     """Explode student levels into multiple rows for each question.
 
     Parameters
@@ -205,7 +222,7 @@ def explode_student_levels(df_questions: pd.DataFrame, num_groups: int) -> pd.Da
     pd.DataFrame
         DataFrame with an additional column 'student_level_group'.
     """
-    student_level_groups_list = [str(i) for i in range(1, num_groups + 1)]
+    student_level_groups_list = list(student_scale_map.values())
     df_tmp = df_questions.copy()
     df_tmp[STUDENT_LEVEL_GROUP] = [student_level_groups_list] * len(df_tmp)
     df_tmp = df_tmp.explode(STUDENT_LEVEL_GROUP)

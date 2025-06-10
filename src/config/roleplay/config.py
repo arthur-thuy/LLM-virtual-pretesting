@@ -61,6 +61,8 @@ _C.PROMPT.NAME = "roleplay_teacher_A"
 _C.ROLEPLAY = CN()
 # number of student levels to simulate
 _C.ROLEPLAY.NUM_STUDENT_LEVELS = 5
+# student level scale
+_C.ROLEPLAY.STUDENT_SCALE = "american"
 
 
 def get_cfg_defaults() -> CN:
