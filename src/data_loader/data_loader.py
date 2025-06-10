@@ -213,6 +213,9 @@ class DataLoaderRoleplay:
                 self.write_dir, f"{self.dataset_name}_roleplay_interactions_train.csv"
             )
         )
+        # convert string back to list
+        interact_train[Q_OPTION_TEXTS] = interact_train[Q_OPTION_TEXTS].apply(eval)
+
         logger.info(
             "Reading train split interactions",
             num_interactions=len(interact_train),
@@ -247,7 +250,6 @@ class DataLoaderRoleplay:
         """
         # questions
         df_questions = self._read_questions()
-        # TODO: also include knowledge concepts here so we can use it in splitting
 
         # interactions
         df_interactions = pd.read_csv(
@@ -258,8 +260,7 @@ class DataLoaderRoleplay:
         set_seed(seed)
 
         # train-validation-test split
-        # split the question_ids
-        # TODO: stratified sampling on knowledge concepts!
+        # split the question_ids (stratified or not)
         if stratified:
             q_ids_train, q_ids_val, q_ids_test = self._stratified_split(
                 df_questions, val_size, test_size
