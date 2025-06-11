@@ -14,15 +14,13 @@ _C.RUNS = 1
 _C.MODEL = CN()
 # model name
 _C.MODEL.NAME = "llama3"
-# model provider
-_C.MODEL.PROVIDER = "ollama"
 # model temperature
 _C.MODEL.TEMPERATURE = 0.0
 # max tokens
 _C.MODEL.MAX_TOKENS = None
-# timeout (openai and anthropic only)
+# timeout (openai only)
 _C.MODEL.TIMEOUT = None
-# max retries (openai and anthropic only)
+# max retries (openai only)
 _C.MODEL.MAX_RETRIES = None
 
 # structured output
