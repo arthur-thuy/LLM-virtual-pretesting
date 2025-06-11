@@ -42,7 +42,7 @@ def build_american(num_groups: int) -> tuple[dict[str, str], str]:
     if num_groups != 5:
         raise ValueError("The 'american' student scale is only defined for 5 groups.")
     student_levels_base = list(range(1, num_groups + 1))
-    student_levels_american = ["E", "D", "C", "B", "A"]  # NOTE: reverse order!
+    student_levels_american = ["F", "D", "C", "B", "A"]  # NOTE: reverse order!
     mapping = {str(i): student_levels_american[i - 1] for i in student_levels_base}
     list_string = (
         f"(with {mapping[str(student_levels_base[0])]} as the lowest level "
