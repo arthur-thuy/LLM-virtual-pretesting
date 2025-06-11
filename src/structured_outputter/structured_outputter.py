@@ -52,7 +52,7 @@ class StrOutputB(BaseModel):
 
     misconception: str = Field(
         description=(
-            "The list of possibly misconceptions of the student, if one or more of their previous responses is incorrect, the string 'correct answers' otherwise"
+            "The list of possible misconceptions of the student, if one or more of their previous responses is incorrect, the string 'correct answers' otherwise"
         )
     )
     answer_explanation: str = Field(
