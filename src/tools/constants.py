@@ -58,8 +58,11 @@ MODEL_STRUCTURED_OUTPUT = {
     "gpt-4o": True,
     "gpt-4o-mini": True,
     "gpt-4.1": True,
+    "o3-mini": True,
+    "o3": True,
     "gemini-2.0-flash": True,
     "gemini-2.5-pro-preview-05-06": True,
+    "claude-3-7-sonnet-20250219": False,
 }
 MODEL_PROVIDER = {
     "llama3": "ollama",
@@ -68,8 +71,11 @@ MODEL_PROVIDER = {
     "gpt-4o": "openai",
     "gpt-4o-mini": "openai",
     "gpt-4.1": "openai",
+    "o3-mini": "openai",
+    "o3": "openai",
     "gemini-2.0-flash": "google",
     "gemini-2.5-pro-preview-05-06": "google",
+    "claude-3-7-sonnet-20250219": "anthropic",
 }
 
 # prompt info

@@ -16,13 +16,21 @@ from model.build import MODEL_PROVIDER_REGISTRY
 
 @MODEL_PROVIDER_REGISTRY.register("openai")
 def build_openai_model(model_cfg: CfgNode) -> ChatOpenAI:
-    model = ChatOpenAI(
-        model=model_cfg.NAME,
-        temperature=model_cfg.TEMPERATURE,
-        max_tokens=model_cfg.MAX_TOKENS,
-        timeout=model_cfg.TIMEOUT,
-        max_retries=model_cfg.MAX_RETRIES,
-    )
+    if model_cfg.NAME.startswith('o'):
+        model = ChatOpenAI(
+            model=model_cfg.NAME,
+            max_tokens=model_cfg.MAX_TOKENS,
+            timeout=model_cfg.TIMEOUT,
+            max_retries=model_cfg.MAX_RETRIES,
+        )
+    else:
+        model = ChatOpenAI(
+            model=model_cfg.NAME,
+            temperature=model_cfg.TEMPERATURE,
+            max_tokens=model_cfg.MAX_TOKENS,
+            timeout=model_cfg.TIMEOUT,
+            max_retries=model_cfg.MAX_RETRIES,
+        )
     return model
 
 
@@ -31,10 +39,9 @@ def build_anthropic_model(model_cfg: CfgNode) -> ChatAnthropic:
     model = ChatAnthropic(
         model=model_cfg.NAME,
         temperature=model_cfg.TEMPERATURE,
-        max_tokens=model_cfg.MAX_TOKENS,
+        max_tokens=1024,  # NOTE: model_cfg.MAX_TOKENS,
         timeout=model_cfg.TIMEOUT,
-        max_retries=model_cfg.MAX_RETRIES,
-        # TODO: does it support json mode?
+        max_retries=2,  # NOTE: ignoring model_cfg.MAX_RETRIES,
     )
     return model
 
