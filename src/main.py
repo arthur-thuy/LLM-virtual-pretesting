@@ -33,6 +33,9 @@ from tools.evaluate import evaluate, predict
 from example_formatter.build import build_example_formatter
 from structured_outputter.build import build_structured_outputter
 
+from tools.configurator import (
+    get_configs_out,
+)
 
 # set up logger
 logger = structlog.get_logger(__name__)
@@ -155,6 +158,15 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     print_elapsed_time(start_time, run_n)
     langfuse_handler.flush()
 
+def check_config_equivalence(prev_cfg, cfg):
+    if prev_cfg['EXAMPLE_SELECTOR']['EMBEDDING'] == cfg['EXAMPLE_SELECTOR']['EMBEDDING'] and \
+    prev_cfg['EXAMPLE_SELECTOR']['NAME'] == cfg['EXAMPLE_SELECTOR']['NAME'] and \
+    prev_cfg['EXAMPLE_SELECTOR']['NUM_EXAMPLES'] == cfg['EXAMPLE_SELECTOR']['NUM_EXAMPLES'] and \
+    prev_cfg['MODEL']['NAME'] == cfg['MODEL']['NAME'] and \
+    prev_cfg['MODEL']['TEMPERATURE'] == cfg['MODEL']['TEMPERATURE'] and \
+    prev_cfg['PROMPT']['NAME'] == cfg['PROMPT']['NAME']:
+        return True
+    return False
 
 def main() -> None:
     """Run experiment."""
@@ -172,17 +184,34 @@ def main() -> None:
 
     # langfuse
     langfuse_session = Langfuse()
-
+    previous_experiment_names = ['experiment_130525_20250513-183338', 'experiment_130525_20250513-214159', 'experiment_130525_20250514-071555']
+    previous_configs = []
+    for EXP_NAME in previous_experiment_names:
+        print(EXP_NAME)
+        previous_configs.extend(get_configs_out(EXP_NAME))
+    errors = []
     for cfg in configs:
-        print("\n", "=" * 10, f"Config: {cfg.ID}", "=" * 10)
+        already_evaluated = False
+        for prev_cfg in previous_configs:
+            if check_config_equivalence(prev_cfg, cfg):
+                already_evaluated = True
+                break
+        if not already_evaluated:
+            print("\n", "=" * 10, f"Config: {cfg.ID}", "=" * 10)
 
-        # start experiment loop
-        for run_n in range(1, cfg.RUNS + 1):
-            run_single_cfg(
-                cfg=cfg, run_n=run_n, args=args, langfuse_session=langfuse_session
-            )
+            # start experiment loop
+            try:
+                for run_n in range(1, cfg.RUNS + 1):
+                    run_single_cfg(
+                        cfg=cfg, run_n=run_n, args=args, langfuse_session=langfuse_session
+                    )
 
-        save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
+                save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
+            except Exception as e:
+                errors.append((cfg, e))
+        else:
+            print(cfg.ID, 'already evaluated.')
+    print(errors)
 
 
 if __name__ == "__main__":
