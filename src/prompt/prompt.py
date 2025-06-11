@@ -95,6 +95,29 @@ def build_teacher_C(few_shot_prompt, native_str_output: bool) -> list:
     return messages
 
 
+@PROMPT_REGISTRY.register("teacher_LB_A")
+def build_teacher_D(few_shot_prompt, native_str_output: bool) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are a teacher curating {exam_type}, and need to hypothesise how specific students would answer to a new question. "
+        "You will be shown a student's responses to previous questions; "
+        "if one or more of the responses are wrong, list the misconceptions that possibly led to the errors. "  # noqa
+        "You will be then shown a new multiple choice question. "
+        "Discuss how the student would answer it, and how the misconceptions you identified might cause them to answer wrongly. "  # noqa
+    )
+    human1_prompt_str = "Question-answer records:"
+    human2_prompt_str = "New multiple choice question:\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human1_prompt_str),
+        few_shot_prompt,
+        ("human", human2_prompt_str),
+    ]
+    return messages
+
+
 @PROMPT_REGISTRY.register("roleplay_teacher_A")
 def build_roleplay_teacher_A(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
