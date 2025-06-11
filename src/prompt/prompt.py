@@ -122,14 +122,13 @@ def build_roleplay_luca_emnlp(few_shot_prompt, native_str_output: bool) -> list:
 
     system_prompt_str = (
         "You will be shown a multiple choice question from {exam_type}, and the questions in the exam have difficulty levels "  # noqa
-        "on a scale from one (very easy) to five (very difficult). "  # TODO: make dynamic  # noqa
+        "on a scale from one (very easy) to five (very difficult). "
         "You must assign a difficulty level to the given multiple choice question, and select the answer choice that a student of level {student_level_group} would pick. "  # noqa
     )
-    # TODO: add  {student_scale}
     human_prompt_str = "Question:\n{input}"
 
     system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
-    # TODO: do not add few_shot_prompt because it is zero-shot!
+    # NOTE: do not add few_shot_prompt because it is zero-shot!
     messages = [
         ("system", system_prompt_str),
         ("human", human_prompt_str),
