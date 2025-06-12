@@ -94,12 +94,15 @@ $ git push origin fix_bug
 
 # Roleplaying experiments
 
-1. Create a new experiment in e.g., `config/roleplay_kate/`. This should hold a `config.py` file and at least one yaml file. See `config/roleplay/` for an example. The `config.py` file has all the defaults; each yaml file can override the defaults. The `config.py` file should include the following, which is not necessary for student replication experiments:
+1. Create a new experiment in e.g., `config/roleplay_kate/`. This should hold a `config.py` file and at least one yaml file. See `config/roleplay/` for an example. The `config.py` file has all the defaults; each yaml file can override the defaults. The `config.py` file should include the following::
 ```python
 _C.ROLEPLAY = CN()
 # number of student levels to simulate
 _C.ROLEPLAY.NUM_STUDENT_LEVELS = 5
+# student level scale
+_C.ROLEPLAY.STUDENT_SCALE = "american"
 ```
+> These configurations are also required for the student replication experiments to work, but they are not used.
 The `_C.EXAMPLE_SELECTOR.NAME` and `_C.PROMPT.NAME` should be specific for roleplaying experiments, e.g., `studentlevel_random` and `roleplay_teacher_A`.
 
 2. Run the experiment:

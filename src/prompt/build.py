@@ -17,7 +17,6 @@ from pydantic import BaseModel
 from tools.registry import Registry
 from example_selector.build import build_example_selector
 from tools.constants import PROMPT_INFO
-from tools.irt_estimator import write_student_scale
 
 PROMPT_REGISTRY = Registry()
 

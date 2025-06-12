@@ -99,9 +99,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     )
 
     # get student scale mapping
-    student_scale_map, student_scale_str = build_student_scale(
-        cfg=cfg
-    )
+    student_scale_map, student_scale_str = build_student_scale(cfg=cfg)
 
     # Compute IRT parameters and group students
     interact_train_fmt = group_student_levels(
@@ -171,7 +169,10 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     write_pickle(
         {
-            "preds_raw": {**val_preds_raw},
+            "preds_raw": val_preds_raw["val_preds_raw"],
+            "preds_raw_validated": [
+                pred.__dict__ for pred in val_preds_raw["val_preds_validated"]
+            ],
             "metrics": {**val_metrics_qdiff},
             "metrics_answers": {**val_metrics_answers},
             "preds_answers": {**val_preds_answers},

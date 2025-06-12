@@ -26,9 +26,10 @@ logger = structlog.get_logger(__name__)
 
 
 class DataLoader:
-    def __init__(self, read_dir: str, dataset_name: str) -> None:
+    def __init__(self, read_dir: str, write_dir: str, dataset_name: str) -> None:
         """Constructor."""
         self.read_dir = read_dir
+        self.write_dir = write_dir
         self.dataset_name = dataset_name
 
     def _read_questions(self) -> pd.DataFrame:
@@ -61,7 +62,7 @@ class DataLoader:
         for split in [TRAIN, VALSMALL, VALLARGE, TEST]:
             df_interactions = pd.read_csv(
                 os.path.join(
-                    self.read_dir, f"{self.dataset_name}_interactions_{split}.csv"
+                    self.write_dir, f"{self.dataset_name}_interactions_{split}.csv"
                 )
             )
             datasets[split] = pd.merge(df_interactions, df_questions, on=join_key)
@@ -148,7 +149,7 @@ class DataLoader:
             ].copy()
             datasets[split].to_csv(
                 os.path.join(
-                    self.read_dir, f"{self.dataset_name}_interactions_{split}.csv"
+                    self.write_dir, f"{self.dataset_name}_interactions_{split}.csv"
                 ),
                 index=False,
             )

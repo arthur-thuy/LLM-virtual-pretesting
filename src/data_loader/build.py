@@ -31,6 +31,7 @@ def build_dataset(loader_cfg: CfgNode) -> Dict[str, pd.DataFrame]:
     logger.info("Building dataset", name=loader_cfg.NAME)
     data_loader = DataLoader(
         read_dir=SILVER_DIR,
+        write_dir=GOLD_DIR,
         dataset_name=loader_cfg.NAME,
     )
     datasets = data_loader.read_splitted_data(join_key=loader_cfg.JOIN_KEY)

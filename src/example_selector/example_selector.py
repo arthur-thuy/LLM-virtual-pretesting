@@ -354,6 +354,13 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
         # randomly select from questions
         k = min(self.k, len(student_interactions))
         interactions_selected = random.sample(student_interactions, k)
+        if len(interactions_selected) < self.k:
+            # if we selected fewer interactions than requested, log a warning
+            logger.warning(
+                "Selected fewer interactions than requested",
+                requested=self.k,
+                selected=k,
+            )
 
         return interactions_selected
 
@@ -461,5 +468,13 @@ class StudentLevelSemanticExampleSelector(BaseExampleSelector):
             interactions_selected.append(selected_interaction)
 
         assert len(interactions_selected) == len(question_ids_selected)
+
+        if len(interactions_selected) < self.k:
+            # if we selected fewer interactions than requested, log a warning
+            logger.warning(
+                "Selected fewer interactions than requested",
+                requested=self.k,
+                selected=len(interactions_selected),
+            )
 
         return interactions_selected
