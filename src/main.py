@@ -109,7 +109,11 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     # prompt
     prompt, _ = build_prompt(
-        cfg=cfg, examples=list_train, struc_output=StrucOutput, q_ids_train=None
+        cfg=cfg,
+        examples=list_train,
+        struc_output=StrucOutput,
+        student_scale_str="",
+        q_ids_train=None,
     )
 
     # model
@@ -149,7 +153,10 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     write_pickle(
         {
             "metrics": {**val_metrics},
-            "preds_raw": {**val_preds_raw},
+            "preds_raw": val_preds_raw["val_preds_raw"],
+            "preds_raw_validated": [
+                pred.__dict__ for pred in val_preds_raw["val_preds_validated"]
+            ],
             "preds": {**val_preds},
         },
         save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID),
