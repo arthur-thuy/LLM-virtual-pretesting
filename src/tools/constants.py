@@ -1,5 +1,6 @@
 """Constants."""
 
+import os
 from types import NoneType
 
 
@@ -7,9 +8,9 @@ from types import NoneType
 CUPA = "cupa"
 
 # paths
-BRONZE_DIR = "../data/raw"
-SILVER_DIR = "../data/processed"
-GOLD_DIR = "../data/gold"
+BRONZE_DIR = os.path.join("..", "data", "bronze")
+SILVER_DIR = os.path.join("..", "data", "silver")
+GOLD_DIR = os.path.join("..", "data", "gold")
 
 VALIDATION = "validation"
 VALSMALL = "valsmall"
