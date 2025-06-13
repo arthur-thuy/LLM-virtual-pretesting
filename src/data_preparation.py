@@ -21,13 +21,17 @@ logger = structlog.get_logger()
 
 def main():
     """Run the data preparation."""
+
+    # CUPA
+    logger.info("Starting preparation CUPA")
+    cupa_dm = CupaDatamanager()
+    _, _ = cupa_dm.build_dataset(read_dir=BRONZE_DIR, write_dir=SILVER_DIR)
+
     # DBE-KT22
     logger.info("Starting preparation DBE-KT22")
     # NOTE: already built
     dbekt22_dm = DBEKT22Datamanager()
-    _, _ = dbekt22_dm.build_dataset(
-        read_dir=BRONZE_DIR, write_dir=SILVER_DIR
-    )
+    _, _ = dbekt22_dm.build_dataset(read_dir=BRONZE_DIR, write_dir=SILVER_DIR)
 
     #####################################
     ### Student behaviour replication ###
@@ -45,11 +49,6 @@ def main():
         test_size=1000,
         seed=42,
     )
-
-    # CUPA
-    logger.info("Starting preparation CUPA")
-    cupa_dm = CupaDatamanager()
-    _, _ = cupa_dm.build_dataset(read_dir=BRONZE_DIR, write_dir=SILVER_DIR)
 
     ##################################
     ### Student behaviour roleplay ###
