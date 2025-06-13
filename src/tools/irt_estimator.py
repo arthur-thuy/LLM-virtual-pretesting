@@ -164,6 +164,7 @@ def group_student_levels(
     # discretize student levels into groups
     ###################################
     ## equally spaced bins
+    # TODO: why do we copy the difficulty range here? We don't have a dedicated student range?
     diff_range = (DIFFICULTY_MIN, DIFFICULTY_MAX)
     bin_edges = np.histogram_bin_edges(None, bins=num_groups, range=diff_range).astype(
         np.float32
@@ -193,7 +194,7 @@ def group_student_levels(
         df_interactions_tmp[STUDENT_LEVEL_GROUP].value_counts().reset_index()
     )
     level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
-    print(level_value_counts)
+    print(level_value_counts)  # TODO: remove
     ###################################
     ## equal number of students per group
     # df_interactions_tmp[STUDENT_LEVEL_GROUP] = pd.qcut(
