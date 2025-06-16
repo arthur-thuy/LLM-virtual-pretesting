@@ -153,10 +153,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     write_pickle(
         {
             "metrics": {**val_metrics},
-            "preds_raw": val_preds_raw["val_preds_raw"],
-            "preds_raw_validated": [
-                pred.__dict__ for pred in val_preds_raw["val_preds_validated"]
-            ],
+            "preds_raw": {**val_preds_raw},
             "preds": {**val_preds},
         },
         save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID),
