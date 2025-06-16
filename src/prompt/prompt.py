@@ -96,10 +96,10 @@ def build_teacher_C(few_shot_prompt, native_str_output: bool) -> list:
 
 
 @PROMPT_REGISTRY.register("teacher_LB_A")
-def build_teacher_D(few_shot_prompt, native_str_output: bool) -> list:
+def build_teacher_LB_A(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
-        "You are a teacher curating {exam_type}, and need to hypothesise how specific students would answer to a new question. "
+        "You are a teacher curating {exam_type}, and need to hypothesise how specific students would answer to a new question. "  # noqa
         "You will be shown a student's responses to previous questions; "
         "if one or more of the responses are wrong, list the misconceptions that possibly led to the errors. "  # noqa
         "You will be then shown a new multiple choice question. "
@@ -119,13 +119,13 @@ def build_teacher_D(few_shot_prompt, native_str_output: bool) -> list:
 
 
 @PROMPT_REGISTRY.register("teacher_LB_B")
-def build_teacher_D(few_shot_prompt, native_str_output: bool) -> list:
+def build_teacher_LB_B(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
-        "You are a teacher curating {exam_type}, and I want you to provide feedback about a student's responses, as well as discuss how they would likely answer to new questions. "
+        "You are a teacher curating {exam_type}, and I want you to provide feedback about a student's responses, as well as discuss how they would likely answer to new questions. "  # noqa
         "First, you will be shown the student's responses to previous questions; "
         "you need to discuss the possible misconceptions that caused the errors, if any. "  # noqa
-        "Then, you will be shown a new multiple choice question, and have to discuss how that same student would answer it. "
+        "Then, you will be shown a new multiple choice question, and have to discuss how that same student would answer it. "  # noqa
         "Specifically, discuss how the misconceptions you have identified might be the cause of new errors. "  # noqa
     )
     human1_prompt_str = "Question-answer records:"
