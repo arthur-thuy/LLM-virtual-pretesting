@@ -32,6 +32,26 @@ def build_student_A(few_shot_prompt, native_str_output: bool) -> list:
     ]
     return messages
 
+@PROMPT_REGISTRY.register("student_B")
+def build_student_B(few_shot_prompt, native_str_output: bool) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are a student working on {exam_type}, containing multiple choice questions. "
+        "You are shown a set of questions that you answered earlier in the exam, together with the correct answers and your student answers. "
+        "Analyse your responses to the questions and identify the possible misconceptions that led to answering incorrectly. "
+        "Inspect the new question and think how you would answer it as a student. You can answer incorrectly, if that is what the student is likely to do for this question."
+        "If you answer incorrectly, explain which misconception leads to selecting that answer. "
+        "If you answer correctly, explain why you think the answer is correct. "
+        "Provide your answer as the integer index of the multiple choice option. "
+    )
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        few_shot_prompt,
+        ("human", "{input}"),
+    ]
+    return messages
 
 @PROMPT_REGISTRY.register("teacher_A")
 def build_teacher_A(few_shot_prompt, native_str_output: bool) -> list:
