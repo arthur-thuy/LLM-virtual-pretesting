@@ -11,78 +11,24 @@ from prompt.build import PROMPT_REGISTRY
 from prompt.utils import prepare_str_output
 
 
-@PROMPT_REGISTRY.register("student_A")
-def build_student_A(few_shot_prompt, native_str_output: bool) -> list:
-    # NOTE: do not add a statement about JSON output! -> this is added automatically
-    system_prompt_str = (
-        "You are a student working on {exam_type}, containing multiple choice questions. "  # noqa
-        "You are shown a set of questions that you answered earlier in the exam, together with the correct answers and your student answers. "  # noqa
-        "Analyse your responses to the questions and identify the possible misconceptions that led to answering incorrectly. "  # noqa
-        "Inspect the new question and think how you would answer it as a student. "
-        "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
-        "If you answer correctly, explain why you think the answer is correct. "
-        "Provide your answer as the integer index of the multiple choice option. "
-    )
-
-    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
-    messages = [
-        ("system", system_prompt_str),
-        few_shot_prompt,
-        ("human", "{input}"),
-    ]
-    return messages
+###########################
+### REPLICATION PROMPTS ###
+###########################
 
 @PROMPT_REGISTRY.register("student_B")
 def build_student_B(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
-        "You are a student working on {exam_type}, containing multiple choice questions. "
-        "You are shown a set of questions that you answered earlier in the exam, together with the correct answers and your student answers. "
-        "Analyse your responses to the questions and identify the possible misconceptions that led to answering incorrectly. "
-        "Inspect the new question and think how you would answer it as a student. You can answer incorrectly, if that is what the student is likely to do for this question. "
-        "If you answer incorrectly, explain which misconception leads to selecting that answer. "
-        "If you answer correctly, explain why you think the answer is correct. "
-        "Provide your answer as the integer index of the multiple choice option. "
-    )
-
-    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
-    messages = [
-        ("system", system_prompt_str),
-        few_shot_prompt,
-        ("human", "{input}"),
-    ]
-    return messages
-
-@PROMPT_REGISTRY.register("teacher_A")
-def build_teacher_A(few_shot_prompt, native_str_output: bool) -> list:
-    # NOTE: do not add a statement about JSON output! -> this is added automatically
-    system_prompt_str = (
-        "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "  # noqa
-        "You will be shown a set of students' responses to previous questions, and asked to discuss the possible misconceptions that led to the errors and how these can affect future responses of the student. "  # noqa
-    )
-    human1_prompt_str = "You have to discuss the misconceptions which might influence the response of the student to the following question:\n{input}"  # noqa
-    human2_prompt_str = "Discuss the misconceptions of the student and how they might cause them to answer wrongly to the following question:\n{input}"  # noqa
-
-    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
-    messages = [
-        ("system", system_prompt_str),
-        ("human", human1_prompt_str),
-        few_shot_prompt,
-        ("human", human2_prompt_str),
-    ]
-    return messages
-
-
-@PROMPT_REGISTRY.register("teacher_B")
-def build_teacher_B(few_shot_prompt, native_str_output: bool) -> list:
-    # NOTE: do not add a statement about JSON output! -> this is added automatically
-    system_prompt_str = (
-        "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "  # noqa
-        "You will be shown a student's responses to previous questions, and asked to identify the possible misconceptions that led to the errors. "  # noqa
-        "Next, you will be shown a new multiple choice question, and asked to discuss how the student would answer it, keeping in mind the misconceptions identified earlier. "  # noqa
-    )
-    human1_prompt_str = "Identify the misconceptions that caused incorrect answers in the following question-answer records:"  # noqa
-    human2_prompt_str = "Inspect this new multiple choice question and discuss how the student would answer it, keeping in mind the misconceptions identified earlier:\n{input}"  # noqa
+        "You are a student working on {exam_type}, containing multiple choice questions. "  # noqa
+        "You will be shown your question-answer records from earlier in the exam, together with the correct answers. "  # noqa
+        "Analyze your responses and identify the possible misconceptions that led to your errors, if any. "  # noqa
+        "Next, you will be shown a new multiple choice question. "
+        "Inspect the new question and think how you would answer it as a student, keeping in mind the misconceptions identified earlier. "  # noqa
+        "You can answer incorrectly, if that is what the student is likely to do for this question."  # noqa
+    )  # TODO: "the student is" or "you are"?
+    # NOTE: instructions on how to answer exactly are given in the JSON structured output
+    human1_prompt_str = "Question-answer records:"
+    human2_prompt_str = "New multiple choice question:\n{input}"
 
     system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
     messages = [
@@ -99,8 +45,10 @@ def build_teacher_C(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
         "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "  # noqa
-        "You will be shown a student's responses to previous questions. Identify the possible misconceptions that led to the errors. "  # noqa
-        "Next, you will be shown a new multiple choice question. Discuss how the student would answer it, keeping in mind the misconceptions identified earlier. "  # noqa
+        "You will be shown a student's question-answer records from earlier in the exam, together with the correct answers. "  # noqa
+        "Analyze the responses and identify the possible misconceptions that led to the errors, if any. "  # noqa
+        "Next, you will be shown a new multiple choice question. "
+        "Inspect the new question and think how the student would answer it, keeping in mind the misconceptions identified earlier."  # noqa
     )
     human1_prompt_str = "Question-answer records:"
     human2_prompt_str = "New multiple choice question:\n{input}"
@@ -161,13 +109,94 @@ def build_teacher_LB_B(few_shot_prompt, native_str_output: bool) -> list:
     return messages
 
 
-@PROMPT_REGISTRY.register("roleplay_teacher_A")
+########################
+### ROLEPLAY PROMPTS ###
+########################
+
+
+@PROMPT_REGISTRY.register("roleplay_student_B")
+def build_roleplay_tudent_B(few_shot_prompt, native_str_output: bool) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+
+    system_prompt_str = (
+        "You are a student working on {exam_type}, containing multiple choice questions, "  # noqa
+        "and have the student level {student_level_group} {student_scale}. "
+        "You will be shown your question-answer records from earlier in the exam, together with the correct answers. "  # noqa
+        "Analyze your responses and identify the possible misconceptions that led to your errors, if any. "  # noqa
+        "Next, you will be shown a new multiple choice question. "
+        "Inspect the new question and think how you would answer it as a student, keeping in mind your student level and the misconceptions identified earlier. "  # noqa
+        "You can answer incorrectly, if that is what you are likely to do for this question."  # noqa
+    )
+    human1_prompt_str = "Question-answer records:"
+    human2_prompt_str = "New multiple choice question:\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human1_prompt_str),
+        few_shot_prompt,
+        ("human", human2_prompt_str),
+    ]
+    return messages
+
+
+@PROMPT_REGISTRY.register(
+    "roleplay_teacher_A"
+)  # TODO: this aligns with teacher_C, so rename to "roleplay_teacher_C"?
 def build_roleplay_teacher_A(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
         "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "  # noqa
-        "You will be shown previous question-answer records from students of level {student_level_group} {student_scale}. Identify the possible misconceptions that led to the errors. "  # noqa
-        "Next, you will be shown a new multiple choice question. Discuss how a student of that level would answer it, keeping in mind the misconceptions identified earlier. "  # noqa
+        "You will be shown question-answer records from a student of level {student_level_group} {student_scale} together with the correct answers. "  # noqa
+        "Analyze the responses and identify the possible misconceptions that led to the errors, if any. "  # noqa
+        "Next, you will be shown a new multiple choice question. "
+        "Inspect the new question and think how the student would answer it, keeping in mind the misconceptions identified earlier."  # noqa
+    )
+    human1_prompt_str = "Question-answer records:"
+    human2_prompt_str = "New multiple choice question:\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human1_prompt_str),
+        few_shot_prompt,
+        ("human", human2_prompt_str),
+    ]
+    return messages
+
+
+@PROMPT_REGISTRY.register("roleplay_teacher_LB_A")
+def build_roleplay_teacher_LB_A(few_shot_prompt, native_str_output: bool) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are a teacher curating {exam_type}, and need to hypothesise how specific students would answer to a new question. "  # noqa
+        "You will be shown responses to previous questions from a student of level {student_level_group} {student_scale}; "  # noqa
+        "if one or more of the responses are wrong, list the misconceptions that possibly led to the errors. "  # noqa
+        "You will be then shown a new multiple choice question. "
+        "Discuss how the student of this particular level would answer it, and how the misconceptions you identified might cause them to answer wrongly. "  # noqa
+    )
+    human1_prompt_str = "Question-answer records:"
+    human2_prompt_str = "New multiple choice question:\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human1_prompt_str),
+        few_shot_prompt,
+        ("human", human2_prompt_str),
+    ]
+    return messages
+
+
+@PROMPT_REGISTRY.register("roleplay_teacher_LB_B")
+def build_roleplay_teacher_LB_B(few_shot_prompt, native_str_output: bool) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are a teacher curating {exam_type}, and I want you to provide feedback about a student's responses, as well as discuss how they would likely answer to new questions. "  # noqa
+        "First, you will be shown responses to previous questions from a student of level {student_level_group} {student_scale}; "  # noqa
+        "you need to discuss the possible misconceptions that caused the errors, if any. "  # noqa
+        "Then, you will be shown a new multiple choice question, and have to discuss how the student of this particular level would answer it. "  # noqa
+        "Specifically, discuss how the misconceptions you have identified might be the cause of new errors. "  # noqa
     )
     human1_prompt_str = "Question-answer records:"
     human2_prompt_str = "New multiple choice question:\n{input}"
