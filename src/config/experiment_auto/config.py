@@ -13,7 +13,7 @@ _C.RUNS = 1
 # model architecture
 _C.MODEL = CN()
 # model name
-_C.MODEL.NAME = "llama3"
+_C.MODEL.NAME = "o3-mini"
 # model temperature
 _C.MODEL.TEMPERATURE = 0.0
 # max tokens
@@ -26,7 +26,7 @@ _C.MODEL.MAX_RETRIES = None
 # structured output
 _C.STRUCTURED_OUTPUTTER = CN()
 # structured output name
-_C.STRUCTURED_OUTPUTTER.NAME = "B"
+_C.STRUCTURED_OUTPUTTER.NAME = "watermelon"
 
 # data loader
 _C.LOADER = CN()
@@ -45,16 +45,16 @@ _C.EXAMPLE_FORMATTER.NAME = "quotes"
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
 # example selector name
-_C.EXAMPLE_SELECTOR.NAME = "random"  # "studentid_semantic"  # "studentid_recency"
+_C.EXAMPLE_SELECTOR.NAME = "studentid_random"
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 3
 # example selector embedding model
-_C.EXAMPLE_SELECTOR.EMBEDDING = "llama3"  # "text-embedding-3-large"
+_C.EXAMPLE_SELECTOR.EMBEDDING = "text-embedding-3-large"
 
 # systemprompt
 _C.PROMPT = CN()
 # system prompt name
-_C.PROMPT.NAME = "teacher_A"  # "student_A"  #
+_C.PROMPT.NAME = "replicate_teacher_onion"
 
 _C.ROLEPLAY = CN()
 # number of student levels to simulate
