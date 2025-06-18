@@ -198,7 +198,7 @@ def main() -> None:
         previous_configs.extend(get_configs_out(EXP_NAME))
     errors = []
     for cfg in configs:
-                already_evaluated = False
+        already_evaluated = False
         for prev_cfg in previous_configs:
             if check_config_equivalence(prev_cfg, cfg):
                 already_evaluated = True
