@@ -39,13 +39,15 @@ def compute_likelihood_observed_interactions(
         skill_dict: Dict[str, float], 
         difficulty_dict: Dict[str, float], 
         discrimination_dict: Dict[str, float], 
-        guess_factor: float,
+        guess_factor: float = DEFAULT_GUESS,
         question_id_col: str = QUESTION_ID,
         student_id_col: str = STUDENT_ID,
 ) -> pd.DataFrame:
     """
     This method computes the likelihood of the observed interactions, given the skill levels, difficulty levels, discrimination levels, and 
     guess factor. It does not manage individual guess factors for different questions.
+    The irt_estimation must be in the same format as used by the irt_estimation method below.
+    skill_dict, difficulty_dict, and discrimination_dict are dictionaries, as returned by the irt_estimation method below.
     """
     interactions_df[LIKELIHOOD] = interactions_df.apply(
         lambda r: 
