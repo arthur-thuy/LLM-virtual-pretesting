@@ -18,7 +18,7 @@ class StrOutputWatermelon(BaseModel):
 
     misconception: str = Field(
         description=(
-            "The list of possible misconceptions of the student, if one or more of their previous responses is incorrect, the string 'correct answers' otherwise"  # noqa
+            "The list of possible misconceptions of the student, if one or more of their previous responses is incorrect; the string 'Only correct answers' otherwise"  # noqa
         )
     )
     answer_explanation: str = Field(
