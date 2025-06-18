@@ -15,8 +15,11 @@ from prompt.utils import prepare_str_output
 ### REPLICATION PROMPTS ###
 ###########################
 
-@PROMPT_REGISTRY.register("student_B")
-def build_student_B(few_shot_prompt, native_str_output: bool) -> list:
+
+@PROMPT_REGISTRY.register(
+    "replicate_student_tomato"
+)  # NOTE: previously "replicate_student_B"
+def build_replicate_student_tomato(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
         "You are a student working on {exam_type}, containing multiple choice questions. "  # noqa
@@ -24,9 +27,9 @@ def build_student_B(few_shot_prompt, native_str_output: bool) -> list:
         "Analyze your responses and identify the possible misconceptions that led to your errors, if any. "  # noqa
         "Next, you will be shown a new multiple choice question. "
         "Inspect the new question and think how you would answer it as a student, keeping in mind the misconceptions identified earlier. "  # noqa
-        "You can answer incorrectly, if that is what the student is likely to do for this question."  # noqa
-    )  # TODO: "the student is" or "you are"?
-    # NOTE: instructions on how to answer exactly are given in the JSON structured output
+        "You can answer incorrectly, if that is what you are likely to do for this question."  # noqa
+    )
+    # NOTE: the JSON structured output provides instructions on how to answer exactly
     human1_prompt_str = "Question-answer records:"
     human2_prompt_str = "New multiple choice question:\n{input}"
 
@@ -40,8 +43,10 @@ def build_student_B(few_shot_prompt, native_str_output: bool) -> list:
     return messages
 
 
-@PROMPT_REGISTRY.register("teacher_C")
-def build_teacher_C(few_shot_prompt, native_str_output: bool) -> list:
+@PROMPT_REGISTRY.register(
+    "replicate_teacher_onion"
+)  # NOTE: previously "replicate_teacher_C"
+def build_replicate_teacher_onion(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
         "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "  # noqa
@@ -63,8 +68,10 @@ def build_teacher_C(few_shot_prompt, native_str_output: bool) -> list:
     return messages
 
 
-@PROMPT_REGISTRY.register("teacher_LB_A")
-def build_teacher_LB_A(few_shot_prompt, native_str_output: bool) -> list:
+@PROMPT_REGISTRY.register(
+    "replicate_teacher_carrot"
+)  # NOTE: previously "replicate_teacher_LB_A"
+def build_replicate_teacher_carrot(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
         "You are a teacher curating {exam_type}, and need to hypothesise how specific students would answer to a new question. "  # noqa
@@ -86,8 +93,10 @@ def build_teacher_LB_A(few_shot_prompt, native_str_output: bool) -> list:
     return messages
 
 
-@PROMPT_REGISTRY.register("teacher_LB_B")
-def build_teacher_LB_B(few_shot_prompt, native_str_output: bool) -> list:
+@PROMPT_REGISTRY.register(
+    "replicate_teacher_avocado"
+)  # NOTE: previously "replicate_teacher_LB_B"
+def build_replicate_teacher_avocado(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
         "You are a teacher curating {exam_type}, and I want you to provide feedback about a student's responses, as well as discuss how they would likely answer to new questions. "  # noqa
@@ -114,8 +123,10 @@ def build_teacher_LB_B(few_shot_prompt, native_str_output: bool) -> list:
 ########################
 
 
-@PROMPT_REGISTRY.register("roleplay_student_B")
-def build_roleplay_tudent_B(few_shot_prompt, native_str_output: bool) -> list:
+@PROMPT_REGISTRY.register(
+    "roleplay_student_tomato"
+)  # NOTE: previously "roleplay_student_B"
+def build_roleplay_student_tomato(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
 
     system_prompt_str = (
@@ -141,9 +152,9 @@ def build_roleplay_tudent_B(few_shot_prompt, native_str_output: bool) -> list:
 
 
 @PROMPT_REGISTRY.register(
-    "roleplay_teacher_A"
-)  # TODO: this aligns with teacher_C, so rename to "roleplay_teacher_C"?
-def build_roleplay_teacher_A(few_shot_prompt, native_str_output: bool) -> list:
+    "roleplay_teacher_onion"
+)  # NOTE: previously "roleplay_teacher_C"?
+def build_roleplay_teacher_onion(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
         "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "  # noqa
@@ -165,8 +176,10 @@ def build_roleplay_teacher_A(few_shot_prompt, native_str_output: bool) -> list:
     return messages
 
 
-@PROMPT_REGISTRY.register("roleplay_teacher_LB_A")
-def build_roleplay_teacher_LB_A(few_shot_prompt, native_str_output: bool) -> list:
+@PROMPT_REGISTRY.register(
+    "roleplay_teacher_carrot"
+)  # NOTE: previously "roleplay_teacher_LB_A"
+def build_roleplay_teacher_carrot(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
         "You are a teacher curating {exam_type}, and need to hypothesise how specific students would answer to a new question. "  # noqa
@@ -188,8 +201,10 @@ def build_roleplay_teacher_LB_A(few_shot_prompt, native_str_output: bool) -> lis
     return messages
 
 
-@PROMPT_REGISTRY.register("roleplay_teacher_LB_B")
-def build_roleplay_teacher_LB_B(few_shot_prompt, native_str_output: bool) -> list:
+@PROMPT_REGISTRY.register(
+    "roleplay_teacher_avocado"
+)  # NOTE: previously "roleplay_teacher_LB_B"
+def build_roleplay_teacher_avocado(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
         "You are a teacher curating {exam_type}, and I want you to provide feedback about a student's responses, as well as discuss how they would likely answer to new questions. "  # noqa
