@@ -42,7 +42,7 @@ idna==3.10
 inflect==7.5.0
 iniconfig==2.1.0
 ipykernel==6.29.5
-ipython==9.1.0
+ipython==8.35.0
 ipython_pygments_lexers==1.1.1
 isort==6.0.1
 jedi==0.19.2
@@ -148,3 +148,4 @@ wrapt==1.17.2
 yacs==0.1.8
 yarl==1.19.0
 zstandard==0.23.0
+langchain-google-genai==2.1.5

@@ -25,7 +25,6 @@ from tools.constants import (
 )
 from tools.utils import format_time, BatchCallback
 from prompt.utils import validate_output
-from tools.irt_estimator import irt_estimation
 
 # set up logger
 logger = structlog.get_logger(__name__)
@@ -290,6 +289,7 @@ def evaluate_q_difficulty(
     df_questions: pd.DataFrame,
     prefix: Literal["val", "test"],
 ):
+    from tools.irt_estimator import irt_estimation
     logger.info("Evaluate question difficulty - start", split=prefix)
     # prepare data for IRT estimation
     y_val_pred = np.array([output.student_answer for output in preds_validated])
