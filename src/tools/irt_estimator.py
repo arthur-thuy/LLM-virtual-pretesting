@@ -21,6 +21,7 @@ from tools.constants import (
     S_OPTION_CORRECT,
     STUDENT_LEVEL,
     STUDENT_LEVEL_GROUP,
+    LIKELIHOOD,
 )
 
 # set up logger
@@ -46,7 +47,7 @@ def compute_likelihood_observed_interactions(
     This method computes the likelihood of the observed interactions, given the skill levels, difficulty levels, discrimination levels, and 
     guess factor. It does not manage individual guess factors for different questions.
     """
-    interactions_df['likelihood'] = interactions_df.apply(
+    interactions_df[LIKELIHOOD] = interactions_df.apply(
         lambda r: 
         item_response_function(difficulty_dict[r[question_id_col]], skill_dict[r[student_id_col]], discrimination_dict[r[question_id_col]], guess_factor) 
         , axis=1)
