@@ -223,11 +223,13 @@ def check_cfg(cfg: CfgNode) -> None:
     Raises
     ------
     ValueError
-        If error in values of cfg.LOADER.OUTPUT_TYPE and MODEL.NUM_LABELS
-    ValueError
-        If error in values of LOADER.VAL_SET, TRAIN.EARLY_STOPPING, and TRAIN.PATIENCE
+        If NUM_STUDENT_LEVELS is less than 3.
     """
-    pass
+    if cfg.ROLEPLAY.NUM_STUDENT_LEVELS < 3:
+        raise ValueError(
+            "ROLEPLAY.NUM_STUDENT_LEVELS must be at least 3, "
+            f"got {cfg.ROLEPLAY.NUM_STUDENT_LEVELS}"
+        )
 
 
 def convert_to_dict(cfg_node, key_list=[]):
