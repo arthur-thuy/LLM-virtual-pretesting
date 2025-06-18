@@ -63,10 +63,16 @@ MODEL_STRUCTURED_OUTPUT = {
     "gpt-4o-mini": True,
     "gpt-4.1": True,
     "o3-mini": True,
+    "o3-mini-2025-01-31": True,
     "o3": True,
-    "gemini-2.0-flash": True,
-    "gemini-2.5-pro-preview-05-06": True,
-    "claude-3-7-sonnet-20250219": False,
+    "o3-2025-04-16": True,
+    "gemini-2.5-flash-preview-05-20": True,
+    "gemini-2.5-pro-preview-06-05": True,
+    "claude-3-7-sonnet-20250219": False,  # NOTE: should work, but doesn't
+    "claude-sonnet-4-20250514": False,  # NOTE: should work, but doesn't
+    "claude-3-5-haiku-20241022": False,  # NOTE: should work, but doesn't
+    "gemma3:12b": True,
+    "qwen3:8b": True,
 }
 MODEL_PROVIDER = {
     "llama3": "ollama",
@@ -76,10 +82,16 @@ MODEL_PROVIDER = {
     "gpt-4o-mini": "openai",
     "gpt-4.1": "openai",
     "o3-mini": "openai",
+    "o3-mini-2025-01-31": "openai",
     "o3": "openai",
-    "gemini-2.0-flash": "google",
-    "gemini-2.5-pro-preview-05-06": "google",
+    "o3-2025-04-16": "openai",
+    "gemini-2.5-flash-preview-05-20": "google",
+    "gemini-2.5-pro-preview-06-05": "google",
     "claude-3-7-sonnet-20250219": "anthropic",
+    "claude-sonnet-4-20250514": "anthropic",
+    "claude-3-5-haiku-20241022": "anthropic",
+    "gemma3:12b": "ollama",
+    "qwen3:8b": "ollama",
 }
 
 # prompt info
