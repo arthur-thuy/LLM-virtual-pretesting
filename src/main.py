@@ -191,7 +191,7 @@ def main() -> None:
     # langfuse
     langfuse_session = Langfuse()
 
-    previous_experiment_names = ['']
+    previous_experiment_names = []
     previous_configs = []
     for EXP_NAME in previous_experiment_names:
         print(EXP_NAME)
