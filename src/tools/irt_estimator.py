@@ -33,6 +33,14 @@ logging.basicConfig(
 )
 
 
+def item_response_function(difficulty, skill, discrimination, guess, slip=0.0) -> float:
+    """
+    Computes the logistic function for the given arguments and returns a float. 
+    The logisit function tells you the likelihood that the given student (skill) will answer the given question correctly.
+    """
+    return guess + (1.0 - np.add(guess, slip)) / (1.0 + np.exp(-np.multiply(discrimination, np.subtract(skill, difficulty))))
+
+
 def irt_estimation(
     interactions_df: pd.DataFrame,
     difficulty_range: tuple[float, float] = (DIFFICULTY_MIN, DIFFICULTY_MAX),
