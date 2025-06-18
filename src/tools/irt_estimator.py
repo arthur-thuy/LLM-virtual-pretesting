@@ -33,6 +33,26 @@ logging.basicConfig(
 )
 
 
+def compute_likelihood_observed_interactions(
+        interactions_df: pd.DataFrame, 
+        skill_dict: Dict[str, float], 
+        difficulty_dict: Dict[str, float], 
+        discrimination_dict: Dict[str, float], 
+        guess_factor: float,
+        question_id_col: str = QUESTION_ID,
+        student_id_col: str = STUDENT_ID,
+) -> pd.DataFrame:
+    """
+    This method computes the likelihood of the observed interactions, given the skill levels, difficulty levels, discrimination levels, and 
+    guess factor. It does not manage individual guess factors for different questions.
+    """
+    interactions_df['likelihood'] = interactions_df.apply(
+        lambda r: 
+        item_response_function(difficulty_dict[r[question_id_col]], skill_dict[r[student_id_col]], discrimination_dict[r[question_id_col]], guess_factor) 
+        , axis=1)
+    return interactions_df
+
+
 def item_response_function(difficulty, skill, discrimination, guess, slip=0.0) -> float:
     """
     Computes the logistic function for the given arguments and returns a float. 
