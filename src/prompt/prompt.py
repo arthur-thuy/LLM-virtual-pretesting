@@ -39,7 +39,7 @@ def build_student_B(few_shot_prompt, native_str_output: bool) -> list:
         "You are a student working on {exam_type}, containing multiple choice questions. "
         "You are shown a set of questions that you answered earlier in the exam, together with the correct answers and your student answers. "
         "Analyse your responses to the questions and identify the possible misconceptions that led to answering incorrectly. "
-        "Inspect the new question and think how you would answer it as a student. You can answer incorrectly, if that is what the student is likely to do for this question."
+        "Inspect the new question and think how you would answer it as a student. You can answer incorrectly, if that is what the student is likely to do for this question. "
         "If you answer incorrectly, explain which misconception leads to selecting that answer. "
         "If you answer correctly, explain why you think the answer is correct. "
         "Provide your answer as the integer index of the multiple choice option. "
