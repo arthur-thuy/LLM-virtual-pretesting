@@ -138,7 +138,7 @@ def create_config_id(cfg: CfgNode) -> str:
         Config identifier.
     """
     cfg_id = cfg.MODEL.NAME
-    cfg_id += f"~T{cfg.MODEL.TEMPERATURE}"
+    cfg_id += f"~T_{cfg.MODEL.TEMPERATURE}"
     cfg_id += f"~SO_{cfg.STRUCTURED_OUTPUTTER.NAME}"
     cfg_id += f"~SP_{cfg.PROMPT.NAME}"
     cfg_id += f"~EF_{cfg.EXAMPLE_FORMATTER.NAME}"
@@ -160,13 +160,13 @@ def create_roleplay_config_id(cfg: CfgNode) -> str:
         Config identifier.
     """
     cfg_id = cfg.MODEL.NAME
-    cfg_id += f"~T:{cfg.MODEL.TEMPERATURE}"
-    cfg_id += f"~SO:{cfg.STRUCTURED_OUTPUTTER.NAME}"
-    cfg_id += f"~L:{cfg.ROLEPLAY.NUM_STUDENT_LEVELS}"
-    cfg_id += f"~SP:{cfg.PROMPT.NAME}"
-    cfg_id += f"~SS:{cfg.ROLEPLAY.STUDENT_SCALE}"
-    cfg_id += f"~EF:{cfg.EXAMPLE_FORMATTER.NAME}"
-    cfg_id += f"~ES:{cfg.EXAMPLE_SELECTOR.NAME}{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
+    cfg_id += f"~T_{cfg.MODEL.TEMPERATURE}"
+    cfg_id += f"~SO_{cfg.STRUCTURED_OUTPUTTER.NAME}"
+    cfg_id += f"~L_{cfg.ROLEPLAY.NUM_STUDENT_LEVELS}"
+    cfg_id += f"~SP_{cfg.PROMPT.NAME}"
+    cfg_id += f"~SS_{cfg.ROLEPLAY.STUDENT_SCALE}"
+    cfg_id += f"~EF_{cfg.EXAMPLE_FORMATTER.NAME}"
+    cfg_id += f"~ES_{cfg.EXAMPLE_SELECTOR.NAME}{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
     return cfg_id
 
 
@@ -219,7 +219,19 @@ def check_cfg(cfg: CfgNode) -> None:
     ----------
     cfg : CfgNode
         Config object.
+
+    Raises
+    ------
+    ValueError
+        If NUM_STUDENT_LEVELS is less than 3.
+    ValueError
+        If structured outputter and prompt do not match.
     """
+    if cfg.ROLEPLAY.NUM_STUDENT_LEVELS < 3:
+        raise ValueError(
+            "ROLEPLAY.NUM_STUDENT_LEVELS must be at least 3, "
+            f"got {cfg.ROLEPLAY.NUM_STUDENT_LEVELS}"
+
     if "student" in cfg.PROMPT.NAME:
         if "student" not in cfg.STRUCTURED_OUTPUTTER.NAME:
             raise ValueError(

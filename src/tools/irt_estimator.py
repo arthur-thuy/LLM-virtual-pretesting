@@ -14,13 +14,17 @@ from typing import Tuple, Dict
 from tools.constants import (
     DIFFICULTY_MIN,
     DIFFICULTY_MAX,
-    DEFAULT_DISCRIMINATION,
-    DEFAULT_GUESS,
+    DISCRIMINATION_MIN,
+    DISCRIMINATION_MAX,
+    GUESS_FACTOR,
     QUESTION_ID,
     STUDENT_ID,
     S_OPTION_CORRECT,
     STUDENT_LEVEL,
     STUDENT_LEVEL_GROUP,
+    STUDENT_LEVEL_MIN,
+    STUDENT_LEVEL_MAX,
+    LIKELIHOOD,
 )
 
 # set up logger
@@ -33,14 +37,45 @@ logging.basicConfig(
 )
 
 
+def compute_likelihood_observed_interactions(
+        interactions_df: pd.DataFrame, 
+        skill_dict: Dict[str, float], 
+        difficulty_dict: Dict[str, float], 
+        discrimination_dict: Dict[str, float], 
+        guess_factor: float = GUESS_FACTOR,
+        question_id_col: str = QUESTION_ID,
+        student_id_col: str = STUDENT_ID,
+) -> pd.DataFrame:
+    """
+    This method computes the likelihood of the observed interactions, given the skill levels, difficulty levels, discrimination levels, and 
+    guess factor. It does not manage individual guess factors for different questions.
+    The irt_estimation must be in the same format as used by the irt_estimation method below.
+    skill_dict, difficulty_dict, and discrimination_dict are dictionaries, as returned by the irt_estimation method below.
+    """
+    interactions_df[LIKELIHOOD] = interactions_df.apply(
+        lambda r: 
+        item_response_function(difficulty_dict[r[question_id_col]], skill_dict[r[student_id_col]], discrimination_dict[r[question_id_col]], guess_factor) 
+        , axis=1)
+    return interactions_df
+
+
+def item_response_function(difficulty, skill, discrimination, guess, slip=0.0) -> float:
+    """
+    Computes the logistic function for the given arguments and returns a float. 
+    The logisit function tells you the likelihood that the given student (skill) will answer the given question correctly.
+    """
+    return guess + (1.0 - np.add(guess, slip)) / (1.0 + np.exp(-np.multiply(discrimination, np.subtract(skill, difficulty))))
+
+
 def irt_estimation(
     interactions_df: pd.DataFrame,
     difficulty_range: tuple[float, float] = (DIFFICULTY_MIN, DIFFICULTY_MAX),
+    student_range: tuple[float, float] = (STUDENT_LEVEL_MIN, STUDENT_LEVEL_MAX),
     discrimination_range: tuple[float, float] = (
-        DEFAULT_DISCRIMINATION,
-        DEFAULT_DISCRIMINATION,
+        DISCRIMINATION_MIN,
+        DISCRIMINATION_MAX,
     ),
-    guess: float = DEFAULT_GUESS,
+    guess: float = GUESS_FACTOR,
     mode: str = "debug",
 ) -> Tuple[Dict[str, float], Dict[str, float], Dict[str, float]]:
     """Estimate IRT parameters.
@@ -60,8 +95,10 @@ def irt_estimation(
             - S_OPTION_CORRECT: Boolean indicating if the student's response was correct.
     difficulty_range : tuple[float, float], optional
         Bounds for the difficulty parameter, by default (DIFFICULTY_MIN, DIFFICULTY_MAX)
+    student_range : tuple[float, float], optional
+        Bounds for the student ability parameter, by default (STUDENT_LEVEL_MIN, STUDENT_LEVEL_MAX)
     discrimination_range : tuple[float, float], optional
-        Bounds for the discrimination parameter, by default (DEFAULT_DISCRIMINATION, DEFAULT_DISCRIMINATION)
+        Bounds for the discrimination parameter, by default (DISCRIMINATION_MIN, DISCRIMINATION_MAX)
     guess : float, optional
         Default guessing parameter for all questions, by default DEFAULT_GUESS
 
@@ -109,7 +146,7 @@ def irt_estimation(
     try:
         item_params, user_params = pyirt.irt(
             interactions_list,
-            theta_bnds=difficulty_range,
+            theta_bnds=student_range,
             beta_bnds=difficulty_range,
             alpha_bnds=discrimination_range,
             in_guess_param={q: guess for q in interactions_df[QUESTION_ID].unique()},
@@ -164,12 +201,25 @@ def group_student_levels(
     # discretize student levels into groups
     ###################################
     ## equally spaced bins
-    diff_range = (DIFFICULTY_MIN, DIFFICULTY_MAX)
-    bin_edges = np.histogram_bin_edges(None, bins=num_groups, range=diff_range).astype(
-        np.float32
-    )
+
+    level_range = (STUDENT_LEVEL_MIN, STUDENT_LEVEL_MAX)
+    pseudo_level_range = (0.5, 2)  # NOTE: skill histogram with mu=1.25
+    bin_edges = np.histogram_bin_edges(
+        None, bins=num_groups - 2, range=pseudo_level_range
+    ).astype(np.float32)
+    # Adjust the bin edges to fit the level range
+    bin_edges = np.clip(bin_edges, level_range[0], level_range[1])
+    bin_edges = np.insert(
+        bin_edges, 0, level_range[0]
+    )  # Ensure the first bin starts at the lower level range
+    bin_edges = np.append(
+        bin_edges, level_range[1]
+    )  # Ensure the last bin ends at the upper level range
     # NOTE: increase last bin edge by epsilon to include the last value
     bin_edges = np.nextafter(bin_edges, bin_edges + (bin_edges == bin_edges[-1]))
+    # Ensure the bin edges are strictly increasing
+    if not np.all(np.diff(bin_edges) > 0):
+        raise ValueError("Bin edges must be strictly increasing.")
 
     # find all student levels (digits) and determine for each interaction row
     student_levels_base = list(range(1, num_groups + 1))
@@ -193,7 +243,7 @@ def group_student_levels(
         df_interactions_tmp[STUDENT_LEVEL_GROUP].value_counts().reset_index()
     )
     level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
-    print(level_value_counts)
+    print(level_value_counts)  # TODO: remove
     ###################################
     ## equal number of students per group
     # df_interactions_tmp[STUDENT_LEVEL_GROUP] = pd.qcut(
