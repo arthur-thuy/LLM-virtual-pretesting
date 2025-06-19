@@ -219,15 +219,19 @@ def check_cfg(cfg: CfgNode) -> None:
     ----------
     cfg : CfgNode
         Config object.
-
-    Raises
-    ------
-    ValueError
-        If error in values of cfg.LOADER.OUTPUT_TYPE and MODEL.NUM_LABELS
-    ValueError
-        If error in values of LOADER.VAL_SET, TRAIN.EARLY_STOPPING, and TRAIN.PATIENCE
     """
-    pass
+    if "student" in cfg.PROMPT.NAME:
+        if "student" not in cfg.STRUCTURED_OUTPUTTER.NAME:
+            raise ValueError(
+                "Both structured outputter and prompt should be of the same type, "
+                "either 'student' or 'teacher'."
+            )
+    if "teacher" in cfg.PROMPT.NAME:
+        if "teacher" not in cfg.STRUCTURED_OUTPUTTER.NAME:
+            raise ValueError(
+                "Both structured outputter and prompt should be of the same type, "
+                "either 'student' or 'teacher'."
+            )
 
 
 def convert_to_dict(cfg_node, key_list=[]):
