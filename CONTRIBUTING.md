@@ -5,7 +5,7 @@
 $ git clone git@github.com:your_name_here/LLM-virtual-pretesting.git
 $ cd src
 ```
-2. Download the processed datasets from the Google Drive folder and paste them in `data/processed/`.
+2. Download the processed datasets from the [Google Drive](https://drive.google.com/drive/u/1/folders/1RuDHku2xI1Y3cdxk9HcpMn0BRAlDGXbo) folder and paste them in `data/processed/`.
 3. Create a `.env` file at the root level with the following contents (see `example.env`):
 ```bash
 OPENAI_API_KEY="..."
@@ -15,7 +15,7 @@ LANGFUSE_HOST="..."
 PINECONE_API_KEY="..."
 ANTHROPIC_API_KEY="..."
 ```
-4. Create and ctivate your virtual environment:
+4. Create and activate your virtual environment:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -27,7 +27,7 @@ $ git checkout main
 $ git branch fix_bug
 $ git checkout fix_bug
 ```
-6. Create a new experiment in e.g., `config/experiment_kate/`. This should hold a `config.py` file and at least one yaml file. See `config/experiment/` for an example. The `config.py` file has all the defaults; each yaml file can override the defaults.
+6. Create a new experiment in e.g., `src/config/experiment_kate/`. This should hold a `config.py` file and at least one yaml file. See `src/config/experiment/` for an example. The `config.py` file has all the defaults; each yaml file can override the defaults.
 7. Run the experiment:
 ```bash
 cd src
@@ -54,7 +54,7 @@ EXAMPLE_SELECTOR:
   NAME: ["random", "studentid_random", "studentid_semantic", "studentid_recency"]
 ```
 
-4. Run the script `explode_cfg_tempalate.py` in the `src` folder. This will create a new configuration folder for each combination of parameters in the template. The new folder will be named `kate_auto` (so without the `"_template"` suffix). Run as follows:
+4. Run the script `explode_cfg_template.py` in the `src` folder. This will create a new configuration folder for each combination of parameters in the template. The new folder will be named `kate_auto` (so without the `"_template"` suffix). Run as follows:
 ```bash
 python explode_cfg_template.py kate_auto_template
 ```

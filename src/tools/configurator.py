@@ -113,7 +113,8 @@ def load_configs(fpath: str, freeze: bool = True) -> tuple[CfgNode, ...]:
     if not (config_path_full.exists() and config_path_full.is_dir()):
         raise ValueError(f"Invalid config dirname (base): {config_path_full}")
     config_paths = list(config_path_full.glob("*.yaml"))
-    output_dir = f"{fpath}_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}"
+    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    output_dir = f"{fpath}_{timestamp}"
     # load config files
     configs = tuple([_merge_config(config_path) for config_path in config_paths])
     # add derived config variables
@@ -137,11 +138,11 @@ def create_config_id(cfg: CfgNode) -> str:
         Config identifier.
     """
     cfg_id = cfg.MODEL.NAME
-    cfg_id += f"~T{cfg.MODEL.TEMPERATURE}"
-    cfg_id += f"~SO:{cfg.STRUCTURED_OUTPUTTER.NAME}"
-    cfg_id += f"~SP:{cfg.PROMPT.NAME}"
-    cfg_id += f"~EF:{cfg.EXAMPLE_FORMATTER.NAME}"
-    cfg_id += f"~ES:{cfg.EXAMPLE_SELECTOR.NAME}{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
+    cfg_id += f"~T_{cfg.MODEL.TEMPERATURE}"
+    cfg_id += f"~SO_{cfg.STRUCTURED_OUTPUTTER.NAME}"
+    cfg_id += f"~SP_{cfg.PROMPT.NAME}"
+    cfg_id += f"~EF_{cfg.EXAMPLE_FORMATTER.NAME}"
+    cfg_id += f"~ES_{cfg.EXAMPLE_SELECTOR.NAME}{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
     return cfg_id
 
 
@@ -159,13 +160,13 @@ def create_roleplay_config_id(cfg: CfgNode) -> str:
         Config identifier.
     """
     cfg_id = cfg.MODEL.NAME
-    cfg_id += f"~T:{cfg.MODEL.TEMPERATURE}"
-    cfg_id += f"~SO:{cfg.STRUCTURED_OUTPUTTER.NAME}"
-    cfg_id += f"~L:{cfg.ROLEPLAY.NUM_STUDENT_LEVELS}"
-    cfg_id += f"~SP:{cfg.PROMPT.NAME}"
-    cfg_id += f"~SS:{cfg.ROLEPLAY.STUDENT_SCALE}"
-    cfg_id += f"~EF:{cfg.EXAMPLE_FORMATTER.NAME}"
-    cfg_id += f"~ES:{cfg.EXAMPLE_SELECTOR.NAME}{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
+    cfg_id += f"~T_{cfg.MODEL.TEMPERATURE}"
+    cfg_id += f"~SO_{cfg.STRUCTURED_OUTPUTTER.NAME}"
+    cfg_id += f"~L_{cfg.ROLEPLAY.NUM_STUDENT_LEVELS}"
+    cfg_id += f"~SP_{cfg.PROMPT.NAME}"
+    cfg_id += f"~SS_{cfg.ROLEPLAY.STUDENT_SCALE}"
+    cfg_id += f"~EF_{cfg.EXAMPLE_FORMATTER.NAME}"
+    cfg_id += f"~ES_{cfg.EXAMPLE_SELECTOR.NAME}{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
     return cfg_id
 
 
@@ -222,11 +223,13 @@ def check_cfg(cfg: CfgNode) -> None:
     Raises
     ------
     ValueError
-        If error in values of cfg.LOADER.OUTPUT_TYPE and MODEL.NUM_LABELS
-    ValueError
-        If error in values of LOADER.VAL_SET, TRAIN.EARLY_STOPPING, and TRAIN.PATIENCE
+        If NUM_STUDENT_LEVELS is less than 3.
     """
-    pass
+    if cfg.ROLEPLAY.NUM_STUDENT_LEVELS < 3:
+        raise ValueError(
+            "ROLEPLAY.NUM_STUDENT_LEVELS must be at least 3, "
+            f"got {cfg.ROLEPLAY.NUM_STUDENT_LEVELS}"
+        )
 
 
 def convert_to_dict(cfg_node, key_list=[]):
