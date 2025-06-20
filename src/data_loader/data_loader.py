@@ -21,6 +21,7 @@ from tools.constants import (
     KC,
 )
 from tools.utils import set_seed
+from tools.irt_estimator import compute_student_levels
 
 logger = structlog.get_logger(__name__)
 
@@ -142,11 +143,18 @@ class DataLoader:
             TEST: idx_test,
         }
 
+        # create dataframes for each split
         datasets = dict()
-        for split in [TRAIN, VALSMALL, VALLARGE, TEST]:
+        for split in splits.keys():
             datasets[split] = df_interactions[
                 df_interactions[INTERACT_ID].isin(splits[split])
             ].copy()
+
+        # compute IRT on the train set
+        datasets[TRAIN] = compute_student_levels(df_interactions=datasets[TRAIN])
+
+        # save data
+        for split in splits.keys():
             datasets[split].to_csv(
                 os.path.join(
                     self.write_dir, f"{self.dataset_name}_interactions_{split}.csv"
@@ -295,6 +303,7 @@ class DataLoaderRoleplay:
                 f"Writing {split} split questions",
                 num_questions=len(q_split),
             )
+
         # writing interactions
         if split_interactions:
             # filter out the train questions
@@ -308,6 +317,10 @@ class DataLoaderRoleplay:
             interact_train = pd.merge(
                 interact_train, df_questions, on=join_key, how="left"
             )
+
+        # compute IRT on the train set
+        interact_train = compute_student_levels(df_interactions=interact_train)
+
         interact_train.to_csv(
             os.path.join(
                 self.write_dir, f"{self.dataset_name}_roleplay_interactions_train.csv"
