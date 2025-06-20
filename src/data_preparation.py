@@ -22,10 +22,10 @@ logger = structlog.get_logger()
 def main():
     """Run the data preparation."""
 
-    # # CUPA
-    # logger.info("Starting preparation CUPA")
-    # cupa_dm = CupaDatamanager()
-    # _, _ = cupa_dm.build_dataset(read_dir=BRONZE_DIR, write_dir=SILVER_DIR)
+    # CUPA
+    logger.info("Starting preparation CUPA")
+    cupa_dm = CupaDatamanager()
+    _, _ = cupa_dm.build_dataset(read_dir=BRONZE_DIR, write_dir=SILVER_DIR)
 
     # DBE-KT22
     logger.info("Starting preparation DBE-KT22")
