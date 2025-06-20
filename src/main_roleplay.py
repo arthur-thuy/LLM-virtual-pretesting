@@ -32,7 +32,11 @@ from tools.constants import (
     VALIDATION,
     QUESTION_ID,
 )  # noqa
-from tools.irt_estimator import group_student_levels, explode_student_levels
+from tools.irt_estimator import (
+    group_student_levels,
+    explode_student_levels,
+    compute_student_levels,
+)
 from prompt.build import build_prompt
 from model.build import build_model
 from tools.evaluate import evaluate_roleplay, predict, evaluate_q_difficulty
@@ -102,6 +106,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     student_scale_map, student_scale_str = build_student_scale(cfg=cfg)
 
     # Compute IRT parameters and group students
+    interact_train_fmt = compute_student_levels(df_interactions=interact_train_fmt)
     interact_train_fmt = group_student_levels(
         df_interactions=interact_train_fmt,
         num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS,
