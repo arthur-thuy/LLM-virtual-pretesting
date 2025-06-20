@@ -231,6 +231,7 @@ def check_cfg(cfg: CfgNode) -> None:
         raise ValueError(
             "ROLEPLAY.NUM_STUDENT_LEVELS must be at least 3, "
             f"got {cfg.ROLEPLAY.NUM_STUDENT_LEVELS}"
+        )
 
     if "student" in cfg.PROMPT.NAME:
         if "student" not in cfg.STRUCTURED_OUTPUTTER.NAME:
