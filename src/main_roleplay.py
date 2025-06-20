@@ -79,6 +79,9 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     start_time = time.time()
     print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
 
+    # seed
+    set_seed(cfg.SEED + run_n)
+
     # build dataset
     questions, interact_train = build_roleplay_dataset(
         loader_cfg=cfg.LOADER,
@@ -123,9 +126,6 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     list_train = df_to_listdict(interact_train_fmt)
     list_val = df_to_listdict(questions_fmt[VALIDATION])
     # list_test = df_to_listdict(questions_fmt[TEST])  # TODO
-
-    # seed
-    set_seed(cfg.SEED + run_n)
 
     # structured output
     StrucOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
