@@ -153,7 +153,7 @@ class DataLoader:
         # compute IRT on the train set
         datasets[TRAIN] = compute_student_levels(df_interactions=datasets[TRAIN])
 
-        # save data
+        # writing interactions
         for split in splits.keys():
             datasets[split].to_csv(
                 os.path.join(
@@ -304,7 +304,6 @@ class DataLoaderRoleplay:
                 num_questions=len(q_split),
             )
 
-        # writing interactions
         if split_interactions:
             # filter out the train questions
             interact_train = df_interactions[
@@ -321,6 +320,7 @@ class DataLoaderRoleplay:
         # compute IRT on the train set
         interact_train = compute_student_levels(df_interactions=interact_train)
 
+        # write train split interactions
         interact_train.to_csv(
             os.path.join(
                 self.write_dir, f"{self.dataset_name}_roleplay_interactions_train.csv"
@@ -407,3 +407,7 @@ class DataLoaderRoleplay:
         q_ids_test = test_questions[QUESTION_ID].tolist()
 
         return q_ids_train, q_ids_val, q_ids_test
+
+
+# TODO: try to unify both dataloader into a single dataloader class,
+# saving different datasets as needed
