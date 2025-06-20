@@ -90,7 +90,8 @@ DICT_CEFR_DESCRIPTIONS = {
 }
 PROMPT_INFO = {
     "dbe_kt22": {
-        "exam_type": "a database systems exam (Department of Computer Science)"
+        "exam_type": "database systems (Department of Computer Science)",
+        "exam_type_luca_emnlp": "database systems exam (Department of Computer Science)"
     }
 }
 

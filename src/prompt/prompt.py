@@ -22,7 +22,7 @@ from prompt.utils import prepare_str_output
 def build_replicate_student_tomato(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
-        "You are a student working on {exam_type}, containing multiple choice questions. "  # noqa
+        "You are a student working on a multiple choice exam on {exam_type}. "  # noqa
         "You will be shown your question-answer records from earlier in the exam, together with the correct answers. "  # noqa
         "Analyze your responses and identify the possible misconceptions that led to your errors, if any. "  # noqa
         "Next, you will be shown a new multiple choice question. "
@@ -49,7 +49,7 @@ def build_replicate_student_tomato(few_shot_prompt, native_str_output: bool) -> 
 def build_replicate_teacher_onion(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
-        "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "  # noqa
+        "You are an expert teacher preparing a set of questions for a multiple choice exam on {exam_type}. "  # noqa
         "You will be shown a student's question-answer records from earlier in the exam, together with the correct answers. "  # noqa
         "Analyze the responses and identify the possible misconceptions that led to the errors, if any. "  # noqa
         "Next, you will be shown a new multiple choice question. "
@@ -74,7 +74,7 @@ def build_replicate_teacher_onion(few_shot_prompt, native_str_output: bool) -> l
 def build_replicate_teacher_carrot(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
-        "You are a teacher curating {exam_type}, and need to hypothesise how specific students would answer to a new question. "  # noqa
+        "You are a teacher curating a multiple choice exam on {exam_type}, and need to hypothesise how specific students would answer to a new question. "  # noqa
         "You will be shown a student's responses to previous questions; "
         "if one or more of the responses are wrong, list the misconceptions that possibly led to the errors. "  # noqa
         "You will be then shown a new multiple choice question. "
@@ -99,7 +99,7 @@ def build_replicate_teacher_carrot(few_shot_prompt, native_str_output: bool) -> 
 def build_replicate_teacher_avocado(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
-        "You are a teacher curating {exam_type}, and I want you to provide feedback about a student's responses, as well as discuss how they would likely answer to new questions. "  # noqa
+        "You are a teacher curating a multiple choice exam on {exam_type}, and I want you to provide feedback about a student's responses, as well as discuss how they would likely answer to new questions. "  # noqa
         "First, you will be shown the student's responses to previous questions; "
         "you need to discuss the possible misconceptions that caused the errors, if any. "  # noqa
         "Then, you will be shown a new multiple choice question, and have to discuss how that same student would answer it. "  # noqa
@@ -130,7 +130,7 @@ def build_roleplay_student_tomato(few_shot_prompt, native_str_output: bool) -> l
     # NOTE: do not add a statement about JSON output! -> this is added automatically
 
     system_prompt_str = (
-        "You are a student of level {student_level_group} {student_scale} working on {exam_type}, containing multiple choice questions."  # noqa
+        "You are a student of level {student_level_group} {student_scale} working on a multiple choice exam on {exam_type}."  # noqa
         "You will be shown your question-answer records from earlier in the exam, together with the correct answers. "  # noqa
         "Analyze your responses and identify the possible misconceptions that led to your errors, if any. "  # noqa
         "Next, you will be shown a new multiple choice question. "
@@ -156,7 +156,7 @@ def build_roleplay_student_tomato(few_shot_prompt, native_str_output: bool) -> l
 def build_roleplay_teacher_onion(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
-        "You are an expert teacher preparing a set of multiple choice questions for {exam_type}. "  # noqa
+        "You are an expert teacher preparing a set of questions for a multiple choice exam on {exam_type}. "  # noqa
         "You will be shown question-answer records of a student of level {student_level_group} {student_scale} together with the correct answers. "  # noqa
         "Analyze the responses and identify the possible misconceptions that led to the errors, if any. "  # noqa
         "Next, you will be shown a new multiple choice question. "
@@ -181,7 +181,7 @@ def build_roleplay_teacher_onion(few_shot_prompt, native_str_output: bool) -> li
 def build_roleplay_teacher_carrot(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
-        "You are a teacher curating {exam_type}, and need to hypothesise how specific students would answer to a new question. "  # noqa
+        "You are a teacher curating a multiple choice exam on {exam_type}, and need to hypothesise how specific students would answer to a new question. "  # noqa
         "You will be shown responses to previous questions of a student of level {student_level_group} {student_scale}; "  # noqa
         "if one or more of the responses are wrong, list the misconceptions that possibly led to the errors. "  # noqa
         "You will be then shown a new multiple choice question. "
@@ -206,7 +206,7 @@ def build_roleplay_teacher_carrot(few_shot_prompt, native_str_output: bool) -> l
 def build_roleplay_teacher_avocado(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
-        "You are a teacher curating {exam_type}, and I want you to provide feedback about a student's responses, as well as discuss how they would likely answer to new questions. "  # noqa
+        "You are a teacher curating a multiple choice exam on {exam_type}, and I want you to provide feedback about a student's responses, as well as discuss how they would likely answer to new questions. "  # noqa
         "First, you will be shown responses to previous questions of a student of level {student_level_group} {student_scale}; "  # noqa
         "you need to discuss the possible misconceptions that caused the errors, if any. "  # noqa
         "Then, you will be shown a new multiple choice question, and have to discuss how the student of level {student_level_group} {student_scale} would answer it. "  # noqa
@@ -230,7 +230,7 @@ def build_roleplay_luca_emnlp(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
 
     system_prompt_str = (
-        "You will be shown a multiple choice question from {exam_type}, and the questions in the exam have difficulty levels "  # noqa
+        "You will be shown a multiple choice question from a {exam_type_luca_emnlp}, and the questions in the exam have difficulty levels "  # noqa
         "on a scale from one (very easy) to five (very difficult). "
         "You must assign a difficulty level to the given multiple choice question, and select the answer choice that a student of level {student_level_group} would pick. "  # noqa
     )
