@@ -21,12 +21,13 @@ from prompt.utils import prepare_str_output
 )  # NOTE: previously "replicate_student_B"
 def build_replicate_student_tomato(few_shot_prompt, native_str_output: bool) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
+
     system_prompt_str = (
         "You are a student working on a multiple choice exam on {exam_type}. "  # noqa
         "You will be shown your question-answer records from earlier in the exam, together with the correct answers. "  # noqa
         "Analyze your responses and identify the possible misconceptions that led to your errors, if any. "  # noqa
         "Next, you will be shown a new multiple choice question. "
-        "Inspect the new question and discuss how you would answer it as a student, keeping in mind the misconceptions identified earlier. "  # noqa
+        "Inspect the new question and think how you would answer it, keeping in mind the misconceptions identified earlier. "  # noqa
         "You can answer incorrectly, if that is what you are likely to do for this question."  # noqa
     )
     # NOTE: the JSON structured output provides instructions on how to answer exactly
@@ -53,7 +54,7 @@ def build_replicate_teacher_onion(few_shot_prompt, native_str_output: bool) -> l
         "You will be shown a student's question-answer records from earlier in the exam, together with the correct answers. "  # noqa
         "Analyze the responses and identify the possible misconceptions that led to the errors, if any. "  # noqa
         "Next, you will be shown a new multiple choice question. "
-        "Inspect the new question and discuss how the student would answer it, keeping in mind the misconceptions identified earlier."  # noqa
+        "Inspect the new question and think how the student would answer it, keeping in mind the misconceptions identified earlier."  # noqa
     )
     human1_prompt_str = "Question-answer records:"
     human2_prompt_str = "New multiple choice question:\n{input}"
@@ -134,7 +135,7 @@ def build_roleplay_student_tomato(few_shot_prompt, native_str_output: bool) -> l
         "You will be shown your question-answer records from earlier in the exam, together with the correct answers. "  # noqa
         "Analyze your responses and identify the possible misconceptions that led to your errors, if any. "  # noqa
         "Next, you will be shown a new multiple choice question. "
-        "Inspect the new question and discuss how you would answer it as a student, keeping in mind your student level and the misconceptions identified earlier. "  # noqa
+        "Inspect the new question and think how you would answer, keeping in mind your student level and the misconceptions identified earlier. "  # noqa
         "You can answer incorrectly, if that is what you are likely to do for this question."  # noqa
     )
     human1_prompt_str = "Question-answer records:"
@@ -160,7 +161,7 @@ def build_roleplay_teacher_onion(few_shot_prompt, native_str_output: bool) -> li
         "You will be shown question-answer records of a student of level {student_level_group} {student_scale} together with the correct answers. "  # noqa
         "Analyze the responses and identify the possible misconceptions that led to the errors, if any. "  # noqa
         "Next, you will be shown a new multiple choice question. "
-        "Inspect the new question and discuss how the student of level {student_level_group} {student_scale} would answer it, keeping in mind the misconceptions identified earlier."  # noqa
+        "Inspect the new question and think how the student of level {student_level_group} {student_scale} would answer it, keeping in mind the misconceptions identified earlier."  # noqa
     )
     human1_prompt_str = "Question-answer records:"
     human2_prompt_str = "New multiple choice question:\n{input}"
