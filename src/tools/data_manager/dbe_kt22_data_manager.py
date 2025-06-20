@@ -11,11 +11,10 @@ import numpy as np
 import pandas as pd
 import structlog
 import networkx as nx
-from imblearn.under_sampling import RandomUnderSampler
 
 # local application/library specific imports
 from tools.data_manager.utils import count_answer_options
-from tools.irt_estimator import irt_estimation, group_student_levels
+from tools.irt_estimator import irt_estimation
 from tools.utils import set_seed
 from tools.constants import (
     INTERACT_ID,
@@ -29,14 +28,11 @@ from tools.constants import (
     Q_CONTEXT_TEXT,
     Q_CONTEXT_ID,
     Q_DISCRIMINATION,
-    STUDENT_LEVEL,
-    STUDENT_LEVEL_GROUP,
     S_OPTION_ID,
     S_OPTION_CORRECT,
     TIME,
     KC,
 )
-from student_scale.student_scale import build_digits_int
 
 
 logger = structlog.get_logger(__name__)
@@ -66,31 +62,9 @@ class DBEKT22Datamanager:
             sample_student_ids=sample_student_ids,
         )
         df_questions = df_questions.drop(columns=[Q_OPTION_IDS])
-        df_questions, df_interactions = self._compute_irt(
+        df_questions = self._compute_irt(
             df_interactions=df_interactions, df_questions=df_questions
         )
-        # get student level bins for interactions
-        student_scale_map, _ = build_digits_int(num_groups=5)
-        df_interactions = group_student_levels(
-            df_interactions=df_interactions,
-            num_groups=5,
-            student_scale_map=student_scale_map,
-        )
-
-        #  undersample majority classes from "student_level_group"
-        rus = RandomUnderSampler(sampling_strategy="not minority")
-        df_interactions_res, _ = rus.fit_resample(
-            df_interactions, df_interactions[STUDENT_LEVEL_GROUP]
-        )
-
-        # value counts of primary KCs
-        print("Value counts of student levels after undersampling:")
-        level_value_counts = (
-            df_interactions_res[STUDENT_LEVEL_GROUP].value_counts().reset_index()
-        )
-        level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
-        print(level_value_counts)  # TODO: remove
-
         if save_dataset:
             output_path = os.path.join(write_dir, f"{self.name}_questions.csv")
             logger.info("Saving questions dataset", path=output_path)
@@ -100,11 +74,11 @@ class DBEKT22Datamanager:
             logger.info(
                 "Saving interactions dataset",
                 path=output_path,
-                num_interactions=len(df_interactions_res),
+                num_interactions=len(df_interactions),
             )
-            df_interactions_res.to_csv(output_path, index=False)
+            df_interactions.to_csv(output_path, index=False)
 
-        return df_questions, df_interactions_res
+        return df_questions, df_interactions
 
     def _process_question_row(
         self, row, df_q_choice: pd.DataFrame
@@ -285,15 +259,10 @@ class DBEKT22Datamanager:
         """Compute IRT parameters for questions and add them to the
         questions dataframe."""
         # Compute IRT parameters
-        student_dict, difficulty_dict, discrimination_dict = irt_estimation(
+        _, difficulty_dict, discrimination_dict = irt_estimation(
             interactions_df=df_interactions
         )
         df_q_tmp = df_questions.copy()
         df_q_tmp[Q_DIFFICULTY] = df_questions[QUESTION_ID].map(difficulty_dict)
         df_q_tmp[Q_DISCRIMINATION] = df_questions[QUESTION_ID].map(discrimination_dict)
-
-        df_interactions_tmp = df_interactions.copy()
-        df_interactions_tmp[STUDENT_LEVEL] = df_interactions[STUDENT_ID].map(
-            student_dict
-        )
-        return df_q_tmp, df_interactions_tmp
+        return df_q_tmp
