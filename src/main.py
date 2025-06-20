@@ -32,9 +32,9 @@ from model.build import build_model
 from tools.evaluate import evaluate, predict
 from example_formatter.build import build_example_formatter
 from structured_outputter.build import build_structured_outputter
-from tools.configurator import (
-    get_configs_out,
-)
+from tools.configurator import get_configs_out
+from tools.irt_estimator import group_student_levels
+from student_scale.build import build_student_scale
 
 # set up logger
 logger = structlog.get_logger(__name__)
@@ -71,6 +71,9 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     start_time = time.time()
     print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
 
+    # seed
+    set_seed(cfg.SEED + run_n)
+
     # load data
     datasets = build_dataset(cfg.LOADER)
     # choose small or large validation set
@@ -98,13 +101,34 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         is_interaction=True,
     )
 
+    # get student scale mapping
+    student_scale_map, student_scale_str = build_student_scale(cfg=cfg)
+
+    # group students levels
+    datasets_fmt[TRAIN] = group_student_levels(
+        df_interactions=datasets_fmt[TRAIN],
+        num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS,
+        student_scale_map=student_scale_map,
+    )
+
+    # check student_id and find student_level_group in train set
+    len_before_merge = len(datasets_fmt[VALIDATION])
+    datasets_fmt[VALIDATION] = datasets_fmt[VALIDATION].merge(
+        datasets_fmt[TRAIN][["student_id", "student_level_group"]].drop_duplicates(),
+        on="student_id",
+        how="left",
+    )
+    assert (
+        len(datasets_fmt[VALIDATION]) == len_before_merge
+    ), "The validation set size changed after merging with student_level_group."
+    assert (
+        datasets_fmt[VALIDATION]["student_level_group"].isna().sum() == 0
+    ), "There are students in the validation set that are not in the training set."
+
     # list of dicts
     list_train = df_to_listdict(datasets_fmt[TRAIN])
     list_val = df_to_listdict(datasets_fmt[VALIDATION])
     # list_test = df_to_listdict(datasets_fmt[TEST])  # noqa  # TODO
-
-    # seed
-    set_seed(cfg.SEED + run_n)
 
     # structured output
     StrucOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
@@ -114,7 +138,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         cfg=cfg,
         examples=list_train,
         struc_output=StrucOutput,
-        student_scale_str="",
+        student_scale_str=student_scale_str,
         q_ids_train=None,
     )
 
@@ -164,15 +188,21 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     print_elapsed_time(start_time, run_n)
     langfuse_handler.flush()
 
+
 def check_config_equivalence(prev_cfg, cfg):
-    if prev_cfg['EXAMPLE_SELECTOR']['EMBEDDING'] == cfg['EXAMPLE_SELECTOR']['EMBEDDING'] and \
-    prev_cfg['EXAMPLE_SELECTOR']['NAME'] == cfg['EXAMPLE_SELECTOR']['NAME'] and \
-    prev_cfg['EXAMPLE_SELECTOR']['NUM_EXAMPLES'] == cfg['EXAMPLE_SELECTOR']['NUM_EXAMPLES'] and \
-    prev_cfg['MODEL']['NAME'] == cfg['MODEL']['NAME'] and \
-    prev_cfg['MODEL']['TEMPERATURE'] == cfg['MODEL']['TEMPERATURE'] and \
-    prev_cfg['PROMPT']['NAME'] == cfg['PROMPT']['NAME']:
+    if (
+        prev_cfg["EXAMPLE_SELECTOR"]["EMBEDDING"]
+        == cfg["EXAMPLE_SELECTOR"]["EMBEDDING"]
+        and prev_cfg["EXAMPLE_SELECTOR"]["NAME"] == cfg["EXAMPLE_SELECTOR"]["NAME"]
+        and prev_cfg["EXAMPLE_SELECTOR"]["NUM_EXAMPLES"]
+        == cfg["EXAMPLE_SELECTOR"]["NUM_EXAMPLES"]
+        and prev_cfg["MODEL"]["NAME"] == cfg["MODEL"]["NAME"]
+        and prev_cfg["MODEL"]["TEMPERATURE"] == cfg["MODEL"]["TEMPERATURE"]
+        and prev_cfg["PROMPT"]["NAME"] == cfg["PROMPT"]["NAME"]
+    ):
         return True
     return False
+
 
 def main() -> None:
     """Run experiment."""
@@ -210,15 +240,17 @@ def main() -> None:
             try:
                 for run_n in range(1, cfg.RUNS + 1):
                     run_single_cfg(
-                        cfg=cfg, run_n=run_n, args=args, langfuse_session=langfuse_session
+                        cfg=cfg,
+                        run_n=run_n,
+                        args=args,
+                        langfuse_session=langfuse_session,
                     )
                 save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
             except Exception as e:
                 errors.append((cfg, e))
         else:
-            print(cfg.ID, 'already evaluated.')
+            print(cfg.ID, "already evaluated.")
         print(errors)
-
 
 
 if __name__ == "__main__":
