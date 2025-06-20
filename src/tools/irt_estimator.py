@@ -38,33 +38,40 @@ logging.basicConfig(
 
 
 def compute_likelihood_observed_interactions(
-        interactions_df: pd.DataFrame, 
-        skill_dict: Dict[str, float], 
-        difficulty_dict: Dict[str, float], 
-        discrimination_dict: Dict[str, float], 
-        guess_factor: float = GUESS_FACTOR,
-        question_id_col: str = QUESTION_ID,
-        student_id_col: str = STUDENT_ID,
+    interactions_df: pd.DataFrame,
+    skill_dict: Dict[str, float],
+    difficulty_dict: Dict[str, float],
+    discrimination_dict: Dict[str, float],
+    guess_factor: float = GUESS_FACTOR,
+    question_id_col: str = QUESTION_ID,
+    student_id_col: str = STUDENT_ID,
 ) -> pd.DataFrame:
     """
-    This method computes the likelihood of the observed interactions, given the skill levels, difficulty levels, discrimination levels, and 
+    This method computes the likelihood of the observed interactions, given the skill levels, difficulty levels, discrimination levels, and
     guess factor. It does not manage individual guess factors for different questions.
     The irt_estimation must be in the same format as used by the irt_estimation method below.
     skill_dict, difficulty_dict, and discrimination_dict are dictionaries, as returned by the irt_estimation method below.
     """
     interactions_df[LIKELIHOOD] = interactions_df.apply(
-        lambda r: 
-        item_response_function(difficulty_dict[r[question_id_col]], skill_dict[r[student_id_col]], discrimination_dict[r[question_id_col]], guess_factor) 
-        , axis=1)
+        lambda r: item_response_function(
+            difficulty_dict[r[question_id_col]],
+            skill_dict[r[student_id_col]],
+            discrimination_dict[r[question_id_col]],
+            guess_factor,
+        ),
+        axis=1,
+    )
     return interactions_df
 
 
 def item_response_function(difficulty, skill, discrimination, guess, slip=0.0) -> float:
     """
-    Computes the logistic function for the given arguments and returns a float. 
+    Computes the logistic function for the given arguments and returns a float.
     The logisit function tells you the likelihood that the given student (skill) will answer the given question correctly.
     """
-    return guess + (1.0 - np.add(guess, slip)) / (1.0 + np.exp(-np.multiply(discrimination, np.subtract(skill, difficulty))))
+    return guess + (1.0 - np.add(guess, slip)) / (
+        1.0 + np.exp(-np.multiply(discrimination, np.subtract(skill, difficulty)))
+    )
 
 
 def irt_estimation(
@@ -170,6 +177,39 @@ def irt_estimation(
     return student_dict, difficulty_dict, discrimination_dict
 
 
+def compute_student_levels(
+    df_interactions: pd.DataFrame,
+) -> pd.DataFrame:
+    """Compute student levels based on their estimated ability.
+
+    Parameters
+    ----------
+    df_interactions : pd.DataFrame
+        DataFrame containing student interactions with columns:
+            - STUDENT_ID: Unique identifier for students.
+            - QUESTION_ID: Unique identifier for questions.
+            - S_OPTION_CORRECT: Boolean indicating if the student's response was correct.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with an additional column 'student_level' indicating the estimated ability of each student.
+    """
+    assert set([STUDENT_ID, QUESTION_ID, S_OPTION_CORRECT]).issubset(
+        df_interactions.columns
+    ), "Missing required columns in interactions DataFrame."
+
+    # Compute IRT parameters
+    student_dict, _, _ = irt_estimation(interactions_df=df_interactions)
+    df_interactions_tmp = df_interactions.copy()
+
+    df_interactions_tmp[STUDENT_LEVEL] = df_interactions_tmp[STUDENT_ID].map(
+        student_dict
+    )
+
+    return df_interactions_tmp
+
+
 def group_student_levels(
     df_interactions: pd.DataFrame, num_groups: int, student_scale_map: Dict[str, str]
 ) -> pd.DataFrame:
@@ -180,23 +220,23 @@ def group_student_levels(
     df_interactions : pd.DataFrame
         DataFrame containing student interactions with columns:
             - STUDENT_ID: Unique identifier for students.
+            - QUESTION_ID: Unique identifier for questions.
+            - S_OPTION_CORRECT: Boolean indicating if the student's response was correct.
+            - STUDENT_LEVEL: Estimated ability of each student.
     num_groups : int
         Number of groups to divide students into based on their ability.
+    student_scale_map : Dict[str, str]
+        Mapping of student level digits to string values
 
     Returns
     -------
     pd.DataFrame
         DataFrame with an additional column 'student_level_group' indicating the group of each student.
     """
-    assert set([STUDENT_ID, QUESTION_ID, S_OPTION_CORRECT]).issubset(
+    assert set([STUDENT_ID, QUESTION_ID, S_OPTION_CORRECT, STUDENT_LEVEL]).issubset(
         df_interactions.columns
     ), "Missing required columns in interactions DataFrame."
-    # Compute IRT parameters
-    student_dict, _, _ = irt_estimation(interactions_df=df_interactions)
     df_interactions_tmp = df_interactions.copy()
-    df_interactions_tmp[STUDENT_LEVEL] = df_interactions_tmp[STUDENT_ID].map(
-        student_dict
-    )
 
     # discretize student levels into groups
     ###################################
