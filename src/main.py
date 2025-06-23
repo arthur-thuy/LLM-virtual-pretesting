@@ -164,15 +164,21 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     print_elapsed_time(start_time, run_n)
     langfuse_handler.flush()
 
+
 def check_config_equivalence(prev_cfg, cfg):
-    if prev_cfg['EXAMPLE_SELECTOR']['EMBEDDING'] == cfg['EXAMPLE_SELECTOR']['EMBEDDING'] and \
-    prev_cfg['EXAMPLE_SELECTOR']['NAME'] == cfg['EXAMPLE_SELECTOR']['NAME'] and \
-    prev_cfg['EXAMPLE_SELECTOR']['NUM_EXAMPLES'] == cfg['EXAMPLE_SELECTOR']['NUM_EXAMPLES'] and \
-    prev_cfg['MODEL']['NAME'] == cfg['MODEL']['NAME'] and \
-    prev_cfg['MODEL']['TEMPERATURE'] == cfg['MODEL']['TEMPERATURE'] and \
-    prev_cfg['PROMPT']['NAME'] == cfg['PROMPT']['NAME']:
+    if (
+        prev_cfg["EXAMPLE_SELECTOR"]["EMBEDDING"]
+        == cfg["EXAMPLE_SELECTOR"]["EMBEDDING"]
+        and prev_cfg["EXAMPLE_SELECTOR"]["NAME"] == cfg["EXAMPLE_SELECTOR"]["NAME"]
+        and prev_cfg["EXAMPLE_SELECTOR"]["NUM_EXAMPLES"]
+        == cfg["EXAMPLE_SELECTOR"]["NUM_EXAMPLES"]
+        and prev_cfg["MODEL"]["NAME"] == cfg["MODEL"]["NAME"]
+        and prev_cfg["MODEL"]["TEMPERATURE"] == cfg["MODEL"]["TEMPERATURE"]
+        and prev_cfg["PROMPT"]["NAME"] == cfg["PROMPT"]["NAME"]
+    ):
         return True
     return False
+
 
 def main() -> None:
     """Run experiment."""
@@ -210,15 +216,24 @@ def main() -> None:
             try:
                 for run_n in range(1, cfg.RUNS + 1):
                     run_single_cfg(
-                        cfg=cfg, run_n=run_n, args=args, langfuse_session=langfuse_session
+                        cfg=cfg,
+                        run_n=run_n,
+                        args=args,
+                        langfuse_session=langfuse_session,
                     )
                 save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
             except Exception as e:
                 errors.append((cfg, e))
         else:
-            print(cfg.ID, 'already evaluated.')
-        print(errors)
+            print(cfg.ID, "already evaluated.")
 
+    if len(errors) > 0:
+        logger.error(
+            "Errors occurred during the following experiments",
+            configs=errors,
+        )
+    else:
+        logger.info("All experiments completed successfully.")
 
 
 if __name__ == "__main__":
