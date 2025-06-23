@@ -14,7 +14,7 @@ import structlog
 # local application/library specific imports
 from tools.constants import (
     SILVER_DIR,
-    TRAIN,
+    GOLD_DIR,
     RATE_LIMIT,
     EMBEDDING_PROVIDER,
 )
@@ -32,11 +32,10 @@ def main() -> None:
     logger.info("Starting preparation DBE-KT22")
     data_loader = DataLoader(
         read_dir=SILVER_DIR,
+        write_dir=GOLD_DIR,
         dataset_name="dbe_kt22",
     )
-    train_dataset = data_loader.read_splitted_data(
-        join_key="question_id",
-    )[TRAIN]
+    train_dataset = data_loader.read_splitted_train_interactions()
 
     for embedding_name in EMBEDDING_NAMES:
         # prepare vector store
