@@ -224,12 +224,27 @@ def check_cfg(cfg: CfgNode) -> None:
     ------
     ValueError
         If NUM_STUDENT_LEVELS is less than 3.
+    ValueError
+        If structured outputter and prompt do not match.
     """
     if cfg.ROLEPLAY.NUM_STUDENT_LEVELS < 3:
         raise ValueError(
             "ROLEPLAY.NUM_STUDENT_LEVELS must be at least 3, "
             f"got {cfg.ROLEPLAY.NUM_STUDENT_LEVELS}"
         )
+
+    if "student" in cfg.PROMPT.NAME:
+        if "student" not in cfg.STRUCTURED_OUTPUTTER.NAME:
+            raise ValueError(
+                "Both structured outputter and prompt should be of the same type, "
+                "either 'student' or 'teacher'."
+            )
+    if "teacher" in cfg.PROMPT.NAME:
+        if "teacher" not in cfg.STRUCTURED_OUTPUTTER.NAME:
+            raise ValueError(
+                "Both structured outputter and prompt should be of the same type, "
+                "either 'student' or 'teacher'."
+            )
 
 
 def convert_to_dict(cfg_node, key_list=[]):

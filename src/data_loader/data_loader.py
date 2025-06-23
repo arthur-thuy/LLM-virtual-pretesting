@@ -407,7 +407,3 @@ class DataLoaderRoleplay:
         q_ids_test = test_questions[QUESTION_ID].tolist()
 
         return q_ids_train, q_ids_val, q_ids_test
-
-
-# TODO: try to unify both dataloader into a single dataloader class,
-# saving different datasets as needed

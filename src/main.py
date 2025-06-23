@@ -17,7 +17,7 @@ from langfuse.decorators import langfuse_context, observe
 from langfuse import Langfuse
 
 # local application/library specific imports
-from data_loader.build import build_dataset
+from data_loader.build import build_replicate_dataset
 from tools.configurator import check_cfg, load_configs, save_config, convert_to_dict
 from tools.utils import (
     delete_previous_content,
@@ -75,7 +75,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     set_seed(cfg.SEED + run_n)
 
     # load data
-    datasets = build_dataset(cfg.LOADER)
+    datasets = build_replicate_dataset(cfg.LOADER)
     # choose small or large validation set
     if cfg.LOADER.RUN_LARGE_VAL:
         datasets[VALIDATION] = datasets.pop(VALLARGE)
@@ -250,8 +250,14 @@ def main() -> None:
                 errors.append((cfg, e))
         else:
             print(cfg.ID, "already evaluated.")
-        print(errors)
 
+    if len(errors) > 0:
+        logger.error(
+            "Errors occurred during the following experiments",
+            configs=errors,
+        )
+    else:
+        logger.info("All experiments completed successfully.")
 
 if __name__ == "__main__":
     main()
