@@ -9,14 +9,14 @@ import pandas as pd
 from yacs.config import CfgNode
 
 # local application/library specific imports
-from data_loader.data_loader import DataLoader, DataLoaderRoleplay
+from data_loader.data_loader import DataLoader
 from tools.constants import SILVER_DIR, GOLD_DIR
 
 logger = structlog.get_logger(__name__)
 
 
-def build_dataset(loader_cfg: CfgNode) -> Dict[str, pd.DataFrame]:
-    """Build the dataset.
+def build_replicate_dataset(loader_cfg: CfgNode) -> Dict[str, pd.DataFrame]:
+    """Build the replication dataset.
 
     Parameters
     ----------
@@ -34,13 +34,11 @@ def build_dataset(loader_cfg: CfgNode) -> Dict[str, pd.DataFrame]:
         write_dir=GOLD_DIR,
         dataset_name=loader_cfg.NAME,
     )
-    datasets = data_loader.read_splitted_data(join_key=loader_cfg.JOIN_KEY)
-    return datasets
+    interactions = data_loader.read_splitted_interactions()
+    return interactions
 
 
-def build_roleplay_dataset(
-    loader_cfg: CfgNode
-) -> Dict[str, pd.DataFrame]:
+def build_roleplay_dataset(loader_cfg: CfgNode) -> Dict[str, pd.DataFrame]:
     """Build the roleplay dataset.
 
     Parameters
@@ -54,10 +52,11 @@ def build_roleplay_dataset(
         Train/Val/Test interaction dataframes
     """
     logger.info("Building roleplay dataset", name=loader_cfg.NAME)
-    data_loader = DataLoaderRoleplay(
+    data_loader = DataLoader(
         read_dir=SILVER_DIR,
         write_dir=GOLD_DIR,
         dataset_name=loader_cfg.NAME,
     )
-    questions, interact_train = data_loader.read_splitted_data()
+    questions = data_loader.read_splitted_questions()
+    interact_train = data_loader.read_splitted_train_interactions()
     return questions, interact_train
