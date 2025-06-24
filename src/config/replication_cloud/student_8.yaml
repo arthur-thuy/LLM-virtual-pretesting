@@ -1,0 +1,10 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_semantic
+  NUM_EXAMPLES: 5
+MODEL:
+  NAME: claude-3-5-haiku-20241022
+  TEMPERATURE: 2.0
+PROMPT:
+  NAME: replicate_student_tomato
+STRUCTURED_OUTPUTTER:
+  NAME: student

@@ -1,0 +1,12 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_semantic
+  NUM_EXAMPLES: 5
+MODEL:
+  NAME: o3-2025-04-16
+  TEMPERATURE: 2.0
+PROMPT:
+  NAME: replicate_teacher_onion_studentlevel
+STRUCTURED_OUTPUTTER:
+  NAME: teacher
+STUDENT_SCALE:
+  NAME: proficiency_5_str

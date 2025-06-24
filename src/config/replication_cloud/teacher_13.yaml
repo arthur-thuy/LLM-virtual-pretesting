@@ -1,0 +1,10 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_random
+  NUM_EXAMPLES: 5
+MODEL:
+  NAME: claude-3-5-haiku-20241022
+  TEMPERATURE: 2.0
+PROMPT:
+  NAME: replicate_teacher_onion
+STRUCTURED_OUTPUTTER:
+  NAME: teacher

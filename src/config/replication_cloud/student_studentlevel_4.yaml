@@ -1,0 +1,12 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_semantic
+  NUM_EXAMPLES: 5
+MODEL:
+  NAME: gemini-2.5-pro-preview-06-05
+  TEMPERATURE: 2.0
+PROMPT:
+  NAME: replicate_student_tomato_studentlevel
+STRUCTURED_OUTPUTTER:
+  NAME: student
+STUDENT_SCALE:
+  NAME: proficiency_5_str
