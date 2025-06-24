@@ -226,7 +226,12 @@ def main() -> None:
                     )
                 save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
             except Exception as e:
-                errors.append((cfg, e))
+                errors.append((cfg.ID, e))
+                logger.error(
+                    "Error occurred during the experiment",
+                    config=cfg.ID,
+                    error=str(e),
+                )
         else:
             print(cfg.ID, "already evaluated.")
 
