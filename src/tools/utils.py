@@ -111,7 +111,7 @@ def set_seed(seed: Optional[int] = None) -> None:
         random.seed(seed)
         np.random.seed(seed)
         os.environ["PYTHONHASHSEED"] = str(seed)
-        logger.info("Seting seed", value=seed)
+        logger.info("Setting seed", value=seed)
 
 
 def print_elapsed_time(start_time: float, run_id: int) -> None:

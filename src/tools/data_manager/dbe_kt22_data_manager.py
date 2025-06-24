@@ -90,6 +90,12 @@ class DBEKT22Datamanager:
         level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
         print(level_value_counts)  # TODO: remove
 
+        # remove the STUDENT_LEVEL and STUDENT_LEVEL_GROUP
+        # because they will be re-estimated for the training interactions
+        df_interactions_res = df_interactions_res.drop(
+            columns=[STUDENT_LEVEL, STUDENT_LEVEL_GROUP]
+        )
+
         if save_dataset:
             output_path = os.path.join(write_dir, f"{self.name}_questions.csv")
             logger.info("Saving questions dataset", path=output_path)
