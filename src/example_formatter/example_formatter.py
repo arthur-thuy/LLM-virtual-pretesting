@@ -11,9 +11,9 @@ from example_formatter.build import EXAMPLE_FORMATTER_REGISTRY
 from tools.constants import (
     INPUT,
     OUTPUT,
-    Q_TEXT,
-    Q_OPTION_TEXTS,
     Q_CORRECT_OPTION_ID,
+    Q_OPTION_TEXTS,
+    Q_TEXT,
     S_OPTION_ID,
 )
 

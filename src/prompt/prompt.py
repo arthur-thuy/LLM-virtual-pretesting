@@ -10,7 +10,6 @@
 from prompt.build import PROMPT_REGISTRY
 from prompt.utils import prepare_str_output
 
-
 ###########################
 ### REPLICATION PROMPTS ###
 ###########################

@@ -5,18 +5,18 @@ from typing import Optional
 
 # related third party imports
 import structlog
-from yacs.config import CfgNode
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import (
     ChatPromptTemplate,
     FewShotChatMessagePromptTemplate,
 )
-from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel
+from yacs.config import CfgNode
 
 # local application/library specific imports
-from tools.registry import Registry
 from example_selector.build import build_example_selector
 from tools.constants import PROMPT_INFO
+from tools.registry import Registry
 
 PROMPT_REGISTRY = Registry()
 

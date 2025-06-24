@@ -10,14 +10,14 @@ from typing import Any, Optional, Tuple
 
 # related third party imports
 import numpy as np
+import pandas as pd
 import scipy
 import structlog
-import pandas as pd
-from tabulate import tabulate
 from numpy.typing import NDArray
+from tabulate import tabulate
 
 # local application/library specific imports
-from tools.utils import write_pickle, ensure_dir, read_pickle
+from tools.utils import ensure_dir, read_pickle, write_pickle
 
 # set up logger
 logger = structlog.get_logger(__name__)

@@ -2,7 +2,6 @@
 
 # standard library imports
 import argparse
-import yaml
 import itertools
 import os
 import shutil
@@ -10,6 +9,7 @@ from pathlib import Path
 
 # related third party imports
 import structlog
+import yaml
 
 # local application/library specific imports
 from tools.utils import delete_previous_content, ensure_dir

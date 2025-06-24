@@ -4,9 +4,9 @@
 # /
 
 # related third party imports
+import pandas as pd
 import structlog
 from yacs.config import CfgNode
-import pandas as pd
 
 # local application/library specific imports
 from tools.registry import Registry

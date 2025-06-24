@@ -12,29 +12,32 @@ load_env(os.path.join("..", ".env"))  # noqa
 
 # related third party imports
 import structlog
-from yacs.config import CfgNode
-from langfuse.decorators import langfuse_context, observe
 from langfuse import Langfuse
+from langfuse.decorators import langfuse_context, observe
+from yacs.config import CfgNode
 
 # local application/library specific imports
 from data_loader.build import build_replicate_dataset
-from tools.configurator import check_cfg, load_configs, save_config, convert_to_dict
+from example_formatter.build import build_example_formatter
+from model.build import build_model
+from prompt.build import build_prompt
+from prompt.utils import df_to_listdict
+from structured_outputter.build import build_structured_outputter
+from tools.configurator import (
+    check_cfg,
+    convert_to_dict,
+    get_configs_out,
+    load_configs,
+    save_config,
+)
+from tools.constants import TEST, TRAIN, VALIDATION, VALLARGE, VALSMALL  # noqa
+from tools.evaluate import evaluate, predict
 from tools.utils import (
     delete_previous_content,
     print_elapsed_time,
-    write_pickle,
     set_seed,
+    write_pickle,
 )
-from prompt.utils import df_to_listdict
-from tools.constants import TRAIN, TEST, VALSMALL, VALLARGE, VALIDATION  # noqa
-from prompt.build import build_prompt
-from model.build import build_model
-from tools.evaluate import evaluate, predict
-from example_formatter.build import build_example_formatter
-from structured_outputter.build import build_structured_outputter
-from tools.configurator import get_configs_out
-from tools.irt_estimator import group_student_levels
-from student_scale.build import build_student_scale
 
 # set up logger
 logger = structlog.get_logger(__name__)
@@ -71,9 +74,6 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     start_time = time.time()
     print("\n", "*" * 10, f"Run: {run_n}/{cfg.RUNS}", "*" * 10)
 
-    # seed
-    set_seed(cfg.SEED + run_n)
-
     # load data
     datasets = build_replicate_dataset(cfg.LOADER)
     # choose small or large validation set
@@ -101,34 +101,13 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         is_interaction=True,
     )
 
-    # get student scale mapping
-    student_scale_map, student_scale_str = build_student_scale(cfg=cfg)
-
-    # group students levels
-    datasets_fmt[TRAIN] = group_student_levels(
-        df_interactions=datasets_fmt[TRAIN],
-        num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS,
-        student_scale_map=student_scale_map,
-    )
-
-    # check student_id and find student_level_group in train set
-    len_before_merge = len(datasets_fmt[VALIDATION])
-    datasets_fmt[VALIDATION] = datasets_fmt[VALIDATION].merge(
-        datasets_fmt[TRAIN][["student_id", "student_level_group"]].drop_duplicates(),
-        on="student_id",
-        how="left",
-    )
-    assert (
-        len(datasets_fmt[VALIDATION]) == len_before_merge
-    ), "The validation set size changed after merging with student_level_group."
-    assert (
-        datasets_fmt[VALIDATION]["student_level_group"].isna().sum() == 0
-    ), "There are students in the validation set that are not in the training set."
-
     # list of dicts
     list_train = df_to_listdict(datasets_fmt[TRAIN])
     list_val = df_to_listdict(datasets_fmt[VALIDATION])
     # list_test = df_to_listdict(datasets_fmt[TEST])  # noqa  # TODO
+
+    # seed
+    set_seed(cfg.SEED + run_n)
 
     # structured output
     StrucOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
@@ -138,7 +117,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         cfg=cfg,
         examples=list_train,
         struc_output=StrucOutput,
-        student_scale_str=student_scale_str,
+        student_scale_str="",
         q_ids_train=None,
     )
 
@@ -258,6 +237,7 @@ def main() -> None:
         )
     else:
         logger.info("All experiments completed successfully.")
+
 
 if __name__ == "__main__":
     main()

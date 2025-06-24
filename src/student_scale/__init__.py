@@ -7,5 +7,5 @@
 # /
 
 # local application/library specific imports
-from student_scale.build import build_student_scale, STUDENT_SCALE_REGISTRY
+from student_scale.build import STUDENT_SCALE_REGISTRY, build_student_scale
 from student_scale.student_scale import build_digits_int

@@ -1,9 +1,9 @@
 """File with configurator functionalities."""
 
 # standard library imports
+import datetime
 import importlib
 import os
-import datetime
 from pathlib import Path
 from typing import Any, Union
 
@@ -13,8 +13,8 @@ import yaml
 from yacs.config import CfgNode
 
 # local application/library specific imports
+from tools.constants import _VALID_TYPES, MODEL_STRUCTURED_OUTPUT
 from tools.utils import ensure_dir
-from tools.constants import MODEL_STRUCTURED_OUTPUT, _VALID_TYPES
 
 # set up logger
 logger = structlog.get_logger(__name__)

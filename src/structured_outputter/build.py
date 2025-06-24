@@ -5,8 +5,8 @@
 
 # related third party imports
 import structlog
-from yacs.config import CfgNode
 from pydantic import BaseModel
+from yacs.config import CfgNode
 
 # local application/library specific imports
 from tools.registry import Registry

@@ -3,7 +3,6 @@
 import os
 from types import NoneType
 
-
 # datasets
 CUPA = "cupa"
 
@@ -39,7 +38,7 @@ S_OPTION_CORRECT = "student_option_correct"
 TIME = "time"
 STUDENT_LEVEL = "student_level"
 STUDENT_LEVEL_GROUP = "student_level_group"
-LIKELIHOOD = 'likelihood'
+LIKELIHOOD = "likelihood"
 
 # Parameters for IRT estimation
 DIFFICULTY_MIN = -5
@@ -107,7 +106,7 @@ DICT_CEFR_DESCRIPTIONS = {
 PROMPT_INFO = {
     "dbe_kt22": {
         "exam_type": "database systems (Department of Computer Science)",
-        "exam_type_luca_emnlp": "database systems exam (Department of Computer Science)"
+        "exam_type_luca_emnlp": "database systems exam (Department of Computer Science)",
     }
 }
 

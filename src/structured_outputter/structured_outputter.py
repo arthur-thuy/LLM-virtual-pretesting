@@ -45,9 +45,7 @@ class StrOutputStudent(BaseModel):
             "The list of reasoning steps that you might follow to answer the current question (possibly affected by the identified misconceptions)"  # noqa
         )
     )
-    student_answer: int = Field(
-        description="The index of your answer"
-    )
+    student_answer: int = Field(description="The index of your answer")
 
 
 @STRUCTURED_OUTPUTTER_REGISTRY.register("luca_emnlp")

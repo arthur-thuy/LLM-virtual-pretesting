@@ -4,11 +4,11 @@
 # /
 
 # related third party imports
-from yacs.config import CfgNode
-from langchain_openai import ChatOpenAI
-from langchain_ollama import ChatOllama
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
+from yacs.config import CfgNode
 
 # local application/library specific imports
 from model.build import MODEL_PROVIDER_REGISTRY
@@ -16,7 +16,7 @@ from model.build import MODEL_PROVIDER_REGISTRY
 
 @MODEL_PROVIDER_REGISTRY.register("openai")
 def build_openai_model(model_cfg: CfgNode) -> ChatOpenAI:
-    if model_cfg.NAME.startswith('o'):
+    if model_cfg.NAME.startswith("o"):
         model = ChatOpenAI(
             model=model_cfg.NAME,
             max_tokens=model_cfg.MAX_TOKENS,
