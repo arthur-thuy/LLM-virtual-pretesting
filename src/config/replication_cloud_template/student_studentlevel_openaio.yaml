@@ -1,0 +1,20 @@
+MODEL:
+  NAME: [
+         "o3-2025-04-16",
+         "o3-mini-2025-01-31",
+         "o4-mini-2025-04-16",
+  ]
+  TEMPERATURE: [0.0]
+
+STRUCTURED_OUTPUTTER:
+  NAME: "student"
+
+PROMPT:
+  NAME: ["replicate_student_tomato_studentlevel"]
+
+EXAMPLE_SELECTOR:
+  NUM_EXAMPLES: [5]
+  NAME: ["studentid_random", "studentid_semantic"]
+
+ROLEPLAY:
+  STUDENT_SCALE: ["proficiency_5_str"]
