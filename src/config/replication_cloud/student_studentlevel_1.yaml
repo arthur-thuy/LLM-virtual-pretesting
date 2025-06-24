@@ -6,7 +6,7 @@ MODEL:
   TEMPERATURE: 2.0
 PROMPT:
   NAME: replicate_student_tomato_studentlevel
+ROLEPLAY:
+  STUDENT_SCALE: proficiency_5_str
 STRUCTURED_OUTPUTTER:
   NAME: student
-STUDENT_SCALE:
-  NAME: proficiency_5_str
