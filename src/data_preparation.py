@@ -7,13 +7,13 @@
 import structlog
 
 # local application/library specific imports
+from data_loader.data_loader import DataLoader
 from tools.constants import (
     BRONZE_DIR,
-    SILVER_DIR,
     GOLD_DIR,
+    SILVER_DIR,
 )
-from tools.data_manager import DBEKT22Datamanager, CupaDatamanager
-from data_loader.data_loader import DataLoader
+from tools.data_manager import CupaDatamanager, DBEKT22Datamanager
 
 # set logger
 logger = structlog.get_logger()

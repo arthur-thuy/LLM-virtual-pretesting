@@ -1,14 +1,13 @@
 import matplotlib.pyplot as plt
 
 from data_loader.data_loader import DataLoaderRoleplay
-from tools.irt_estimator import irt_estimation
 from tools.constants import (
-    STUDENT_LEVEL,
-    STUDENT_ID,
-    SILVER_DIR,
     GOLD_DIR,
+    SILVER_DIR,
+    STUDENT_ID,
+    STUDENT_LEVEL,
 )
-
+from tools.irt_estimator import irt_estimation
 
 # load data
 data_loader = DataLoaderRoleplay(

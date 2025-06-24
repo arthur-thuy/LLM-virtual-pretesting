@@ -12,22 +12,22 @@ import pandas as pd
 import structlog
 
 # local application/library specific imports
-from tools.utils import set_seed
 from tools.constants import (
     INTERACT_ID,
-    QUESTION_ID,
-    STUDENT_ID,
-    Q_TEXT,
+    Q_CONTEXT_ID,
+    Q_CONTEXT_TEXT,
+    Q_CORRECT_OPTION_ID,
     Q_DIFFICULTY,
+    Q_DISCRIMINATION,
     Q_OPTION_IDS,
     Q_OPTION_TEXTS,
-    Q_CORRECT_OPTION_ID,
-    Q_CONTEXT_TEXT,
-    Q_CONTEXT_ID,
-    Q_DISCRIMINATION,
-    S_OPTION_ID,
+    Q_TEXT,
+    QUESTION_ID,
     S_OPTION_CORRECT,
+    S_OPTION_ID,
+    STUDENT_ID,
 )
+from tools.utils import set_seed
 
 logger = structlog.get_logger(__name__)
 

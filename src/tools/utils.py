@@ -2,25 +2,24 @@
 
 # standard library imports
 import os
+import pickle
 import random
 import subprocess
 import sys
 import time
-import pickle
 from pathlib import Path
-from typing import Union, Optional, Any
+from typing import Any, Optional, Union
+from uuid import UUID
 
 # related third party imports
-import dotenv
 import click
+import dotenv
+import matplotlib.pyplot as plt
 import numpy as np
 import structlog
-import matplotlib.pyplot as plt
-from uuid import UUID
-from tqdm.auto import tqdm
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.outputs import LLMResult
-
+from tqdm.auto import tqdm
 
 # local application/library specific imports
 # /

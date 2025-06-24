@@ -5,15 +5,15 @@
 
 # related third party imports
 import structlog
-from yacs.config import CfgNode
 from langchain_core.embeddings import Embeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_ollama import OllamaEmbeddings
 from langchain_openai import OpenAIEmbeddings
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from yacs.config import CfgNode
 
 # local application/library specific imports
-from tools.registry import Registry
 from tools.constants import MODEL_PROVIDER
+from tools.registry import Registry
 
 MODEL_PROVIDER_REGISTRY = Registry()
 

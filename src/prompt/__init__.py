@@ -7,5 +7,5 @@
 # /
 
 # local application/library specific imports
-from prompt.build import build_prompt, PROMPT_REGISTRY
+from prompt.build import PROMPT_REGISTRY, build_prompt
 from prompt.prompt import build_replicate_student_tomato

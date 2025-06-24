@@ -3,41 +3,40 @@
 # standard library imports
 import os
 import re
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 
 # related third party imports
+import networkx as nx
 import numpy as np
 import pandas as pd
 import structlog
-import networkx as nx
 from imblearn.under_sampling import RandomUnderSampler
 
 # local application/library specific imports
-from tools.data_manager.utils import count_answer_options
-from tools.irt_estimator import irt_estimation, group_student_levels
-from tools.utils import set_seed
+from student_scale.student_scale import build_digits_int
 from tools.constants import (
     INTERACT_ID,
-    QUESTION_ID,
-    STUDENT_ID,
-    Q_TEXT,
+    KC,
+    Q_CONTEXT_ID,
+    Q_CONTEXT_TEXT,
+    Q_CORRECT_OPTION_ID,
     Q_DIFFICULTY,
+    Q_DISCRIMINATION,
     Q_OPTION_IDS,
     Q_OPTION_TEXTS,
-    Q_CORRECT_OPTION_ID,
-    Q_CONTEXT_TEXT,
-    Q_CONTEXT_ID,
-    Q_DISCRIMINATION,
+    Q_TEXT,
+    QUESTION_ID,
+    S_OPTION_CORRECT,
+    S_OPTION_ID,
+    STUDENT_ID,
     STUDENT_LEVEL,
     STUDENT_LEVEL_GROUP,
-    S_OPTION_ID,
-    S_OPTION_CORRECT,
     TIME,
-    KC,
 )
-from student_scale.student_scale import build_digits_int
-
+from tools.data_manager.utils import count_answer_options
+from tools.irt_estimator import group_student_levels, irt_estimation
+from tools.utils import set_seed
 
 logger = structlog.get_logger(__name__)
 

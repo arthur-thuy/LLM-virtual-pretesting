@@ -1,24 +1,24 @@
 # standard library imports
 import os
-from typing import Optional
 from statistics import multimode
+from typing import Optional
 
 # related third party imports
-import structlog
 import pandas as pd
+import structlog
 from sklearn.model_selection import train_test_split
 
 # local application/library specific imports
 from tools.constants import (
     INTERACT_ID,
+    KC,
+    Q_OPTION_TEXTS,
+    QUESTION_ID,
     TEST,
     TRAIN,
-    Q_OPTION_TEXTS,
-    VALSMALL,
-    VALLARGE,
     VALIDATION,
-    QUESTION_ID,
-    KC,
+    VALLARGE,
+    VALSMALL,
 )
 from tools.utils import set_seed
 

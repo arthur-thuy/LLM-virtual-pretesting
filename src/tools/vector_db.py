@@ -8,20 +8,20 @@ from typing import Optional
 
 # related third party imports
 import click
-import structlog
 import pandas as pd
+import structlog
 from langchain_core.documents import Document
 from langchain_pinecone import PineconeVectorStore
-from pinecone import Pinecone, ServerlessSpec, Index
+from pinecone import Index, Pinecone, ServerlessSpec
 from tqdm import tqdm
 
 # local application/library specific imports
 from model.build import build_embedding
 from tools.constants import (
-    EMBEDDINGS_DIM,
     EMBEDDING_PROVIDER,
-    QUESTION_ID,
+    EMBEDDINGS_DIM,
     Q_TEXT,
+    QUESTION_ID,
 )
 
 # set up logger

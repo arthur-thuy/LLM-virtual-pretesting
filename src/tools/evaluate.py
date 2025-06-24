@@ -5,26 +5,26 @@ import time
 from typing import Any, Literal, Optional
 
 # related third party imports
-import structlog
 import numpy as np
 import pandas as pd
-from numpy.typing import ArrayLike
-from sklearn.metrics import accuracy_score, f1_score, root_mean_squared_error
-from pydantic import BaseModel
+import structlog
 from langfuse import Langfuse
+from numpy.typing import ArrayLike
+from pydantic import BaseModel
+from sklearn.metrics import accuracy_score, f1_score, root_mean_squared_error
 
 # local application/library specific imports
+from prompt.utils import validate_output
 from tools.constants import (
     Q_CORRECT_OPTION_ID,
-    S_OPTION_ID,
-    STUDENT_LEVEL_GROUP,
-    STUDENT_ID,
+    Q_DIFFICULTY,
     QUESTION_ID,
     S_OPTION_CORRECT,
-    Q_DIFFICULTY,
+    S_OPTION_ID,
+    STUDENT_ID,
+    STUDENT_LEVEL_GROUP,
 )
-from tools.utils import format_time, BatchCallback
-from prompt.utils import validate_output
+from tools.utils import BatchCallback, format_time
 
 # set up logger
 logger = structlog.get_logger(__name__)
@@ -290,6 +290,7 @@ def evaluate_q_difficulty(
     prefix: Literal["val", "test"],
 ):
     from tools.irt_estimator import irt_estimation
+
     logger.info("Evaluate question difficulty - start", split=prefix)
     # prepare data for IRT estimation
     y_val_pred = np.array([output.student_answer for output in preds_validated])

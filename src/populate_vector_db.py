@@ -12,14 +12,14 @@ load_env(os.path.join("..", ".env"))  # noqa
 import structlog
 
 # local application/library specific imports
+from data_loader.data_loader import DataLoader
 from tools.constants import (
-    SILVER_DIR,
+    EMBEDDING_PROVIDER,
     GOLD_DIR,
     RATE_LIMIT,
-    EMBEDDING_PROVIDER,
+    SILVER_DIR,
 )
-from data_loader.data_loader import DataLoader
-from tools.vector_db import prepare_empty_vector_store, populate_vector_store
+from tools.vector_db import populate_vector_store, prepare_empty_vector_store
 
 # set logger
 logger = structlog.get_logger()

@@ -4,13 +4,13 @@
 from typing import Dict
 
 # related third party imports
-import structlog
 import pandas as pd
+import structlog
 from yacs.config import CfgNode
 
 # local application/library specific imports
 from data_loader.data_loader import DataLoader
-from tools.constants import SILVER_DIR, GOLD_DIR
+from tools.constants import GOLD_DIR, SILVER_DIR
 
 logger = structlog.get_logger(__name__)
 

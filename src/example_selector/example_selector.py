@@ -4,8 +4,8 @@
 import random
 
 # related third party imports
-import structlog
 import numpy as np
+import structlog
 from langchain_core.example_selectors.base import BaseExampleSelector
 from yacs.config import CfgNode
 

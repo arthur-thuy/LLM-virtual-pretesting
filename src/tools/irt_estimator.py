@@ -2,29 +2,29 @@
 
 # standard library imports
 import logging
+from typing import Dict, Tuple
 
 # related third party imports
-import pandas as pd
-import structlog
-import pyirt
 import numpy as np
-from typing import Tuple, Dict
+import pandas as pd
+import pyirt
+import structlog
 
 # local application/library specific imports
 from tools.constants import (
-    DIFFICULTY_MIN,
     DIFFICULTY_MAX,
-    DISCRIMINATION_MIN,
+    DIFFICULTY_MIN,
     DISCRIMINATION_MAX,
+    DISCRIMINATION_MIN,
     GUESS_FACTOR,
+    LIKELIHOOD,
     QUESTION_ID,
-    STUDENT_ID,
     S_OPTION_CORRECT,
+    STUDENT_ID,
     STUDENT_LEVEL,
     STUDENT_LEVEL_GROUP,
-    STUDENT_LEVEL_MIN,
     STUDENT_LEVEL_MAX,
-    LIKELIHOOD,
+    STUDENT_LEVEL_MIN,
 )
 
 # set up logger
