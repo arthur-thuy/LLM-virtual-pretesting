@@ -233,17 +233,21 @@ def check_cfg(cfg: CfgNode) -> None:
             f"got {cfg.ROLEPLAY.NUM_STUDENT_LEVELS}"
         )
 
-    if "student" in cfg.PROMPT.NAME:
+    if "_student_" in cfg.PROMPT.NAME:  # NOTE: ignores "studentlevel"
         if "student" not in cfg.STRUCTURED_OUTPUTTER.NAME:
             raise ValueError(
                 "Both structured outputter and prompt should be of the same type, "
-                "either 'student' or 'teacher'."
+                "either 'student' or 'teacher'. "
+                f"Prompt is {cfg.PROMPT.NAME}, "
+                f"structured outputter is {cfg.STRUCTURED_OUTPUTTER.NAME}."
             )
-    if "teacher" in cfg.PROMPT.NAME:
+    if "_teacher_" in cfg.PROMPT.NAME:
         if "teacher" not in cfg.STRUCTURED_OUTPUTTER.NAME:
             raise ValueError(
                 "Both structured outputter and prompt should be of the same type, "
-                "either 'student' or 'teacher'."
+                "either 'student' or 'teacher'. "
+                f"Prompt is {cfg.PROMPT.NAME}, "
+                f"structured outputter is {cfg.STRUCTURED_OUTPUTTER.NAME}."
             )
 
 
