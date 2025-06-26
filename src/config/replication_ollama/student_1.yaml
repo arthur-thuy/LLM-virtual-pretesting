@@ -1,0 +1,10 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_random
+  NUM_EXAMPLES: 5
+MODEL:
+  NAME: gemma3:12b
+  TEMPERATURE: 1.0
+PROMPT:
+  NAME: replicate_student_tomato
+STRUCTURED_OUTPUTTER:
+  NAME: student

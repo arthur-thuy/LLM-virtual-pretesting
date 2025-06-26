@@ -17,6 +17,7 @@ cd src
 python main.py experiment
 ```
 Optional argument: `--dry-run` to predict only for 10 examples
+> NOTE: in order to save the logs to a file, append `2>&1 | tee output/log` to the command above.
 
 ## Detailed
 More detailed instructions are available in in [`CONTRIBUTING.md`](CONTRIBUTING.md).

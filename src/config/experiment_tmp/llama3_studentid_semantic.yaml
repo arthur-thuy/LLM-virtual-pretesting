@@ -1,5 +1,0 @@
-MODEL:
-  NAME: "llama3"
-
-EXAMPLE_SELECTOR:
-  NAME: "studentid_semantic"

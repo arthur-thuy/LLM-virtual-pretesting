@@ -1,0 +1,10 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_semantic
+  NUM_EXAMPLES: 5
+MODEL:
+  NAME: qwen3:8b
+  TEMPERATURE: 1.0
+PROMPT:
+  NAME: replicate_student_tomato
+STRUCTURED_OUTPUTTER:
+  NAME: student

@@ -502,3 +502,32 @@ def create_config_id_print(config_id: str) -> str:
         config_id_print = config_id
 
     return config_id_print
+
+
+def get_config_df(config_dict: dict) -> pd.DataFrame:
+    """Get DataFrame with config information.
+
+    Parameters
+    ----------
+    config_dict : dict
+        Dictionary with config information
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with the config information
+    """
+    data = []
+    for config_id, cfg in config_dict.items():
+        row = {
+            "config_id": config_id,
+            "model": cfg["MODEL"]["NAME"],
+            "temp": cfg["MODEL"]["TEMPERATURE"],
+            "struc_output": cfg["STRUCTURED_OUTPUTTER"]["NAME"],
+            "prompt": cfg["PROMPT"]["NAME"],
+            "example_selec": cfg["EXAMPLE_SELECTOR"]["NAME"],
+            "num_examples": cfg["EXAMPLE_SELECTOR"]["NUM_EXAMPLES"],
+        }
+        data.append(row)
+
+    return pd.DataFrame(data)

@@ -66,6 +66,7 @@ MODEL_STRUCTURED_OUTPUT = {
     "o3-mini-2025-01-31": True,
     "o3": True,
     "o3-2025-04-16": True,
+    "o4-mini-2025-04-16": True,
     "gemini-2.5-flash-preview-05-20": True,
     "gemini-2.5-pro-preview-06-05": True,
     "claude-3-7-sonnet-20250219": False,  # NOTE: should work, but doesn't
@@ -85,6 +86,7 @@ MODEL_PROVIDER = {
     "o3-mini-2025-01-31": "openai",
     "o3": "openai",
     "o3-2025-04-16": "openai",
+    "o4-mini-2025-04-16": "openai",
     "gemini-2.5-flash-preview-05-20": "google",
     "gemini-2.5-pro-preview-06-05": "google",
     "claude-3-7-sonnet-20250219": "anthropic",
@@ -92,6 +94,27 @@ MODEL_PROVIDER = {
     "claude-3-5-haiku-20241022": "anthropic",
     "gemma3:12b": "ollama",
     "qwen3:8b": "ollama",
+}
+
+MODEL_RATE_LIMIT = {
+    "llama3": None,
+    "llama3.2": None,
+    "olmo2:7b": None,
+    "gpt-4o": None,
+    "gpt-4o-mini": None,
+    "gpt-4.1": None,
+    "o3-mini": None,
+    "o3-mini-2025-01-31": None,
+    "o3": 0.25,
+    "o3-2025-04-16": 0.25,
+    "o4-mini-2025-04-16": None,
+    "gemini-2.5-flash-preview-05-20": None,
+    "gemini-2.5-pro-preview-06-05": 0.35,
+    "claude-3-7-sonnet-20250219": None,
+    "claude-sonnet-4-20250514": 1.5,
+    "claude-3-5-haiku-20241022": None,
+    "gemma3:12b": None,
+    "qwen3:8b": None,
 }
 
 # prompt info
@@ -106,7 +129,7 @@ DICT_CEFR_DESCRIPTIONS = {
 PROMPT_INFO = {
     "dbe_kt22": {
         "exam_type": "database systems (Department of Computer Science)",
-        "exam_type_luca_emnlp": "database systems exam (Department of Computer Science)",
+        "exam_type_luca_emnlp": "database systems exam (Department of Computer Science)",  # noqa
     }
 }
 

@@ -1,0 +1,10 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_random
+  NUM_EXAMPLES: 5
+MODEL:
+  NAME: o4-mini-2025-04-16
+  TEMPERATURE: 0.0
+PROMPT:
+  NAME: replicate_teacher_avocado
+STRUCTURED_OUTPUTTER:
+  NAME: teacher

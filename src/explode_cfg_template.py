@@ -93,7 +93,8 @@ def generate_experiment_configs(template_path: str, output_dir: str) -> None:
         nested_config = unflatten_dict(config)
 
         # Save to a new YAML file
-        output_path = os.path.join(output_dir, f"experiment_{i+1}.yaml")
+        basename = Path(template_path).stem
+        output_path = os.path.join(output_dir, f"{basename}_{i+1}.yaml")
         with open(output_path, "w") as f:
             yaml.dump(nested_config, f, default_flow_style=False)
 
@@ -105,6 +106,7 @@ def generate_experiment_configs(template_path: str, output_dir: str) -> None:
     logger.info(
         "Generated experiment configurations",
         number=len(combinations),
+        basename=basename,
         output_dir=output_dir,
     )
 
@@ -139,14 +141,10 @@ def check_dir_name(dir_name: str) -> str:
     # check if dir exists
     if not os.path.isdir(dir_name):
         raise ValueError(f"Directory '{dir_name}' does not exist.")
-    # check if there is only 1 yaml file in the directory,
-    # and that is has name "template.yaml"
+    # check if there is at least one YAML file in the directory
     yaml_files = list(Path(dir_name).glob("*.yaml"))
-    if len(yaml_files) != 1 or yaml_files[0].name != "template.yaml":
-        raise ValueError(
-            f"Directory '{dir_name}' does not contain exactly one YAML file "
-            "named 'template.yaml'."
-        )
+    if len(yaml_files) == 0:
+        raise ValueError(f"Directory '{dir_name}' does not contain any YAML files.")
     # check if there is a config.py file in the directory
     if not os.path.isfile(os.path.join(dir_name, "config.py")):
         raise ValueError(f"Directory '{dir_name}' does not contain a 'config.py' file.")
@@ -157,6 +155,12 @@ def check_dir_name(dir_name: str) -> str:
     return new_dir_name
 
 
+def find_yaml_files(dir_name: str) -> list:
+    """Find all YAML files in the directory."""
+    yaml_files = list(Path(dir_name).glob("*.yaml"))
+    return yaml_files
+
+
 def main() -> None:
     """Run explosion of config files."""
     args = parser.parse_args()
@@ -165,11 +169,12 @@ def main() -> None:
     # check if config dir is valid
     output_dir = check_dir_name(config_dir)
 
-    # path to the template file
-    template_path = os.path.join(config_dir, "template.yaml")
+    # find all yaml files in the config directory
+    yaml_files = find_yaml_files(config_dir)
 
     # create the new configuration files
-    generate_experiment_configs(template_path, output_dir)
+    for yaml_file in yaml_files:
+        generate_experiment_configs(yaml_file, output_dir)
 
 
 if __name__ == "__main__":
