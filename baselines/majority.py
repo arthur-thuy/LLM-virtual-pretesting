@@ -82,3 +82,19 @@ if __name__ == '__main__':
 # HISTORY LENGTH = 1 --> ACC = 0.7027
 # HISTORY LENGTH = 3 --> ACC = 0.7369
 # HISTORY LENGTH = 5 --> ACC = 0.7497
+
+# KEEPING ALL STUDENTS - use (less) responses from the student if available, or random prediction if no previous responses
+# Data split: val_small
+# HISTORY LENGTH = 1 --> ACC = 0.6600
+# HISTORY LENGTH = 3 --> ACC = 0.7700
+# HISTORY LENGTH = 5 --> ACC = 0.7900
+
+# Data split: val_large
+# HISTORY LENGTH = 1 --> ACC = 0.6960
+# HISTORY LENGTH = 3 --> ACC = 0.7340
+# HISTORY LENGTH = 5 --> ACC = 0.7240
+
+# Data split: test
+# HISTORY LENGTH = 1 --> ACC = 0.7160
+# HISTORY LENGTH = 3 --> ACC = 0.7400
+# HISTORY LENGTH = 5 --> ACC = 0.7570
