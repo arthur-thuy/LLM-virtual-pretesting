@@ -3,10 +3,8 @@ EXAMPLE_SELECTOR:
   NUM_EXAMPLES: 5
 MODEL:
   NAME: claude-3-5-haiku-20241022
-  TEMPERATURE: 2.0
+  TEMPERATURE: 1.0
 PROMPT:
   NAME: replicate_teacher_onion_studentlevel
-ROLEPLAY:
-  STUDENT_SCALE: proficiency_5_str
 STRUCTURED_OUTPUTTER:
   NAME: teacher

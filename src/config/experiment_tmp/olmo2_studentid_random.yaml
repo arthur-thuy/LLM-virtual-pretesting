@@ -1,5 +1,0 @@
-MODEL:
-  NAME: "olmo2:7b"
-
-EXAMPLE_SELECTOR:
-  NAME: "studentid_random"

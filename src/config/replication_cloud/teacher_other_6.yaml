@@ -3,7 +3,7 @@ EXAMPLE_SELECTOR:
   NUM_EXAMPLES: 5
 MODEL:
   NAME: gemini-2.5-pro-preview-06-05
-  TEMPERATURE: 2.0
+  TEMPERATURE: 1.0
 PROMPT:
   NAME: replicate_teacher_onion
 STRUCTURED_OUTPUTTER:

@@ -1,6 +1,6 @@
 MODEL:
   NAME: ["gemma3:12b", "qwen3:8b"]
-  TEMPERATURE: [2.0]
+  TEMPERATURE: [1.0]
 
 STRUCTURED_OUTPUTTER:
   NAME: "teacher"

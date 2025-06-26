@@ -16,7 +16,4 @@ EXAMPLE_SELECTOR:
   NUM_EXAMPLES: [5]
   NAME: ["studentid_random", "studentid_semantic"]
 
-ROLEPLAY:
-  STUDENT_SCALE: ["proficiency_5_str"]
-
   

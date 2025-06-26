@@ -18,9 +18,9 @@ _C.MODEL.NAME = "o3-mini"
 _C.MODEL.TEMPERATURE = 0.0
 # max tokens
 _C.MODEL.MAX_TOKENS = None
-# timeout (openai only)
+# timeout (openai and anthropic only)
 _C.MODEL.TIMEOUT = None
-# max retries (openai only)
+# max retries (openai and anthropic only)
 _C.MODEL.MAX_RETRIES = None
 
 # structured output
@@ -33,9 +33,9 @@ _C.LOADER = CN()
 # dataset name
 _C.LOADER.NAME = "dbe_kt22"
 # dataset join key
-_C.LOADER.JOIN_KEY = "question_id"  # NOTE: not used in roleplay
+_C.LOADER.JOIN_KEY = "question_id"
 # run large validation set
-_C.LOADER.RUN_LARGE_VAL = False  # NOTE: not used in roleplay
+_C.LOADER.RUN_LARGE_VAL = False
 
 # example formatter
 _C.EXAMPLE_FORMATTER = CN()
@@ -45,22 +45,22 @@ _C.EXAMPLE_FORMATTER.NAME = "quotes"
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
 # example selector name
-_C.EXAMPLE_SELECTOR.NAME = "studentlevel_random"
+_C.EXAMPLE_SELECTOR.NAME = "studentid_random"
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 3
 # example selector embedding model
 _C.EXAMPLE_SELECTOR.EMBEDDING = "text-embedding-3-large"
 
-# system prompt
+# systemprompt
 _C.PROMPT = CN()
 # system prompt name
-_C.PROMPT.NAME = "roleplay_teacher_onion"
+_C.PROMPT.NAME = "replicate_teacher_onion"
 
 _C.ROLEPLAY = CN()
 # number of student levels to simulate
 _C.ROLEPLAY.NUM_STUDENT_LEVELS = 5
 # student level scale
-_C.ROLEPLAY.STUDENT_SCALE = "american"
+_C.ROLEPLAY.STUDENT_SCALE = "proficiency_5_str"
 
 
 def get_cfg_defaults() -> CN:

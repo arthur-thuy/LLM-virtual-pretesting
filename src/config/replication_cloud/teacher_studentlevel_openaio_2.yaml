@@ -6,7 +6,5 @@ MODEL:
   TEMPERATURE: 0.0
 PROMPT:
   NAME: replicate_teacher_onion_studentlevel
-ROLEPLAY:
-  STUDENT_SCALE: proficiency_5_str
 STRUCTURED_OUTPUTTER:
   NAME: teacher
