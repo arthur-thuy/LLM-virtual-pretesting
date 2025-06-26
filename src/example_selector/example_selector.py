@@ -66,6 +66,18 @@ def build_studentid_recency(
     return (selector, input_vars)
 
 
+@EXAMPLE_SELECTOR_REGISTRY.register("studentid_kc")
+def build_studentid_kc(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    input_vars = ["student_id", "primary_kc"]
+    selector = StudentIDKCExampleSelector(
+        examples=examples,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+    )
+    return (selector, input_vars)
+
+
 @EXAMPLE_SELECTOR_REGISTRY.register("studentlevel_random")
 def build_studentlevel_random(
     cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
@@ -92,6 +104,20 @@ def build_studentlevel_semantic(
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
         embedding=cfg.EXAMPLE_SELECTOR.EMBEDDING,
         namespace=cfg.LOADER.NAME,
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("studentlevel_kc")
+def build_studentlevel_kc(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    """Build a random example selector based on student levels."""
+    input_vars = ["student_level_group", "primary_kc"]
+    selector = StudentLevelKCExampleSelector(  # TODO
+        examples=examples,
+        q_ids_train=q_ids_train,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
     )
     return (selector, input_vars)
 
@@ -162,7 +188,7 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
 
 
 class StudentIDSemanticExampleSelector(BaseExampleSelector):
-    """Filter examples of the same student_id and select based on semantic similarity."""
+    """Filter examples of the same student_id and select based on semantic similarity."""  # noqa
 
     def __init__(self, examples: list, k: int, embedding: str, namespace: str) -> None:
         """Initialize the example selector.
@@ -312,6 +338,88 @@ class StudentIDRecencyExampleSelector(BaseExampleSelector):
         return selected_interactions
 
 
+class StudentIDKCExampleSelector(BaseExampleSelector):
+    """Filter examples of the same student_id and select based on knowledge component."""  # noqa
+
+    def __init__(self, examples: list, k: int) -> None:
+        """Initialize the example selector.
+
+        Parameters
+        ----------
+        examples :  list[dict]
+            List of examples
+        k : int
+            k-shot prompting
+        """
+        self.examples = examples
+        self.k = k
+
+    def add_example(self, example: list) -> None:
+        self.examples.append(example)
+
+    def select_examples(self, input_variables: dict) -> list[dict[str, str]]:
+        """Select examples based on knowledge component.
+
+        Parameters
+        ----------
+        input_variables : dict[str, str]
+            A dict containing info about a single observation.
+
+        Returns
+        -------
+        list[dict[str, str]]
+            The selected examples.
+        """
+        # information of target observation
+        student_id = input_variables["student_id"]
+        kc = input_variables["primary_kc"]
+
+        # find all questions answered by this student
+        student_interactions = [
+            interact
+            for interact in self.examples
+            if interact["student_id"] == student_id and kc == interact["primary_kc"]
+        ]
+
+        if len(student_interactions) == 0:
+            logger.warning(
+                f"No interactions found for student {student_id} with KC {kc}"
+            )
+            return []
+
+        # randomly select from questions, not sampling the same question multiple times
+        k = min(self.k, len(student_interactions))
+
+        # TODO: can we work with raw KCs and find the most similar ones?
+        # => use "knowledge_components"
+        interactions_selected = []
+        questions_selected = []
+        for _ in range(k):
+            # select random interaction for each question_id
+            interactions_filtered = [
+                interact
+                for interact in self.examples
+                if (
+                    interact["student_id"] == student_id
+                    and kc == interact["primary_kc"]
+                    and interact["question_id"] not in questions_selected
+                )
+            ]
+            selected_interaction = random.sample(interactions_filtered, 1)[0]
+            interactions_selected.append(selected_interaction)
+            questions_selected.append(selected_interaction["question_id"])
+
+        if len(interactions_selected) < self.k:
+            # if we selected fewer interactions than requested, log a warning
+            logger.warning(
+                "Selected fewer interactions than requested",
+                requested=self.k,
+                selected=k,
+            )
+
+        return interactions_selected
+
+
 class StudentLevelRandomExampleSelector(BaseExampleSelector):
     """Filter examples of the same student level and randomly select."""
 
@@ -366,7 +474,7 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
 
 
 class StudentLevelSemanticExampleSelector(BaseExampleSelector):
-    """Filter examples of the same student level and select based on semantic similarity."""
+    """Filter examples of the same student level and select based on semantic similarity."""  # noqa
 
     def __init__(
         self,
@@ -464,7 +572,7 @@ class StudentLevelSemanticExampleSelector(BaseExampleSelector):
                     and interact["student_level_group"] == student_level_group
                 )
             ]
-            selected_interaction = random.sample(interactions_for_question)
+            selected_interaction = random.sample(interactions_for_question, 1)[0]
             interactions_selected.append(selected_interaction)
 
         assert len(interactions_selected) == len(question_ids_selected)
@@ -475,6 +583,82 @@ class StudentLevelSemanticExampleSelector(BaseExampleSelector):
                 "Selected fewer interactions than requested",
                 requested=self.k,
                 selected=len(interactions_selected),
+            )
+
+        return interactions_selected
+
+
+class StudentLevelKCExampleSelector(BaseExampleSelector):
+    """Filter examples of the same student level and randomly select from that KC."""
+
+    def __init__(self, examples: list[dict], q_ids_train: list[int], k: int) -> None:
+        """Initialize the example selector.
+
+        Parameters
+        ----------
+        examples :  list[dict]
+            List of examples
+        q_ids_train : list[int]
+            List of question IDs in the training set.
+        k : int
+            k-shot prompting
+        """
+        self.examples = examples
+        self.q_ids_train = q_ids_train
+        self.k = k
+
+    def add_example(self, example):
+        self.examples.append(example)
+
+    def select_examples(self, input_variables):
+        # student_level_group of target student
+        student_level_group = input_variables["student_level_group"]
+        kc = input_variables["primary_kc"]
+
+        # find all interactions of this student level group
+        student_interactions = [
+            interact
+            for interact in self.examples
+            if interact["student_level_group"] == student_level_group
+            and interact["question_id"] in self.q_ids_train
+            and kc == interact["primary_kc"]
+        ]
+        if len(student_interactions) == 0:
+            logger.warning(
+                f"No interactions found for student level group {student_level_group} "
+                f"with KC {kc}"
+            )
+            return []
+
+        # randomly select from questions
+        k = min(self.k, len(student_interactions))
+
+        # TODO: can we work with raw KCs and find the most similar ones?
+        # => use "knowledge_components"
+        interactions_selected = []
+        questions_selected = []
+        for _ in range(k):
+            # select random interaction for each question_id
+            interactions_filtered = [
+                interact
+                for interact in self.examples
+                if (
+                    interact["student_level_group"] == student_level_group
+                    and interact["question_id"] in self.q_ids_train
+                    and kc == interact["primary_kc"]
+                    and interact["question_id"] not in questions_selected
+                )
+            ]
+            selected_interaction = random.sample(interactions_filtered, 1)[0]
+            interactions_selected.append(selected_interaction)
+            questions_selected.append(selected_interaction["question_id"])
+
+        if len(interactions_selected) < self.k:
+            # if we selected fewer interactions than requested, log a warning
+            logger.warning(
+                "Selected fewer interactions than requested",
+                requested=self.k,
+                selected=k,
             )
 
         return interactions_selected
