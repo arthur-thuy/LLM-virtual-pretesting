@@ -112,7 +112,7 @@ python main_roleplay.py roleplay_kate
 ```
 > Optional argument: `--dry-run` to predict only for 2 questions, so 2*NUM_STUDENT_LEVELS LLM calls.
 
-3. The results are stored in `output/roleplay_roleplay_kate_<date>/`, so with prefix `roleplay`. This is to avoid confusion with the student replication experiments but of course does not add any information if your experiment name already contains `roleplay`.
+3. The results are stored in `output/roleplay_kate_<date>/`.
 4. Inspect the results in `analysis_roleplay.ipynb` by filling in the appropriate `EXP_NAME` value (see the output folder for the exact name with timestamp).
 
 
