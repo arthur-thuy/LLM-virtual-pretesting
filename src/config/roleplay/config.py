@@ -45,7 +45,7 @@ _C.EXAMPLE_FORMATTER.NAME = "quotes"
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
 # example selector name
-_C.EXAMPLE_SELECTOR.NAME = "studentid_random"
+_C.EXAMPLE_SELECTOR.NAME = "studentlevel_random"
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 3
 # example selector embedding model

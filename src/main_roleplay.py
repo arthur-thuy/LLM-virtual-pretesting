@@ -24,7 +24,14 @@ from prompt.build import build_prompt
 from prompt.utils import df_to_listdict
 from structured_outputter.build import build_structured_outputter
 from student_scale.build import build_student_scale
-from tools.configurator import check_cfg, convert_to_dict, load_configs, save_config
+from tools.configurator import (
+    check_cfg,
+    convert_to_dict,
+    get_configs_out,
+    load_configs,
+    save_config,
+    check_config_equivalence,
+)
 from tools.constants import (  # noqa
     QUESTION_ID,
     TEST,
@@ -203,16 +210,51 @@ def main() -> None:
     # langfuse
     langfuse_session = Langfuse()
 
+    previous_experiment_names = []
+    previous_configs = []
+    for EXP_NAME in previous_experiment_names:
+        print(EXP_NAME)
+        previous_configs.extend(get_configs_out(EXP_NAME))
+    errors = []
     for cfg in configs:
-        print("\n", "=" * 10, f"Config: {cfg.ID_ROLEPLAY}", "=" * 10)
+        already_evaluated = False
+        for prev_cfg in previous_configs:
+            if check_config_equivalence(prev_cfg, cfg):
+                already_evaluated = True
+                break
+        if not already_evaluated:
+            print("\n", "=" * 10, f"Config: {cfg.ID_ROLEPLAY}", "=" * 10)
 
-        # start experiment loop
-        for run_n in range(1, cfg.RUNS + 1):
-            run_single_cfg(
-                cfg=cfg, run_n=run_n, args=args, langfuse_session=langfuse_session
-            )
+            try:
+                # start experiment loop
+                for run_n in range(1, cfg.RUNS + 1):
+                    run_single_cfg(
+                        cfg=cfg,
+                        run_n=run_n,
+                        args=args,
+                        langfuse_session=langfuse_session,
+                    )
 
-        save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID_ROLEPLAY)
+                save_config(
+                    cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID_ROLEPLAY
+                )
+            except Exception as e:
+                errors.append((cfg.ID, e))
+                logger.error(
+                    "Error occurred during the experiment",
+                    config=cfg.ID,
+                    error=str(e),
+                )
+        else:
+            print(cfg.ID, "already evaluated.")
+
+    if len(errors) > 0:
+        logger.error(
+            "Errors occurred during the following experiments",
+            configs=errors,
+        )
+    else:
+        logger.info("All experiments completed successfully.")
 
 
 if __name__ == "__main__":

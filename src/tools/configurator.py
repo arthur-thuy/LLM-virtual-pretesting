@@ -265,3 +265,38 @@ def convert_to_dict(cfg_node, key_list=[]):  # noqa
         for k, v in cfg_dict.items():
             cfg_dict[k] = convert_to_dict(v, key_list + [k])
         return cfg_dict
+
+
+def check_config_equivalence(prev_cfg: CfgNode, cfg: CfgNode) -> bool:
+    """Check if two configurations are equivalent.
+
+    Parameters
+    ----------
+    prev_cfg : CfgNode
+        Previous configuration
+    cfg : CfgNode
+        Current configuration
+
+    Returns
+    -------
+    bool
+        True if configurations are equivalent, False otherwise.
+    """
+    if (
+        prev_cfg["EXAMPLE_SELECTOR"]["EMBEDDING"]
+        == cfg["EXAMPLE_SELECTOR"]["EMBEDDING"]
+        and prev_cfg["EXAMPLE_SELECTOR"]["NAME"] == cfg["EXAMPLE_SELECTOR"]["NAME"]
+        and prev_cfg["EXAMPLE_SELECTOR"]["NUM_EXAMPLES"]
+        == cfg["EXAMPLE_SELECTOR"]["NUM_EXAMPLES"]
+        and prev_cfg["MODEL"]["NAME"] == cfg["MODEL"]["NAME"]
+        and prev_cfg["MODEL"]["TEMPERATURE"] == cfg["MODEL"]["TEMPERATURE"]
+        and prev_cfg["PROMPT"]["NAME"] == cfg["PROMPT"]["NAME"]
+        and prev_cfg["STRUCTURED_OUTPUTTER"]["NAME"]
+        == cfg["STRUCTURED_OUTPUTTER"]["NAME"]
+        and prev_cfg["EXAMPLE_FORMATTER"]["NAME"] == cfg["EXAMPLE_FORMATTER"]["NAME"]
+        and prev_cfg["ROLEPLAY"]["NUM_STUDENT_LEVELS"]
+        == cfg["ROLEPLAY"]["NUM_STUDENT_LEVELS"]
+        and prev_cfg["ROLEPLAY"]["STUDENT_SCALE"] == cfg["ROLEPLAY"]["STUDENT_SCALE"]
+    ):
+        return True
+    return False
