@@ -7,6 +7,7 @@ def majority_prediction_answer_correctness(
     df: pd.DataFrame, 
     train_df: pd.DataFrame,
     history_len: int = 1,
+    keep_only_students_with_support: bool = True,
     correct_prediction_threshold: float = 0.5
 ) -> Tuple[List[bool], List[bool]]:
     
@@ -16,14 +17,26 @@ def majority_prediction_answer_correctness(
     for student_id, student_option_correct, time in df[['student_id', 'student_option_correct', 'time']].values:
         # Item selector
         examples_df = train_df[(train_df['student_id']==student_id)&(train_df['time']<time)]
-        if len(examples_df) < history_len:
-            print(
-                "[Warning] Training dataset for student %s is smaller (%d) than history len (%d)." 
-                % (student_id, len(examples_df), history_len)
-            )
-            continue
-        examples_df = examples_df.sample(n=history_len)
 
+        if len(examples_df) >= history_len:
+            # there are enough training examples from the student
+            examples_df = examples_df.sample(n=history_len)
+        else:
+            # there are not enough trainign examples
+            print(
+                "[Warning] examples_df for student %s is smaller (%d) than history_len (%d)."
+                % (student_id, len(examples_df), history_len))
+            if keep_only_students_with_support:
+                print("[Warning] Skipping student %s." % student_id)
+                continue
+            if 0 < len(examples_df) < history_len:
+                # there are some previous responses from the student
+                print("[Warning] Using the %d available responses for student %s." % (len(examples_df), student_id))
+            else:
+                # There are no previous responses from that student.
+                print("[Warning] Doing majority prediction for student %s (no previous responses available)" % student_id)
+                examples_df = train_df[train_df['time']<time].sample(n=history_len)
+        
         # Predict answer correctness
         predicted_correctness = examples_df['student_option_correct'].mean() >= correct_prediction_threshold
         list_predicted_correctness.append(predicted_correctness)
@@ -50,9 +63,11 @@ if __name__ == '__main__':
         for history_length in [1, 3, 5]:
             print("HISTORY LENGTH = %d" % history_length)
             df = pd.read_csv(split_to_data_path[data_split])
-            predictions, correctness = majority_prediction_answer_correctness(df, train_df, history_len=history_length)
+            predictions, correctness = majority_prediction_answer_correctness(df, train_df, history_length)
+            # predictions, correctness = majority_prediction_answer_correctness(df, train_df, history_length, keep_only_students_with_support=False)
             print("ACC = %.4f" % (np.mean([predictions[i] == correctness[i] for i in range(len(predictions))])))
 
+# RESULTS REMOVING STUDENTS FOR WHICH THERE AREN'T ENOUGH PREVIOUS RESPONSES IN TRAIN_DF 
 # Data split: val_small
 # HISTORY LENGTH = 1 --> ACC = 0.6907
 # HISTORY LENGTH = 3 --> ACC = 0.7500
