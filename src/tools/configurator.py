@@ -81,7 +81,6 @@ def _add_derived_configs(
     cfg.ID = create_config_id(cfg)
     cfg.ID_ROLEPLAY = create_roleplay_config_id(cfg)
     cfg.OUTPUT_DIR = os.path.join(".", "output", config_dir)
-    cfg.OUTPUT_DIR_ROLEPLAY = os.path.join(".", "output", f"roleplay_{config_dir}")
     cfg.MODEL.NATIVE_STRUCTURED_OUTPUT = MODEL_STRUCTURED_OUTPUT[cfg.MODEL.NAME]
     if freeze:
         cfg.freeze()
@@ -251,7 +250,7 @@ def check_cfg(cfg: CfgNode) -> None:
             )
 
 
-def convert_to_dict(cfg_node, key_list=[]):
+def convert_to_dict(cfg_node, key_list=[]):  # noqa
     """Convert a config node to dictionary"""
     if not isinstance(cfg_node, CfgNode):
         if type(cfg_node) not in _VALID_TYPES:
