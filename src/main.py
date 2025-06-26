@@ -29,6 +29,7 @@ from tools.configurator import (
     get_configs_out,
     load_configs,
     save_config,
+    check_config_equivalence,
 )
 from tools.constants import TEST, TRAIN, VALIDATION, VALLARGE, VALSMALL  # noqa
 from tools.evaluate import evaluate, predict
@@ -166,21 +167,6 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     )
     print_elapsed_time(start_time, run_n)
     langfuse_handler.flush()
-
-
-def check_config_equivalence(prev_cfg, cfg):
-    if (
-        prev_cfg["EXAMPLE_SELECTOR"]["EMBEDDING"]
-        == cfg["EXAMPLE_SELECTOR"]["EMBEDDING"]
-        and prev_cfg["EXAMPLE_SELECTOR"]["NAME"] == cfg["EXAMPLE_SELECTOR"]["NAME"]
-        and prev_cfg["EXAMPLE_SELECTOR"]["NUM_EXAMPLES"]
-        == cfg["EXAMPLE_SELECTOR"]["NUM_EXAMPLES"]
-        and prev_cfg["MODEL"]["NAME"] == cfg["MODEL"]["NAME"]
-        and prev_cfg["MODEL"]["TEMPERATURE"] == cfg["MODEL"]["TEMPERATURE"]
-        and prev_cfg["PROMPT"]["NAME"] == cfg["PROMPT"]["NAME"]
-    ):
-        return True
-    return False
 
 
 def main() -> None:
