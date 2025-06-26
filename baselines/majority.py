@@ -52,3 +52,18 @@ if __name__ == '__main__':
             df = pd.read_csv(split_to_data_path[data_split])
             predictions, correctness = majority_prediction_answer_correctness(df, train_df, history_len=history_length)
             print("ACC = %.4f" % (np.mean([predictions[i] == correctness[i] for i in range(len(predictions))])))
+
+# Data split: val_small
+# HISTORY LENGTH = 1 --> ACC = 0.6907
+# HISTORY LENGTH = 3 --> ACC = 0.7500
+# HISTORY LENGTH = 5 --> ACC = 0.8000
+
+# Data split: val_large
+# HISTORY LENGTH = 1 --> ACC = 0.7045
+# HISTORY LENGTH = 3 --> ACC = 0.7528
+# HISTORY LENGTH = 5 --> ACC = 0.7244
+
+# Data split: test
+# HISTORY LENGTH = 1 --> ACC = 0.7027
+# HISTORY LENGTH = 3 --> ACC = 0.7369
+# HISTORY LENGTH = 5 --> ACC = 0.7497
