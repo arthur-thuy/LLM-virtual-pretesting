@@ -12,7 +12,7 @@ from langchain_openai import OpenAIEmbeddings
 from yacs.config import CfgNode
 
 # local application/library specific imports
-from tools.constants import MODEL_PROVIDER
+from tools.constants import MODEL_PROVIDER, MODEL_RATE_LIMIT
 from tools.registry import Registry
 
 MODEL_PROVIDER_REGISTRY = Registry()
@@ -34,7 +34,10 @@ def build_model(model_cfg: CfgNode):
         Model
     """
     logger.info(
-        "Building model", name=model_cfg.NAME, provider=MODEL_PROVIDER[model_cfg.NAME]
+        "Building model",
+        name=model_cfg.NAME,
+        provider=MODEL_PROVIDER[model_cfg.NAME],
+        rate_limit=MODEL_RATE_LIMIT[model_cfg.NAME],
     )
     model = MODEL_PROVIDER_REGISTRY[MODEL_PROVIDER[model_cfg.NAME]](model_cfg)
     return model

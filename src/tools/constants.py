@@ -96,6 +96,27 @@ MODEL_PROVIDER = {
     "qwen3:8b": "ollama",
 }
 
+MODEL_RATE_LIMIT = {
+    "llama3": None,
+    "llama3.2": None,
+    "olmo2:7b": None,
+    "gpt-4o": None,
+    "gpt-4o-mini": None,
+    "gpt-4.1": None,
+    "o3-mini": None,
+    "o3-mini-2025-01-31": None,
+    "o3": 0.25,
+    "o3-2025-04-16": 0.25,
+    "o4-mini-2025-04-16": None,
+    "gemini-2.5-flash-preview-05-20": None,
+    "gemini-2.5-pro-preview-06-05": 0.35,
+    "claude-3-7-sonnet-20250219": None,
+    "claude-sonnet-4-20250514": 1.5,
+    "claude-3-5-haiku-20241022": None,
+    "gemma3:12b": None,
+    "qwen3:8b": None,
+}
+
 # prompt info
 DICT_CEFR_DESCRIPTIONS = {
     "A1": "can understand and use familiar everyday expressions and very basic phrases aimed at the satisfaction of needs of a concrete type; can introduce him/herself and others and can ask and answer questions about personal details such as where he/she lives, people he/she knows and things he/she has; can interact in a simple way provided the other person talks slowly and clearly and is prepared to help.",  # noqa
