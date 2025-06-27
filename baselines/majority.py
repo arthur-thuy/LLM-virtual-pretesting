@@ -8,7 +8,6 @@ import numpy as np
 
 # set up logger
 logger = structlog.get_logger(__name__)
-# Override pyirt's logging configuration (which is set to DEBUG)
 logging.basicConfig(
     level=logging.INFO,  # Set to INFO or WARNING
     format="%(asctime)s %(levelname)s: %(message)s",
@@ -35,18 +34,18 @@ def majority_prediction_answer_correctness(
             examples_df = examples_df.sample(n=history_len)
         else:
             # there are not enough trainign examples
-            logger.warning(
+            logger.info(
                 "examples_df for student %s is smaller (%d) than history_len (%d)."
                 % (student_id, len(examples_df), history_len))
             if keep_only_students_with_support:
-                logger.warning("Skipping student %s." % student_id)
+                logger.info("Skipping student %s." % student_id)
                 continue
             if 0 < len(examples_df) < history_len:
                 # there are some previous responses from the student
-                logger.warning("Using the %d available responses for student %s." % (len(examples_df), student_id))
+                logger.info("Using the %d available responses for student %s." % (len(examples_df), student_id))
             else:
                 # There are no previous responses from that student.
-                logger.warning("Doing majority prediction for student %s (no previous responses available)" % student_id)
+                logger.info("Doing majority prediction for student %s (no previous responses available)" % student_id)
                 examples_df = train_df[train_df['time']<time].sample(n=history_len)
         
         # Predict answer correctness
