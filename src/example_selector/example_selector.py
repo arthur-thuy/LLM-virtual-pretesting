@@ -420,7 +420,7 @@ class StudentIDKCPrimaryExampleSelector(BaseExampleSelector):
             interactions_filtered = [
                 interact
                 for interact in student_interactions
-                if interact["question_id"] in question_ids_selected
+                if interact["question_id"] not in question_ids_selected
             ]
             selected_interaction = random.sample(interactions_filtered, 1)[0]
             interactions_selected.append(selected_interaction)
