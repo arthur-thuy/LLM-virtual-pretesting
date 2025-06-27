@@ -885,7 +885,7 @@ class StudentLevelKCExactExampleSelector(BaseExampleSelector):
         assert len(interactions_selected) == len(question_ids_selected)
 
         # print(
-        #     f"{[interact['knowledge_components'] for interact in interactions_selected]=}"
+        #     f"{[interact['knowledge_components'] for interact in interactions_selected]=}"  # noqa
         # )  # TODO: remove
 
         if len(interactions_selected) < self.k:
