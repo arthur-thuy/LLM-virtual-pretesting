@@ -16,15 +16,31 @@ from model.build import MODEL_PROVIDER_REGISTRY
 from tools.constants import MODEL_RATE_LIMIT
 
 
+def create_rate_limiter(requests_per_second: float) -> InMemoryRateLimiter:
+    """Create an InMemoryRateLimiter with the specified requests per second.
+
+    Parameters
+    ----------
+    requests_per_second : float
+        The number of requests allowed per second.
+
+    Returns
+    -------
+    InMemoryRateLimiter
+        Rate limiter instance.
+    """
+    return InMemoryRateLimiter(
+        requests_per_second=requests_per_second,
+        check_every_n_seconds=0.1,
+        max_bucket_size=1,
+    )
+
+
 @MODEL_PROVIDER_REGISTRY.register("openai")
 def build_openai_model(model_cfg: CfgNode) -> ChatOpenAI:
     if model_cfg.NAME.startswith("o"):
         if MODEL_RATE_LIMIT[model_cfg.NAME] is not None:
-            rate_limiter = InMemoryRateLimiter(
-                requests_per_second=MODEL_RATE_LIMIT[model_cfg.NAME],
-                check_every_n_seconds=0.1,
-                max_bucket_size=1,
-            )
+            rate_limiter = create_rate_limiter(MODEL_RATE_LIMIT[model_cfg.NAME])
         else:
             rate_limiter = None
         model = ChatOpenAI(
@@ -36,11 +52,7 @@ def build_openai_model(model_cfg: CfgNode) -> ChatOpenAI:
         )
     else:
         if MODEL_RATE_LIMIT[model_cfg.NAME] is not None:
-            rate_limiter = InMemoryRateLimiter(
-                requests_per_second=MODEL_RATE_LIMIT[model_cfg.NAME],
-                check_every_n_seconds=0.1,
-                max_bucket_size=1,
-            )
+            rate_limiter = create_rate_limiter(MODEL_RATE_LIMIT[model_cfg.NAME])
         else:
             rate_limiter = None
         model = ChatOpenAI(
@@ -57,11 +69,7 @@ def build_openai_model(model_cfg: CfgNode) -> ChatOpenAI:
 @MODEL_PROVIDER_REGISTRY.register("anthropic")
 def build_anthropic_model(model_cfg: CfgNode) -> ChatAnthropic:
     if MODEL_RATE_LIMIT[model_cfg.NAME] is not None:
-        rate_limiter = InMemoryRateLimiter(
-            requests_per_second=MODEL_RATE_LIMIT[model_cfg.NAME],
-            check_every_n_seconds=0.1,
-            max_bucket_size=1,
-        )
+        rate_limiter = create_rate_limiter(MODEL_RATE_LIMIT[model_cfg.NAME])
     else:
         rate_limiter = None
     model = ChatAnthropic(
@@ -78,11 +86,7 @@ def build_anthropic_model(model_cfg: CfgNode) -> ChatAnthropic:
 @MODEL_PROVIDER_REGISTRY.register("ollama")
 def build_ollama_model(model_cfg: CfgNode) -> ChatOllama:
     if MODEL_RATE_LIMIT[model_cfg.NAME] is not None:
-        rate_limiter = InMemoryRateLimiter(
-            requests_per_second=MODEL_RATE_LIMIT[model_cfg.NAME],
-            check_every_n_seconds=0.1,
-            max_bucket_size=1,
-        )
+        rate_limiter = create_rate_limiter(MODEL_RATE_LIMIT[model_cfg.NAME])
     else:
         rate_limiter = None
     model = ChatOllama(
@@ -98,11 +102,7 @@ def build_ollama_model(model_cfg: CfgNode) -> ChatOllama:
 @MODEL_PROVIDER_REGISTRY.register("google")
 def build_google_model(model_cfg: CfgNode) -> ChatGoogleGenerativeAI:
     if MODEL_RATE_LIMIT[model_cfg.NAME] is not None:
-        rate_limiter = InMemoryRateLimiter(
-            requests_per_second=MODEL_RATE_LIMIT[model_cfg.NAME],
-            check_every_n_seconds=0.1,
-            max_bucket_size=1,
-        )
+        rate_limiter = create_rate_limiter(MODEL_RATE_LIMIT[model_cfg.NAME])
     else:
         rate_limiter = None
     model = ChatGoogleGenerativeAI(
