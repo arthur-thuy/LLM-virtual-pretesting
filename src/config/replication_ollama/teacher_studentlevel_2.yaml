@@ -1,12 +1,10 @@
 EXAMPLE_SELECTOR:
-  NAME: studentid_semantic
-  NUM_EXAMPLES: 5
+  NAME: studentid_kc_exact
+  NUM_EXAMPLES: 3
 MODEL:
-  NAME: gemma3:12b
-  TEMPERATURE: 1.0
+  NAME: qwen3:8b
+  TEMPERATURE: 0.0
 PROMPT:
   NAME: replicate_teacher_onion_studentlevel
-ROLEPLAY:
-  STUDENT_SCALE: proficiency_5_str
 STRUCTURED_OUTPUTTER:
   NAME: teacher

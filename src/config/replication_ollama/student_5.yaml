@@ -1,10 +1,10 @@
 EXAMPLE_SELECTOR:
   NAME: studentid_kc_exact
-  NUM_EXAMPLES: 3
+  NUM_EXAMPLES: 5
 MODEL:
   NAME: qwen3:8b
   TEMPERATURE: 0.0
 PROMPT:
-  NAME: replicate_teacher_onion
+  NAME: replicate_student_tomato
 STRUCTURED_OUTPUTTER:
-  NAME: teacher
+  NAME: student

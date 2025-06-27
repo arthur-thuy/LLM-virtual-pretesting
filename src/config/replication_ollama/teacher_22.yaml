@@ -3,8 +3,8 @@ EXAMPLE_SELECTOR:
   NUM_EXAMPLES: 5
 MODEL:
   NAME: qwen3:8b
-  TEMPERATURE: 0.0
+  TEMPERATURE: 1.0
 PROMPT:
-  NAME: replicate_student_tomato
+  NAME: replicate_teacher_avocado
 STRUCTURED_OUTPUTTER:
-  NAME: student
+  NAME: teacher
