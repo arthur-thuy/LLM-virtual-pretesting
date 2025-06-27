@@ -127,7 +127,7 @@ def build_studentlevel_kc_primary(
 ) -> BaseExampleSelector:
     """Build a random example selector based on student levels."""
     input_vars = ["student_level_group", "primary_kc"]
-    selector = StudentLevelKCPrimaryExampleSelector(  # TODO
+    selector = StudentLevelKCPrimaryExampleSelector(
         examples=examples,
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
@@ -141,7 +141,7 @@ def build_studentlevel_kc_exact(
 ) -> BaseExampleSelector:
     """Build a random example selector based on student levels."""
     input_vars = ["student_level_group", "knowledge_components", "question_id"]
-    selector = StudentLevelKCExactExampleSelector(  # TODO
+    selector = StudentLevelKCExactExampleSelector(
         examples=examples,
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
@@ -833,7 +833,7 @@ class StudentLevelKCExactExampleSelector(BaseExampleSelector):
             interact
             for interact in self.examples
             if interact["student_level_group"] == student_level_group
-            and interact["question_id"] in self.q_ids_train  # TODO: check why?
+            and interact["question_id"] in self.q_ids_train
         ]
 
         if len(student_interactions) == 0:
