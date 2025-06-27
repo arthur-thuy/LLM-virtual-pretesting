@@ -1,7 +1,19 @@
+import logging
+import structlog
+
 from typing import List, Tuple
 import pandas as pd
 import numpy as np
 
+
+# set up logger
+logger = structlog.get_logger(__name__)
+# Override pyirt's logging configuration (which is set to DEBUG)
+logging.basicConfig(
+    level=logging.INFO,  # Set to INFO or WARNING
+    format="%(asctime)s %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 def majority_prediction_answer_correctness(
     df: pd.DataFrame, 
@@ -23,18 +35,18 @@ def majority_prediction_answer_correctness(
             examples_df = examples_df.sample(n=history_len)
         else:
             # there are not enough trainign examples
-            print(
-                "[Warning] examples_df for student %s is smaller (%d) than history_len (%d)."
+            logger.warning(
+                "examples_df for student %s is smaller (%d) than history_len (%d)."
                 % (student_id, len(examples_df), history_len))
             if keep_only_students_with_support:
-                print("[Warning] Skipping student %s." % student_id)
+                logger.warning("Skipping student %s." % student_id)
                 continue
             if 0 < len(examples_df) < history_len:
                 # there are some previous responses from the student
-                print("[Warning] Using the %d available responses for student %s." % (len(examples_df), student_id))
+                logger.warning("Using the %d available responses for student %s." % (len(examples_df), student_id))
             else:
                 # There are no previous responses from that student.
-                print("[Warning] Doing majority prediction for student %s (no previous responses available)" % student_id)
+                logger.warning("Doing majority prediction for student %s (no previous responses available)" % student_id)
                 examples_df = train_df[train_df['time']<time].sample(n=history_len)
         
         # Predict answer correctness
