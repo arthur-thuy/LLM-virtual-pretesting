@@ -50,6 +50,8 @@ def majority_prediction_answer_correctness(
 
 if __name__ == '__main__':
 
+    n_random_runs = 10
+
     train_df = pd.read_csv('data/gold/dbe_kt22_interactions_train.csv')
 
     split_to_data_path = {
@@ -58,15 +60,60 @@ if __name__ == '__main__':
         'test': 'data/gold/dbe_kt22_interactions_test.csv',
     }
 
+    # dict where I collect all the results.
+    # first key is the data split, then the history length.
+    results = {}
+    for data_split in split_to_data_path.keys():
+        results[data_split] = {}
+        for history_length in [1, 3, 5]:
+            results[data_split][history_length] = []
+
     for data_split in split_to_data_path.keys():
         print("Data split: %s" % data_split)
         for history_length in [1, 3, 5]:
             print("HISTORY LENGTH = %d" % history_length)
             df = pd.read_csv(split_to_data_path[data_split])
-            predictions, correctness = majority_prediction_answer_correctness(df, train_df, history_length)
-            # predictions, correctness = majority_prediction_answer_correctness(df, train_df, history_length, keep_only_students_with_support=False)
-            print("ACC = %.4f" % (np.mean([predictions[i] == correctness[i] for i in range(len(predictions))])))
+            for _ in range(n_random_runs):
+                predictions, correctness = majority_prediction_answer_correctness(df, train_df, history_length)
+                # predictions, correctness = majority_prediction_answer_correctness(df, train_df, history_length, keep_only_students_with_support=False)
+                accuracy = np.mean([predictions[i] == correctness[i] for i in range(len(predictions))])
+                print("--> ACC = %.4f" % accuracy)
+                results[data_split][history_length].append(accuracy)
 
+    print(results)
+    for data_split in split_to_data_path.keys():
+        for history_length in [1, 3, 5]:
+            print(
+                "%9s | %2d | mean acc: %.4f | std.dev. acc: %.4f" 
+                % (data_split, history_length, np.mean(results[data_split][history_length]), 
+                   np.std(results[data_split][history_length]))
+            )
+
+### Averaging across 10 runs
+# Keeping only students with full support:
+# val_small |  1 | mean acc: 0.7062 | std.dev. acc: 0.0310
+# val_small |  3 | mean acc: 0.7750 | std.dev. acc: 0.0193
+# val_small |  5 | mean acc: 0.7632 | std.dev. acc: 0.0207
+# val_large |  1 | mean acc: 0.6904 | std.dev. acc: 0.0156
+# val_large |  3 | mean acc: 0.7243 | std.dev. acc: 0.0130
+# val_large |  5 | mean acc: 0.7293 | std.dev. acc: 0.0096
+#      test |  1 | mean acc: 0.6942 | std.dev. acc: 0.0109
+#      test |  3 | mean acc: 0.7416 | std.dev. acc: 0.0076
+#      test |  5 | mean acc: 0.7486 | std.dev. acc: 0.0065
+
+# Keeping all students:
+# val_small |  1 | mean acc: 0.7170 | std.dev. acc: 0.0475
+# val_small |  3 | mean acc: 0.7720 | std.dev. acc: 0.0227
+# val_small |  5 | mean acc: 0.7700 | std.dev. acc: 0.0195
+# val_large |  1 | mean acc: 0.6976 | std.dev. acc: 0.0108
+# val_large |  3 | mean acc: 0.7238 | std.dev. acc: 0.0113
+# val_large |  5 | mean acc: 0.7418 | std.dev. acc: 0.0096
+#      test |  1 | mean acc: 0.6931 | std.dev. acc: 0.0150
+#      test |  3 | mean acc: 0.7341 | std.dev. acc: 0.0057
+#      test |  5 | mean acc: 0.7502 | std.dev. acc: 0.0064
+
+
+### Below results for single runs
 # RESULTS REMOVING STUDENTS FOR WHICH THERE AREN'T ENOUGH PREVIOUS RESPONSES IN TRAIN_DF 
 # Data split: val_small
 # HISTORY LENGTH = 1 --> ACC = 0.6907
