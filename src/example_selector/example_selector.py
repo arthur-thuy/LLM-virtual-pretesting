@@ -5,6 +5,7 @@ import random
 
 # related third party imports
 import numpy as np
+import pandas as pd
 import structlog
 from langchain_core.example_selectors.base import BaseExampleSelector
 from yacs.config import CfgNode
@@ -32,7 +33,7 @@ def build_random(
 def build_studentid_random(
     cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
 ) -> BaseExampleSelector:
-    input_vars = ["student_id"]
+    input_vars = ["student_id", "time"]
     selector = StudentIDRandomExampleSelector(
         examples=examples,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
@@ -44,7 +45,7 @@ def build_studentid_random(
 def build_studentid_semantic(
     cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
 ) -> BaseExampleSelector:
-    input_vars = ["student_id", "question_id", "q_text"]
+    input_vars = ["student_id", "question_id", "q_text", "time"]
     selector = StudentIDSemanticExampleSelector(
         examples=examples,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
@@ -66,12 +67,24 @@ def build_studentid_recency(
     return (selector, input_vars)
 
 
-@EXAMPLE_SELECTOR_REGISTRY.register("studentid_kc")
-def build_studentid_kc(
+@EXAMPLE_SELECTOR_REGISTRY.register("studentid_kc_primary")
+def build_studentid_kc_primary(
     cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
 ) -> BaseExampleSelector:
-    input_vars = ["student_id", "primary_kc"]
-    selector = StudentIDKCExampleSelector(
+    input_vars = ["student_id", "primary_kc", "time"]
+    selector = StudentIDKCPrimaryExampleSelector(
+        examples=examples,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("studentid_kc_exact")
+def build_studentid_kc_exact(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    input_vars = ["student_id", "question_id", "knowledge_components", "time"]
+    selector = StudentIDKCExactExampleSelector(
         examples=examples,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
     )
@@ -108,13 +121,27 @@ def build_studentlevel_semantic(
     return (selector, input_vars)
 
 
-@EXAMPLE_SELECTOR_REGISTRY.register("studentlevel_kc")
-def build_studentlevel_kc(
+@EXAMPLE_SELECTOR_REGISTRY.register("studentlevel_kc_primary")
+def build_studentlevel_kc_primary(
     cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
 ) -> BaseExampleSelector:
     """Build a random example selector based on student levels."""
     input_vars = ["student_level_group", "primary_kc"]
-    selector = StudentLevelKCExampleSelector(  # TODO
+    selector = StudentLevelKCPrimaryExampleSelector(  # TODO
+        examples=examples,
+        q_ids_train=q_ids_train,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("studentlevel_kc_exact")
+def build_studentlevel_kc_exact(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    """Build a random example selector based on student levels."""
+    input_vars = ["student_level_group", "knowledge_components", "question_id"]
+    selector = StudentLevelKCExactExampleSelector(  # TODO
         examples=examples,
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
@@ -259,18 +286,10 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
         # find interactions of selected question_ids and student_id
         interactions_selected = [
             interact
-            for interact in self.examples
-            if (
-                interact["question_id"] in question_ids_selected
-                and interact["student_id"] == student_id
-            )
+            for interact in student_interactions
+            if interact["question_id"] in question_ids_selected
         ]
         return interactions_selected
-        # NOTE: can decide to only return input and output
-        # return [
-        #     {"input": interact["input"], "output": interact["output"]}
-        #     for interact in interactions_selected
-        # ]
 
 
 class StudentIDRecencyExampleSelector(BaseExampleSelector):
@@ -338,8 +357,8 @@ class StudentIDRecencyExampleSelector(BaseExampleSelector):
         return selected_interactions
 
 
-class StudentIDKCExampleSelector(BaseExampleSelector):
-    """Filter examples of the same student_id and select based on knowledge component."""  # noqa
+class StudentIDKCPrimaryExampleSelector(BaseExampleSelector):
+    """Filter on student_id and primary KC."""
 
     def __init__(self, examples: list, k: int) -> None:
         """Initialize the example selector.
@@ -373,41 +392,39 @@ class StudentIDKCExampleSelector(BaseExampleSelector):
         # information of target observation
         student_id = input_variables["student_id"]
         kc = input_variables["primary_kc"]
+        time = input_variables["time"]
 
-        # find all questions answered by this student
+        # find all questions answered by this student on the KC, before the current time
         student_interactions = [
             interact
             for interact in self.examples
-            if interact["student_id"] == student_id and kc == interact["primary_kc"]
+            if interact["student_id"] == student_id
+            and kc == interact["primary_kc"]
+            and interact["time"] <= time
         ]
 
         if len(student_interactions) == 0:
             logger.warning(
-                f"No interactions found for student {student_id} with KC {kc}"
+                f"No interactions found for student {student_id} with primary KC {kc}"
             )
             return []
 
         # randomly select from questions, not sampling the same question multiple times
         k = min(self.k, len(student_interactions))
 
-        # TODO: can we work with raw KCs and find the most similar ones?
-        # => use "knowledge_components"
         interactions_selected = []
-        questions_selected = []
+        question_ids_selected = []
         for _ in range(k):
-            # select random interaction for each question_id
+            # select random interaction for each question on the KC
+            # + no duplicate questions
             interactions_filtered = [
                 interact
-                for interact in self.examples
-                if (
-                    interact["student_id"] == student_id
-                    and kc == interact["primary_kc"]
-                    and interact["question_id"] not in questions_selected
-                )
+                for interact in student_interactions
+                if interact["question_id"] in question_ids_selected
             ]
             selected_interaction = random.sample(interactions_filtered, 1)[0]
             interactions_selected.append(selected_interaction)
-            questions_selected.append(selected_interaction["question_id"])
+            question_ids_selected.append(selected_interaction["question_id"])
 
         if len(interactions_selected) < self.k:
             # if we selected fewer interactions than requested, log a warning
@@ -418,6 +435,120 @@ class StudentIDKCExampleSelector(BaseExampleSelector):
             )
 
         return interactions_selected
+
+
+class StudentIDKCExactExampleSelector(BaseExampleSelector):
+    """Filter on student_id and entire list of KCs."""
+
+    def __init__(self, examples: list, k: int) -> None:
+        """Initialize the example selector.
+
+        Parameters
+        ----------
+        examples :  list[dict]
+            List of examples
+        k : int
+            k-shot prompting
+        """
+        self.examples = examples
+        self.k = k
+
+    def add_example(self, example: list) -> None:
+        self.examples.append(example)
+
+    def select_examples(self, input_variables: dict) -> list[dict[str, str]]:
+        """Select examples based on knowledge component.
+
+        Parameters
+        ----------
+        input_variables : dict[str, str]
+            A dict containing info about a single observation.
+
+        Returns
+        -------
+        list[dict[str, str]]
+            The selected examples.
+        """
+        # information of target observation
+        student_id = input_variables["student_id"]
+        question_id = input_variables["question_id"]
+        kc = input_variables["knowledge_components"]
+        time = input_variables["time"]
+
+        # print(f"{kc=}")  # TODO: remove
+
+        # find all interactions of this student, before the current time
+        student_interactions = [
+            interact
+            for interact in self.examples
+            if interact["student_id"] == student_id and interact["time"] <= time
+        ]
+
+        if len(student_interactions) == 0:
+            logger.warning(f"No interactions found for student {student_id}")
+            return []
+
+        q_answered = set([interact["question_id"] for interact in student_interactions])
+        q_answered.discard(question_id)  # remove current question_id
+
+        # compute jaccard similarity for each question_id in q_answered
+        q_jaccard_sim = {}
+        for interact in student_interactions:
+            if (
+                interact["question_id"] in q_answered
+                and interact["question_id"] not in q_jaccard_sim
+            ):
+                # compute Jaccard similarity
+                jaccard_sim = compute_jaccard_similarity(
+                    other_kcs=interact["knowledge_components"],
+                    target_kcs=kc,
+                )
+                q_jaccard_sim[interact["question_id"]] = jaccard_sim
+        # convert to df
+        df = pd.DataFrame(q_jaccard_sim.items(), columns=["question_id", "jaccard_sim"])
+        # sort questions by Jaccard similarity, in descending order
+        # NOTE: if same value, select randomly
+        df_sorted = df.sample(frac=1).sort_values(by="jaccard_sim", ascending=False)
+
+        # randomly select from questions, not sampling the same question multiple times
+        k = min(self.k, len(df_sorted.index))
+
+        # find interactions of selected question_ids and student_id
+        question_ids_selected = df_sorted["question_id"].tolist()[:k]
+        interactions_selected = [
+            interact
+            for interact in student_interactions
+            if interact["question_id"] in question_ids_selected
+        ]
+
+        # print(
+        #     f"{[interact['knowledge_components'] for interact in interactions_selected]=}"  # noqa
+        # )  # TODO: remove
+
+        if len(interactions_selected) < self.k:
+            # if we selected fewer interactions than requested, log a warning
+            logger.warning(
+                "Selected fewer interactions than requested",
+                requested=self.k,
+                selected=k,
+            )
+
+        return interactions_selected
+
+
+def compute_jaccard_similarity(other_kcs: list[int], target_kcs: list[int]) -> float:
+    """
+    Compute Jaccard similarity between two sets of knowledge components.
+    """
+    set_row = set(other_kcs)
+    set_target = set(target_kcs)
+
+    intersection = len(set_row.intersection(set_target))
+    union = len(set_row.union(set_target))
+
+    if union == 0:
+        return 0.0  # Avoid division by zero
+    return intersection / union
 
 
 class StudentLevelRandomExampleSelector(BaseExampleSelector):
@@ -461,7 +592,20 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
 
         # randomly select from questions
         k = min(self.k, len(student_interactions))
-        interactions_selected = random.sample(student_interactions, k)
+
+        interactions_selected = []
+        question_ids_selected = []
+        for _ in range(k):
+            # select random interaction for each question_id
+            interactions_filtered = [
+                interact
+                for interact in student_interactions
+                if interact["question_id"] not in question_ids_selected
+            ]
+            selected_interaction = random.sample(interactions_filtered, 1)[0]
+            interactions_selected.append(selected_interaction)
+            question_ids_selected.append(selected_interaction["question_id"])
+
         if len(interactions_selected) < self.k:
             # if we selected fewer interactions than requested, log a warning
             logger.warning(
@@ -566,11 +710,8 @@ class StudentLevelSemanticExampleSelector(BaseExampleSelector):
             # select random interaction for each question_id
             interactions_for_question = [
                 interact
-                for interact in self.examples
-                if (
-                    interact["question_id"] == question_id
-                    and interact["student_level_group"] == student_level_group
-                )
+                for interact in student_interactions
+                if interact["question_id"] == question_id
             ]
             selected_interaction = random.sample(interactions_for_question, 1)[0]
             interactions_selected.append(selected_interaction)
@@ -588,8 +729,8 @@ class StudentLevelSemanticExampleSelector(BaseExampleSelector):
         return interactions_selected
 
 
-class StudentLevelKCExampleSelector(BaseExampleSelector):
-    """Filter examples of the same student level and randomly select from that KC."""
+class StudentLevelKCPrimaryExampleSelector(BaseExampleSelector):
+    """Filter examples of the same student level and randomly select from that primary KC."""  # noqa
 
     def __init__(self, examples: list[dict], q_ids_train: list[int], k: int) -> None:
         """Initialize the example selector.
@@ -633,25 +774,119 @@ class StudentLevelKCExampleSelector(BaseExampleSelector):
         # randomly select from questions
         k = min(self.k, len(student_interactions))
 
-        # TODO: can we work with raw KCs and find the most similar ones?
-        # => use "knowledge_components"
         interactions_selected = []
-        questions_selected = []
+        question_ids_selected = []
         for _ in range(k):
             # select random interaction for each question_id
             interactions_filtered = [
                 interact
-                for interact in self.examples
-                if (
-                    interact["student_level_group"] == student_level_group
-                    and interact["question_id"] in self.q_ids_train
-                    and kc == interact["primary_kc"]
-                    and interact["question_id"] not in questions_selected
-                )
+                for interact in student_interactions
+                if interact["question_id"] not in question_ids_selected
             ]
             selected_interaction = random.sample(interactions_filtered, 1)[0]
             interactions_selected.append(selected_interaction)
-            questions_selected.append(selected_interaction["question_id"])
+            question_ids_selected.append(selected_interaction["question_id"])
+
+        if len(interactions_selected) < self.k:
+            # if we selected fewer interactions than requested, log a warning
+            logger.warning(
+                "Selected fewer interactions than requested",
+                requested=self.k,
+                selected=k,
+            )
+
+        return interactions_selected
+
+
+class StudentLevelKCExactExampleSelector(BaseExampleSelector):
+    """Filter examples of the same student level and randomly select from that exact KC."""  # noqa
+
+    def __init__(self, examples: list[dict], q_ids_train: list[int], k: int) -> None:
+        """Initialize the example selector.
+
+        Parameters
+        ----------
+        examples :  list[dict]
+            List of examples
+        q_ids_train : list[int]
+            List of question IDs in the training set.
+        k : int
+            k-shot prompting
+        """
+        self.examples = examples
+        self.q_ids_train = q_ids_train
+        self.k = k
+
+    def add_example(self, example):
+        self.examples.append(example)
+
+    def select_examples(self, input_variables):
+        # student_level_group of target student
+        student_level_group = input_variables["student_level_group"]
+        question_id = input_variables["question_id"]
+        kc = input_variables["knowledge_components"]
+
+        # print(f"{kc=}")  # TODO: remove
+
+        # find all interactions of this student level group
+        student_interactions = [
+            interact
+            for interact in self.examples
+            if interact["student_level_group"] == student_level_group
+            and interact["question_id"] in self.q_ids_train  # TODO: check why?
+        ]
+
+        if len(student_interactions) == 0:
+            logger.warning(
+                f"No interactions found for student level group {student_level_group}"
+            )
+            return []
+
+        q_answered = set([interact["question_id"] for interact in student_interactions])
+        q_answered.discard(question_id)  # remove current question_id
+
+        # compute jaccard similarity for each question_id in q_answered
+        q_jaccard_sim = {}
+        for interact in student_interactions:
+            if (
+                interact["question_id"] in q_answered
+                and interact["question_id"] not in q_jaccard_sim
+            ):
+                # compute Jaccard similarity
+                jaccard_sim = compute_jaccard_similarity(
+                    other_kcs=interact["knowledge_components"],
+                    target_kcs=kc,
+                )
+                q_jaccard_sim[interact["question_id"]] = jaccard_sim
+        # convert to df
+        df = pd.DataFrame(q_jaccard_sim.items(), columns=["question_id", "jaccard_sim"])
+        # sort questions by Jaccard similarity, in descending order
+        # NOTE: if same value, select randomly
+        df_sorted = df.sample(frac=1).sort_values(by="jaccard_sim", ascending=False)
+
+        # randomly select from questions, not sampling the same question multiple times
+        k = min(self.k, len(df_sorted.index))
+
+        # find interactions of selected question_ids and student_id
+        question_ids_selected = df_sorted["question_id"].tolist()[:k]
+
+        # find interactions of selected question_ids and student_level_group
+        interactions_selected = []
+        for question_id in question_ids_selected:
+            # select random interaction for each question_id
+            interactions_for_question = [
+                interact
+                for interact in student_interactions
+                if interact["question_id"] == question_id
+            ]
+            selected_interaction = random.sample(interactions_for_question, 1)[0]
+            interactions_selected.append(selected_interaction)
+
+        assert len(interactions_selected) == len(question_ids_selected)
+
+        # print(
+        #     f"{[interact['knowledge_components'] for interact in interactions_selected]=}"  # noqa
+        # )  # TODO: remove
 
         if len(interactions_selected) < self.k:
             # if we selected fewer interactions than requested, log a warning
