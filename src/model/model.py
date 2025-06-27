@@ -67,7 +67,7 @@ def build_anthropic_model(model_cfg: CfgNode) -> ChatAnthropic:
     model = ChatAnthropic(
         model=model_cfg.NAME,
         temperature=model_cfg.TEMPERATURE,
-        max_tokens=1024,  # NOTE: model_cfg.MAX_TOKENS,
+        max_tokens=model_cfg.MAX_TOKENS,  # NOTE: model_cfg.MAX_TOKENS,
         timeout=model_cfg.TIMEOUT,
         max_retries=2,  # NOTE: ignoring model_cfg.MAX_RETRIES,
         rate_limiter=rate_limiter,
