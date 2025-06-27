@@ -64,6 +64,7 @@ class DataLoader:
             df_questions_tmp[Q_OPTION_TEXTS] = df_questions_tmp[Q_OPTION_TEXTS].apply(
                 eval
             )
+            df_questions_tmp[KC] = df_questions_tmp[KC].apply(eval)
             questions[split] = df_questions_tmp
             logger.info(
                 f"Reading {split} split questions",
@@ -81,6 +82,7 @@ class DataLoader:
         )
         # convert string back to list
         interact_train[Q_OPTION_TEXTS] = interact_train[Q_OPTION_TEXTS].apply(eval)
+        interact_train[KC] = interact_train[KC].apply(eval)
 
         logger.info(
             "Reading train split interactions",
@@ -119,6 +121,7 @@ class DataLoader:
             df_interactions_tmp[Q_OPTION_TEXTS] = df_interactions_tmp[
                 Q_OPTION_TEXTS
             ].apply(eval)
+            df_interactions_tmp[KC] = df_interactions_tmp[KC].apply(eval)
             interactions[split] = df_interactions_tmp
             logger.info(
                 f"Reading {split} split",
