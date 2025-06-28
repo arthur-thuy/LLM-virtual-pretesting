@@ -2,7 +2,7 @@ EXAMPLE_SELECTOR:
   NAME: studentid_kc_exact
   NUM_EXAMPLES: 5
 MODEL:
-  NAME: qwen3:8b
+  NAME: gemma3:12b
   TEMPERATURE: 0.0
 PROMPT:
   NAME: replicate_student_tomato_studentlevel

@@ -1,7 +1,7 @@
 MODEL:
   NAME: [
-    # "gemma3:12b", 
-    "qwen3:8b",
+    "gemma3:12b", 
+    # "qwen3:8b",
     ]
   TEMPERATURE: [0.0, 1.0]
 
