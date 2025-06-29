@@ -127,7 +127,7 @@ def build_studentlevel_kc_primary(
 ) -> BaseExampleSelector:
     """Build a random example selector based on student levels."""
     input_vars = ["student_level_group", "primary_kc"]
-    selector = StudentLevelKCPrimaryExampleSelector(  # TODO
+    selector = StudentLevelKCPrimaryExampleSelector(
         examples=examples,
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
@@ -141,7 +141,7 @@ def build_studentlevel_kc_exact(
 ) -> BaseExampleSelector:
     """Build a random example selector based on student levels."""
     input_vars = ["student_level_group", "knowledge_components", "question_id"]
-    selector = StudentLevelKCExactExampleSelector(  # TODO
+    selector = StudentLevelKCExactExampleSelector(
         examples=examples,
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
@@ -420,7 +420,7 @@ class StudentIDKCPrimaryExampleSelector(BaseExampleSelector):
             interactions_filtered = [
                 interact
                 for interact in student_interactions
-                if interact["question_id"] in question_ids_selected
+                if interact["question_id"] not in question_ids_selected
             ]
             selected_interaction = random.sample(interactions_filtered, 1)[0]
             interactions_selected.append(selected_interaction)
@@ -833,7 +833,7 @@ class StudentLevelKCExactExampleSelector(BaseExampleSelector):
             interact
             for interact in self.examples
             if interact["student_level_group"] == student_level_group
-            and interact["question_id"] in self.q_ids_train  # TODO: check why?
+            and interact["question_id"] in self.q_ids_train
         ]
 
         if len(student_interactions) == 0:

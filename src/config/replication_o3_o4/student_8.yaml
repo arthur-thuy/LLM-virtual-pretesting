@@ -1,0 +1,10 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_kc_exact
+  NUM_EXAMPLES: 3
+MODEL:
+  NAME: o3-mini-2025-01-31
+  TEMPERATURE: 1.0
+PROMPT:
+  NAME: replicate_student_pepper
+STRUCTURED_OUTPUTTER:
+  NAME: student

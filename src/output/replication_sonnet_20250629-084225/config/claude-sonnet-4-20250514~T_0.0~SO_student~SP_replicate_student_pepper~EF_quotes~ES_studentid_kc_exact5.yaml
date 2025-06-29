@@ -1,0 +1,29 @@
+EXAMPLE_FORMATTER:
+  NAME: quotes
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: studentid_kc_exact
+  NUM_EXAMPLES: 5
+ID: claude-sonnet-4-20250514~T_0.0~SO_student~SP_replicate_student_pepper~EF_quotes~ES_studentid_kc_exact5
+ID_ROLEPLAY: claude-sonnet-4-20250514~T_0.0~SO_student~L_5~SP_replicate_student_pepper~SS_proficiency_5_str~EF_quotes~ES_studentid_kc_exact5
+LOADER:
+  JOIN_KEY: question_id
+  NAME: dbe_kt22
+  RUN_LARGE_VAL: false
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: 1024
+  NAME: claude-sonnet-4-20250514
+  NATIVE_STRUCTURED_OUTPUT: false
+  TEMPERATURE: 0.0
+  TIMEOUT: null
+OUTPUT_DIR: ./output/replication_sonnet_20250629-084225
+PROMPT:
+  NAME: replicate_student_pepper
+ROLEPLAY:
+  NUM_STUDENT_LEVELS: 5
+  STUDENT_SCALE: proficiency_5_str
+RUNS: 1
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: student

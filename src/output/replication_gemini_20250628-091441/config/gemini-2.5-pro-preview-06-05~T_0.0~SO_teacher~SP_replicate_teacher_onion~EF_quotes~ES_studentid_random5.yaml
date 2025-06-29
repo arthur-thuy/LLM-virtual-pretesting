@@ -1,0 +1,29 @@
+EXAMPLE_FORMATTER:
+  NAME: quotes
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: studentid_random
+  NUM_EXAMPLES: 5
+ID: gemini-2.5-pro-preview-06-05~T_0.0~SO_teacher~SP_replicate_teacher_onion~EF_quotes~ES_studentid_random5
+ID_ROLEPLAY: gemini-2.5-pro-preview-06-05~T_0.0~SO_teacher~L_5~SP_replicate_teacher_onion~SS_proficiency_5_str~EF_quotes~ES_studentid_random5
+LOADER:
+  JOIN_KEY: question_id
+  NAME: dbe_kt22
+  RUN_LARGE_VAL: false
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: null
+  NAME: gemini-2.5-pro-preview-06-05
+  NATIVE_STRUCTURED_OUTPUT: true
+  TEMPERATURE: 0.0
+  TIMEOUT: null
+OUTPUT_DIR: ./output/replication_gemini_20250628-091441
+PROMPT:
+  NAME: replicate_teacher_onion
+ROLEPLAY:
+  NUM_STUDENT_LEVELS: 5
+  STUDENT_SCALE: proficiency_5_str
+RUNS: 1
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: teacher

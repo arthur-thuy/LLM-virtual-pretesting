@@ -3,7 +3,6 @@ MODEL:
          "gemini-2.5-flash-preview-05-20",
          "gemini-2.5-pro-preview-06-05",
          "claude-sonnet-4-20250514",
-         "claude-3-5-haiku-20241022",
   ]
   TEMPERATURE: [1.0]
 

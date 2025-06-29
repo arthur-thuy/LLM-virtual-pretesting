@@ -1,0 +1,29 @@
+EXAMPLE_FORMATTER:
+  NAME: quotes
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: studentid_random
+  NUM_EXAMPLES: 3
+ID: qwen3:8b~T_0.0~SO_teacher~SP_replicate_teacher_avocado~EF_quotes~ES_studentid_random3
+ID_ROLEPLAY: qwen3:8b~T_0.0~SO_teacher~L_5~SP_replicate_teacher_avocado~SS_proficiency_5_str~EF_quotes~ES_studentid_random3
+LOADER:
+  JOIN_KEY: question_id
+  NAME: dbe_kt22
+  RUN_LARGE_VAL: false
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: null
+  NAME: qwen3:8b
+  NATIVE_STRUCTURED_OUTPUT: true
+  TEMPERATURE: 0.0
+  TIMEOUT: null
+OUTPUT_DIR: ./output/replication_ollama_20250627-164511
+PROMPT:
+  NAME: replicate_teacher_avocado
+ROLEPLAY:
+  NUM_STUDENT_LEVELS: 5
+  STUDENT_SCALE: proficiency_5_str
+RUNS: 1
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: teacher

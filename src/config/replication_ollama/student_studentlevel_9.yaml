@@ -1,0 +1,10 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_semantic
+  NUM_EXAMPLES: 3
+MODEL:
+  NAME: gemma3:12b
+  TEMPERATURE: 1.0
+PROMPT:
+  NAME: replicate_student_tomato_studentlevel
+STRUCTURED_OUTPUTTER:
+  NAME: student

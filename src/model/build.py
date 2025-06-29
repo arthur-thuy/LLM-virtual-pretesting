@@ -38,6 +38,7 @@ def build_model(model_cfg: CfgNode):
         name=model_cfg.NAME,
         provider=MODEL_PROVIDER[model_cfg.NAME],
         rate_limit=MODEL_RATE_LIMIT[model_cfg.NAME],
+        temp=model_cfg.TEMPERATURE,
     )
     model = MODEL_PROVIDER_REGISTRY[MODEL_PROVIDER[model_cfg.NAME]](model_cfg)
     return model

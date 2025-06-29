@@ -156,6 +156,7 @@ def evaluate(
     y_val_pred = np.array([output.student_answer for output in preds_validated])
     y_val_student = dataset[S_OPTION_ID].to_numpy()
     y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
+    student_ids = dataset[STUDENT_ID].to_numpy()
     metrics = compute_metrics(
         y_val_pred=y_val_pred,
         y_val_true=y_val_true,
@@ -185,6 +186,7 @@ def evaluate(
         f"{prefix}_y_pred": y_val_pred,
         f"{prefix}_y_true": y_val_true,
         f"{prefix}_y_student": y_val_student,
+        f"{prefix}_student_ids": student_ids,
     }
     return metrics, preds
 

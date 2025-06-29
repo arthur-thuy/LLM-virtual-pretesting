@@ -6,7 +6,7 @@ import os
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Literal
 
 # related third party imports
 import numpy as np
@@ -531,3 +531,39 @@ def get_config_df(config_dict: dict) -> pd.DataFrame:
         data.append(row)
 
     return pd.DataFrame(data)
+
+
+def get_llm_student_preds(
+    exp_name: str,
+    config_id: str,
+    run_id: int,
+    split: Literal["val", "test"],
+) -> dict[str, Any]:
+    """Get predictions of the LLM student model.
+
+    Parameters
+    ----------
+    exp_name : str
+        Experiment name
+    config_id : str
+        Configuration ID
+    run_id : int
+        Run ID
+    split : Literal["val", "test"]
+        Split to get predictions for, either "val" or "test"
+
+    Returns
+    -------
+    dict[str, Any]
+        Dictionary with predictions, true labels, student answers, and student IDs
+    """
+
+    logger.info("Reading predictions", config_id=config_id, run_id=run_id, split=split)
+    output_path = os.path.join("output", exp_name, config_id, f"run_{run_id}.pickle")
+    preds_dict = read_pickle(output_path)["preds"]
+    return {
+        "y_pred": preds_dict[f"{split}_y_pred"],
+        "y_true": preds_dict[f"{split}_y_true"],
+        "y_student": preds_dict[f"{split}_y_student"],
+        "student_ids": preds_dict[f"{split}_student_ids"],
+    }
