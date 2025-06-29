@@ -7,6 +7,10 @@ from typing import Optional
 # related third party imports
 import matplotlib.pyplot as plt
 import structlog
+from sklearn.metrics import confusion_matrix, accuracy_score
+import numpy as np
+import seaborn as sns
+from matplotlib.patches import Rectangle
 
 # local application/library specific imports
 from tools.analyzer import get_config_id_print
@@ -82,3 +86,95 @@ def plot_student_level_performance(
         plt.tight_layout()
         ensure_dir(os.path.dirname(savefig_kwargs["fname"]))
         plt.savefig(**savefig_kwargs)
+
+
+def plot_llm_student_confusion(
+    preds_dict: dict,
+    config_id: str = None,
+    normalize: str = "all",
+    diagonal: bool = True,
+    save: bool = False,
+    savefig_kwargs: Optional[dict] = None,
+):
+    """Plot confusion matrix for LLM student predictions.
+
+    Parameters
+    ----------
+    preds_dict : dict
+        Dictionary containing predictions and true labels for students.
+    config_id : str, optional
+        Configuration ID, by default None
+    normalize : str, optional
+        How to normalize the confusion matrix, by default "all"
+    diagonal : bool, optional
+        Whether to highlight the diagonal, by default True
+    save : bool, optional
+        Whether to save the plot, by default False
+    savefig_kwargs : Optional[dict], optional
+        Dictionary with save arguments, by default None
+    """
+    list_acc_llm_student = []
+    list_acc_student_true = []
+    student_ids = preds_dict["student_ids"]
+    for student_id in np.unique(student_ids):
+        idx_student = np.where(student_ids == student_id)[0]
+        y_pred_filter = preds_dict["y_pred"][idx_student]
+        y_student_filter = preds_dict["y_student"][idx_student]
+        y_true_filter = preds_dict["y_true"][idx_student]
+        acc_llm_student = accuracy_score(y_true=y_student_filter, y_pred=y_pred_filter)
+        acc_student_true = accuracy_score(y_true=y_true_filter, y_pred=y_student_filter)
+        list_acc_llm_student.append(acc_llm_student)
+        list_acc_student_true.append(acc_student_true)
+
+    # same labels for both axes
+    list_acc_llm_student = [f"{i:.2f}" for i in list_acc_llm_student]
+    list_acc_student_true = [f"{i:.2f}" for i in list_acc_student_true]
+    labels = set(list_acc_llm_student+list_acc_student_true)
+    labels = sorted(labels)  # sort for better readability
+
+    # get confusion matrix
+    conf_matrix = confusion_matrix(
+        list_acc_llm_student,
+        list_acc_student_true,
+        labels=None,
+        normalize=normalize,
+    )
+
+    _, ax = plt.subplots(figsize=(len(labels), len(labels)))
+    sns.heatmap(
+        conf_matrix,
+        annot=True,
+        xticklabels=labels,
+        yticklabels=labels,
+        # labels=labels,
+        cmap="Blues",
+        ax=ax,
+        vmin=0.0,
+        vmax=1.0,
+        cbar=False,
+        fmt=".2f",
+    )
+    # Add borders to diagonal cells
+    if diagonal:
+        for i in range(len(conf_matrix)):
+            for i in range(len(conf_matrix)):
+                ax.add_patch(
+                    Rectangle((i, i), 1, 1, fill=False, edgecolor="black", lw=2)
+                )
+    ax.set(
+        xlabel="Predicted label",
+        ylabel="True label",
+    )
+    ax.set_title((None if save else config_id), fontsize=6)
+    ax.invert_yaxis()  # NOTE: labels read bottom-to-top
+    ax.xaxis.label.set_size(15)
+    ax.yaxis.label.set_size(15)
+    ax.title.set_size(9)
+    # ax.set_xticklabels(xticklabels, fontsize=13)
+    # ax.set_yticklabels(yticklabels, fontsize=13)
+    if save:
+        plt.tight_layout()
+        ensure_dir(os.path.dirname(savefig_kwargs["fname"]))
+        plt.savefig(**savefig_kwargs)
+    plt.show()
+    plt.show()
