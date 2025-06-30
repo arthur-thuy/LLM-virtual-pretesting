@@ -134,8 +134,8 @@ def plot_llm_student_confusion(
 
     # get confusion matrix
     conf_matrix = confusion_matrix(
-        list_acc_llm_student,
         list_acc_student_true,
+        list_acc_llm_student,
         labels=None,
         normalize=normalize,
     )
@@ -162,8 +162,8 @@ def plot_llm_student_confusion(
                     Rectangle((i, i), 1, 1, fill=False, edgecolor="black", lw=2)
                 )
     ax.set(
-        xlabel="Predicted label",
-        ylabel="True label",
+        xlabel="LLM -> student correctness",
+        ylabel="Student -> true correctness",
     )
     ax.set_title((None if save else config_id), fontsize=6)
     ax.invert_yaxis()  # NOTE: labels read bottom-to-top
