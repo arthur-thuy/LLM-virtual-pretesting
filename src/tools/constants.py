@@ -39,6 +39,8 @@ TIME = "time"
 STUDENT_LEVEL = "student_level"
 STUDENT_LEVEL_GROUP = "student_level_group"
 LIKELIHOOD = "likelihood"
+A_TEXT = "answer_response"
+A_SCORE = "answer_score"
 
 # Parameters for IRT estimation
 DIFFICULTY_MIN = -5
