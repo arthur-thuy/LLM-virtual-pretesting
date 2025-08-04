@@ -174,7 +174,7 @@ cython_debug/
 /data/
 
 # checkpoints or output folder
-**/output/
+# **/output/
 
 # draft
 draft.ipynb
