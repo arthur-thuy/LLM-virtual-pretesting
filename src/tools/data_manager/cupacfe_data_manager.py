@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 # local application/library specific imports
 from tools.constants import (
     INTERACT_ID,
+    STUDENT_ID,
     Q_CONTEXT_ID,
     Q_CONTEXT_TEXT,
     Q_CORRECT_OPTION_ID,
@@ -115,6 +116,7 @@ class CupaCFEDatamanager:
                     # dicrete CEFR level: same level for all questions in the same context
                     difficulty = row["level"]
                 discrimination = q_val["disc"]
+                cefr_level = row["level"]
 
                 out_list.append(
                     {
@@ -126,6 +128,7 @@ class CupaCFEDatamanager:
                         Q_CORRECT_OPTION_ID: correct_answer,
                         Q_CONTEXT_TEXT: context,
                         Q_CONTEXT_ID: context_id,
+                        "cefr_level": cefr_level,
                     }
                 )
 
@@ -140,8 +143,12 @@ class CupaCFEDatamanager:
                 Q_CORRECT_OPTION_ID,
                 Q_CONTEXT_TEXT,
                 Q_CONTEXT_ID,
+                "cefr_level",
             ],
         )
+        # subsample dataset
+        out_df = out_df.sample(100)
+
         return out_df
 
     def _preprocess_interactions(self, read_dir: str) -> pd.DataFrame:
@@ -174,6 +181,10 @@ class CupaCFEDatamanager:
         )
         # combine tasks
         df_explode = pd.concat([df_task1, df_task2], ignore_index=True)
+        # create interaction, question, student id
+        df_explode[INTERACT_ID] = df_explode["sortkey"] + "_" + df_explode["task"]
+        df_explode[QUESTION_ID] = df_explode["exam_code"] + "_" + df_explode["task"]
+        df_explode[STUDENT_ID] = df_explode['sortkey'].str.split('*').str[0]
         # only keep task 1
         df_explode = df_explode[df_explode["task"] == "1"]
 
