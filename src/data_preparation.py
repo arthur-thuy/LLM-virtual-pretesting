@@ -50,7 +50,20 @@ def main():
     logger.info("Starting preparation CUPA-CFE")
     cupacfe_dm = CupaCFEDatamanager()
     _, _ = cupacfe_dm.build_dataset(read_dir=BRONZE_DIR, write_dir=SILVER_DIR)
-    # TODO: split data with split_interactions=False
+    # create fixed split
+    data_loader = DataLoader(
+        read_dir=SILVER_DIR,
+        write_dir=GOLD_DIR,
+        dataset_name="cupacfe",
+    )
+    data_loader.split_data(
+        val_size_question=0.25,
+        test_size_question=0.75,
+        split_interactions=False,  # only train interactions
+        stratified=False,
+        seed=42,
+        join_key=None,  # No join key for CUPA-CFE
+    )
 
 
 if __name__ == "__main__":
