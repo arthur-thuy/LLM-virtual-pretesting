@@ -98,12 +98,12 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     # format questions/interactions for prompt
     interact_train_fmt = build_example_formatter(
-        example_formatter_cfg=cfg.EXAMPLE_FORMATTER,
+        example_formatter_cfg=cfg.EXAMPLE_FORMATTER.INTERACTIONS,
         datasets={TRAIN: interact_train},
         is_interaction=True,
     )[TRAIN]
     questions_fmt = build_example_formatter(
-        example_formatter_cfg=cfg.EXAMPLE_FORMATTER,
+        example_formatter_cfg=cfg.EXAMPLE_FORMATTER.QUESTIONS,
         datasets=questions,
         is_interaction=False,
     )
