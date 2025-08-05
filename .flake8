@@ -8,3 +8,4 @@ per-file-ignores =
     main.py:E402
     populate_vector_db.py:E402
     main_roleplay.py:E402
+    collect_misconceptions.py:E402
