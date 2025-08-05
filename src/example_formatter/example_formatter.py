@@ -19,6 +19,24 @@ from tools.constants import (
 )
 
 
+# TODO: use letters to denote options instead of integers!
+# -> need to change evaluate() function to convert letters back to integers because dataset contains integers)
+# def int_to_letter(i: int) -> str:
+#     """Convert an integer to a letter starting from 'A'.
+
+#     Parameters
+#     ----------
+#     i : int
+#         Integer to convert (starts at integer 1 -> "A").
+
+#     Returns
+#     -------
+#     str
+#         Letter corresponding to the integer.
+#     """
+#     return chr(ord('@') + i + 1)
+
+
 @EXAMPLE_FORMATTER_REGISTRY.register("no_quotes")
 def build_no_quotes(dataset: pd.DataFrame, is_interaction: bool) -> pd.DataFrame:
     """Build example formatter no_quotes.
