@@ -39,8 +39,12 @@ _C.LOADER.RUN_LARGE_VAL = False
 
 # example formatter
 _C.EXAMPLE_FORMATTER = CN()
-# example formatter name
-_C.EXAMPLE_FORMATTER.NAME = "quotes"
+# interactions
+_C.EXAMPLE_FORMATTER.INTERACTIONS = CN()
+_C.EXAMPLE_FORMATTER.INTERACTIONS.NAME = "quotes"
+# questions
+_C.EXAMPLE_FORMATTER.QUESTIONS = CN()
+_C.EXAMPLE_FORMATTER.QUESTIONS.NAME = "quotes"
 
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
