@@ -348,3 +348,30 @@ def build_roleplay_luca_emnlp(few_shot_prompt, native_str_output: bool) -> list:
         ("human", human_prompt_str),
     ]
     return messages
+
+
+#################################
+### COLLECTING MISCONCEPTIONS ###
+#################################
+
+
+@PROMPT_REGISTRY.register("collect_misconceptions")
+def build_collect_misconceptions(few_shot_prompt, native_str_output: bool) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+
+    system_prompt_str = (
+        "You are shown a multiple choice question of an exam on {exam_type}. "
+        "You have to analyse the question as follows:\n"
+        "  - for the correct answer option, list the knowledge concepts that the student should know to correctly select it;\n"  # noqa
+        "  - for each distractor, list the misconceptions that might lead the student to select it;\n"  # noqa
+        "Your answers should be very concise; each field should have a maximum of 10 words. "  # noqa
+    )
+    human_prompt_str = "Multiple choice question:\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    # NOTE: do not add few_shot_prompt because it is zero-shot!
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human_prompt_str),
+    ]
+    return messages

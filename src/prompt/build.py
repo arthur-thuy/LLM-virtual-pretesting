@@ -25,9 +25,10 @@ logger = structlog.get_logger(__name__)
 
 def build_prompt(
     cfg: CfgNode,
-    examples: list[dict],
     struc_output: BaseModel,
     student_scale_str: str,
+    few_shot: bool = True,
+    examples: Optional[list[dict]] = None,
     q_ids_train: Optional[list[int]] = None,
 ) -> ChatPromptTemplate:
     """Build the prompt.
@@ -50,34 +51,40 @@ def build_prompt(
     ChatPromptTemplate
         Prompt object
     """
-    logger.info(
-        "Building prompt",
-        system_prompt=cfg.PROMPT.NAME,
-        native_structured_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
-        example_selector=cfg.EXAMPLE_SELECTOR.NAME,
-        num_examples=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
-    )
+    if not few_shot:
+        few_shot_prompt = None
+        logger.info(
+            "Building zero-shot prompt",
+            system_prompt=cfg.PROMPT.NAME,
+            native_structured_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+        )
+    else:
+        logger.info(
+            "Building few-shot prompt",
+            system_prompt=cfg.PROMPT.NAME,
+            native_structured_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+            example_selector=cfg.EXAMPLE_SELECTOR.NAME,
+            num_examples=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        )
+        if cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES == 0 :
+            # If no examples are used, we can skip the example selector
+            few_shot_prompt = None
+        else:
+            example_selector, input_vars = build_example_selector(
+                cfg, examples=examples, q_ids_train=q_ids_train
+            )
+            few_shot_prompt = FewShotChatMessagePromptTemplate(
+                # The input variables select the values to pass to the example_selector
+                input_variables=input_vars,
+                example_selector=example_selector,
+                # each example is 2 messages: 1 human, 1 AI
+                example_prompt=ChatPromptTemplate.from_messages(
+                    [("human", "{input}"), ("ai", "{output}")]
+                ),
+            )
 
     # Set up a parser (not used if model supports structured output)
     parser = PydanticOutputParser(pydantic_object=struc_output)
-
-    # build few_shot_prompt
-    if cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES == 0:
-        # If no examples are used, we can skip the example selector
-        few_shot_prompt = None
-    else:
-        example_selector, input_vars = build_example_selector(
-            cfg, examples=examples, q_ids_train=q_ids_train
-        )
-        few_shot_prompt = FewShotChatMessagePromptTemplate(
-            # The input variables select the values to pass to the example_selector
-            input_variables=input_vars,
-            example_selector=example_selector,
-            # each example is 2 messages: 1 human, 1 AI
-            example_prompt=ChatPromptTemplate.from_messages(
-                [("human", "{input}"), ("ai", "{output}")]
-            ),
-        )
 
     # get the messages list
     messages = PROMPT_REGISTRY[cfg.PROMPT.NAME](

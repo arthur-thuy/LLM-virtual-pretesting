@@ -63,3 +63,30 @@ class StrOutputLucaEMNLP(BaseModel):
     student_answer: int = Field(
         description="integer index of the answer chosen by a student of this level"
     )
+
+
+@STRUCTURED_OUTPUTTER_REGISTRY.register("misconceptions")
+class StrOutputMisconceptions(BaseModel):
+    """Answer to a multiple-choice question."""
+    # TODO: Use letters A, B, C, D to refer to the options
+
+    correct_1_knowledge_concepts: str = Field(
+        description=(
+            "The list of knowledge concepts that are relevant to the correct answer 1"  # noqa
+        )
+    )
+    distractor_2_misconceptions: str = Field(
+        description=(
+            "The list of misconceptions that might lead the student to selecting the incorrect answer 2"  # noqa
+        )
+    )
+    distractor_3_misconceptions: str = Field(
+        description=(
+            "The list of misconceptions that might lead the student to selecting the incorrect answer 3"  # noqa
+        )
+    )
+    distractor_4_misconceptions: str = Field(
+        description=(
+            "The list of misconceptions that might lead the student to selecting the incorrect answer 4"  # noqa
+        )
+    )
