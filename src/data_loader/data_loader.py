@@ -6,6 +6,7 @@ from typing import Optional
 # related third party imports
 import pandas as pd
 import structlog
+import numpy as np
 from sklearn.model_selection import train_test_split
 
 # local application/library specific imports
@@ -37,9 +38,10 @@ class DataLoader:
         df_questions = pd.read_csv(
             os.path.join(self.read_dir, f"{self.dataset_name}_questions.csv")
         )
-        # convert string back to list
-        df_questions[Q_OPTION_TEXTS] = df_questions[Q_OPTION_TEXTS].apply(eval)
-        df_questions[KC] = df_questions[KC].apply(eval)
+        if set([Q_OPTION_TEXTS, KC]).issubset(df_questions.columns):
+            # convert string back to list
+            df_questions[Q_OPTION_TEXTS] = df_questions[Q_OPTION_TEXTS].apply(eval)
+            df_questions[KC] = df_questions[KC].apply(eval)
         return df_questions
 
     def read_splitted_questions(self) -> dict[str, pd.DataFrame]:
@@ -60,11 +62,12 @@ class DataLoader:
                     f"{self.dataset_name}_questions_{split}.csv",
                 )
             )
-            # convert string back to list
-            df_questions_tmp[Q_OPTION_TEXTS] = df_questions_tmp[Q_OPTION_TEXTS].apply(
-                eval
-            )
-            df_questions_tmp[KC] = df_questions_tmp[KC].apply(eval)
+            if set([Q_OPTION_TEXTS, KC]).issubset(df_questions_tmp.columns):
+                # convert string back to list
+                df_questions_tmp[Q_OPTION_TEXTS] = df_questions_tmp[
+                    Q_OPTION_TEXTS
+                ].apply(eval)
+                df_questions_tmp[KC] = df_questions_tmp[KC].apply(eval)
             questions[split] = df_questions_tmp
             logger.info(
                 f"Reading {split} split questions",
@@ -80,9 +83,10 @@ class DataLoader:
                 f"{self.dataset_name}_interactions_train.csv",
             )
         )
-        # convert string back to list
-        interact_train[Q_OPTION_TEXTS] = interact_train[Q_OPTION_TEXTS].apply(eval)
-        interact_train[KC] = interact_train[KC].apply(eval)
+        if set([Q_OPTION_TEXTS, KC]).issubset(interact_train.columns):
+            # convert string back to list
+            interact_train[Q_OPTION_TEXTS] = interact_train[Q_OPTION_TEXTS].apply(eval)
+            interact_train[KC] = interact_train[KC].apply(eval)
 
         logger.info(
             "Reading train split interactions",
@@ -117,11 +121,12 @@ class DataLoader:
                     self.write_dir, f"{self.dataset_name}_interactions_{split}.csv"
                 )
             )
-            # convert string back to list
-            df_interactions_tmp[Q_OPTION_TEXTS] = df_interactions_tmp[
-                Q_OPTION_TEXTS
-            ].apply(eval)
-            df_interactions_tmp[KC] = df_interactions_tmp[KC].apply(eval)
+            if set([Q_OPTION_TEXTS, KC]).issubset(df_interactions_tmp.columns):
+                # convert string back to list
+                df_interactions_tmp[Q_OPTION_TEXTS] = df_interactions_tmp[
+                    Q_OPTION_TEXTS
+                ].apply(eval)
+                df_interactions_tmp[KC] = df_interactions_tmp[KC].apply(eval)
             interactions[split] = df_interactions_tmp
             logger.info(
                 f"Reading {split} split",
@@ -133,12 +138,12 @@ class DataLoader:
         self,
         val_size_question: float,
         test_size_question: float,
-        val_size_interact: int,
-        valsmall_size_interact: int,
-        test_size_interact: int,
         split_interactions: bool,  # True for DBE-KT22, False for CFE
         stratified: bool,  # True for DBE-KT22
         seed: int,
+        val_size_interact: Optional[int] = None,
+        valsmall_size_interact: Optional[int] = None,
+        test_size_interact: Optional[int] = None,
         join_key: Optional[str] = None,
     ) -> None:
         """Split interactions into train, validation, and test sets.
@@ -152,6 +157,14 @@ class DataLoader:
         seed : int
             Random seed
         """
+        if split_interactions and (
+            val_size_interact is None
+            or valsmall_size_interact is None
+            or test_size_interact is None
+        ):
+            raise ValueError(
+                "All interaction split sizes must be specified when splitting."
+            )
         # questions
         df_questions = self._read_questions()
 
@@ -176,9 +189,16 @@ class DataLoader:
             q_ids_trainval, q_ids_test = train_test_split(
                 df_questions[QUESTION_ID].unique(), test_size=test_size_question
             )
-            q_ids_train, q_ids_val = train_test_split(
-                q_ids_trainval, test_size=val_size_question / (1 - test_size_question)
-            )
+            if val_size_question / (1 - test_size_question) == 1.0:
+                # if there is no train set
+                q_ids_train = np.array([])
+                q_ids_val = q_ids_trainval
+            else:
+                # split train and validation
+                q_ids_train, q_ids_val = train_test_split(
+                    q_ids_trainval,
+                    test_size=val_size_question / (1 - test_size_question),
+                )
         q_splits = {
             TRAIN: q_ids_train,
             VALIDATION: q_ids_val,

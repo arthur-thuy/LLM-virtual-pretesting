@@ -13,7 +13,7 @@ _C.RUNS = 1
 # model architecture
 _C.MODEL = CN()
 # model name
-_C.MODEL.NAME = "o3-mini"
+_C.MODEL.NAME = "qwen3:8b"
 # model temperature
 _C.MODEL.TEMPERATURE = 0.0
 # max tokens
@@ -26,39 +26,37 @@ _C.MODEL.MAX_RETRIES = None
 # structured output
 _C.STRUCTURED_OUTPUTTER = CN()
 # structured output name
-_C.STRUCTURED_OUTPUTTER.NAME = "teacher"
+_C.STRUCTURED_OUTPUTTER.NAME = "student"
 
 # data loader
 _C.LOADER = CN()
 # dataset name
-_C.LOADER.NAME = "dbe_kt22"
+_C.LOADER.NAME = "cupacfe"
 # dataset join key
-_C.LOADER.JOIN_KEY = "question_id"
-# run large validation set
-_C.LOADER.RUN_LARGE_VAL = False
+_C.LOADER.JOIN_KEY = None
 
 # example formatter
 _C.EXAMPLE_FORMATTER = CN()
 # interactions
 _C.EXAMPLE_FORMATTER.INTERACTIONS = CN()
-_C.EXAMPLE_FORMATTER.INTERACTIONS.NAME = "quotes"
+_C.EXAMPLE_FORMATTER.INTERACTIONS.NAME = "open_reading"
 # questions
 _C.EXAMPLE_FORMATTER.QUESTIONS = CN()
-_C.EXAMPLE_FORMATTER.QUESTIONS.NAME = "quotes"
+_C.EXAMPLE_FORMATTER.QUESTIONS.NAME = "mcq_reading_quotes"
 
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
 # example selector name
 _C.EXAMPLE_SELECTOR.NAME = "studentlevel_random"
 # number of examples to select
-_C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 3
+_C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 1
 # example selector embedding model
 _C.EXAMPLE_SELECTOR.EMBEDDING = "text-embedding-3-large"
 
 # systemprompt
 _C.PROMPT = CN()
 # system prompt name
-_C.PROMPT.NAME = "replicate_teacher_onion"
+_C.PROMPT.NAME = "roleplay_student_pepper"
 
 _C.ROLEPLAY = CN()
 # number of student levels to simulate
