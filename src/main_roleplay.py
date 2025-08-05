@@ -198,14 +198,14 @@ def main() -> None:
     args = parser.parse_args()
 
     # config
-    configs = load_configs(args.config, freeze=False)
+    configs = load_configs(args.config, problem_type="roleplay", freeze=False)
 
     # remove previous contents (take dir form first cfg)
     delete_previous_content(configs[0].OUTPUT_DIR)
 
     # logical checks before start running
     for cfg in configs:
-        check_cfg(cfg)
+        check_cfg(cfg, problem_type="roleplay")
 
     # langfuse
     langfuse_session = Langfuse()
