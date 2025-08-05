@@ -229,6 +229,32 @@ def build_roleplay_student_tomato(few_shot_prompt, native_str_output: bool) -> l
     return messages
 
 
+@PROMPT_REGISTRY.register("roleplay_student_pepper")
+def build_roleplay_student_pepper(few_shot_prompt, native_str_output: bool) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are a student of level {student_level_group} {student_scale} working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
+        "You are shown a set of questions that you answered earlier in the exam, together with the correct answers and your student answers. "  # noqa
+        "Analyse your responses to the questions and identify the possible misconceptions that led to answering incorrectly. "  # noqa
+        "Inspect the new question and think how you would answer it as a student of level {student_level_group} {student_scale}. "  # noqa
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+        "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
+        "If you answer correctly, explain why you think the answer is correct. "
+        "Provide your answer as the integer index of the multiple choice option."
+    )
+    human1_prompt_str = "Question-answer records:"
+    human2_prompt_str = "New multiple choice question:\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human1_prompt_str),
+        few_shot_prompt,
+        ("human", human2_prompt_str),
+    ]
+    return messages
+
+
 @PROMPT_REGISTRY.register(
     "roleplay_teacher_onion"
 )  # NOTE: previously "roleplay_teacher_C"?
