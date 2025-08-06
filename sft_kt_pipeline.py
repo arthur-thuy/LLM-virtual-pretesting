@@ -42,12 +42,20 @@ TEMPERATURE = 1
 # Prompt templates
 # ----------------------------
 
+# SYSTEM_PROMPT = (
+#     "You are a student working on an exam on databases, containing multiple choice questions. "
+#     "You are shown a set of questions that you answered earlier in the exam, together with the correct answers and your answers. "
+#     "Analyze your responses to identify possible misconceptions that led to incorrect answers. "
+#     "Inspect the new question and think how you would answer it as such a student. Consider all possible misconceptions that would affect the answer. "
+#     # "Answer incorrectly if that is what the student is likely to do for this question. "
+#     "What wrong answer would the student choose?"
+#     "Important: Respond with ONLY the integer index (1-based) of the chosen multiple choice option. Do not include any other text."
+# )
+
 SYSTEM_PROMPT = (
-    "You are a student of the level {{student_level_group}} working on an exam on databases, containing multiple choice questions. "
-    "You are shown a set of questions that you answered earlier in the exam, together with the correct answers and your student answers. "
-    "Analyze your responses to identify possible misconceptions that led to incorrect answers. "
-    "Inspect the new question and think how you would answer it as such a student. "
-    "You may answer incorrectly if that is what the student is likely to do for this question. "
+    "You are an expert student simulator. Your sole task is to predict the answer a specific student would give to a multiple-choice question on a database exam. Your performance is judged ONLY on how accurately you match the student's choice, not on whether the answer is correct."
+    "You will be given the student's recent question-answer history, and a new question."
+    "Analyze the student's history to identify patterns of misconceptions or knowledge gaps. Based on this analysis, determine the answer the student is most likely to choose for the new question, even if that answer is incorrect."
     "Important: Respond with ONLY the integer index (1-based) of the chosen multiple choice option. Do not include any other text."
 )
 
@@ -345,15 +353,15 @@ def build_jsonl_for_split(
 
             line = {
                 "messages": messages + [{"role": "assistant", "content": str(target)}],
-                "meta": {
-                    "student_id": sid,
-                    "question_id": inter.question_id,
-                    # "difficulty": q.difficulty,
-                    # "num_options": q.num_options,
-                    # "time": inter.time.isoformat() if pd.notna(inter.time) else None,
-                    "correct_option_id": q.correct_idx,
-                    "student_option_correct": inter.correct_flag,
-                },
+                # "meta": {
+                #     "student_id": sid,
+                #     "question_id": inter.question_id,
+                #     # "difficulty": q.difficulty,
+                #     # "num_options": q.num_options,
+                #     # "time": inter.time.isoformat() if pd.notna(inter.time) else None,
+                #     "correct_option_id": q.correct_idx,
+                #     "student_option_correct": inter.correct_flag,
+                # },
             }
             output.append(line)
             # slide window to include the just-answered interaction
@@ -537,12 +545,12 @@ def main():
     parser.add_argument("--eval_max", type=int, default=50, help="Max eval items (for quick runs).")
     parser.add_argument("--prepare_only", action="store_true", help="Only prepare JSONL, do not start fine-tune.")
     parser.add_argument("--skip_eval", action="store_true", help="Skip evaluation after fine-tuning.")
-    parser.add_argument("--budget-usd", type=float, default=5.0,
+    parser.add_argument("--budget-usd", type=float, default=35.0,
         help="Max training budget for one run; if estimate exceeds this, subsample train.")
     parser.add_argument("--trainer_mtok_per_hour", type=float, default=120.0,
         help="Assumed trainer throughput in million tokens/hour for estimating runtime cost.")
-    parser.add_argument("--epochs", type=int, default=1,
-        help="Number of epochs for fine-tuning (default 1 to stay on budget).")
+    parser.add_argument("--epochs", type=int, default=3,
+        help="Number of epochs for fine-tuning (default 3).")
     args = parser.parse_args()
 
     random.seed(RANDOM_SEED)
@@ -660,7 +668,7 @@ def main():
         print("[done] Prepared JSONL files only (--prepare_only).")
         return
     
-    input("Press any key to continue (base model evaluation)...")
+    # input("Press any key to continue (base model evaluation)...")
 
     from openai import OpenAI
     client = OpenAI()
