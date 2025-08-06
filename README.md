@@ -14,7 +14,7 @@ source .venv/bin/activate
 With configurations in e.g., `config/experiment/`:
 ```bash
 cd src
-python main.py experiment
+python main_replication.py experiment
 ```
 Optional argument: `--dry-run` to predict only for 10 examples
 > NOTE: in order to save the logs to a file, append `2>&1 | tee output/log` to the command above.
