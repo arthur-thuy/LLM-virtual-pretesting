@@ -166,6 +166,8 @@ def evaluate(
         "Evaluate - end",
         accuracy=metrics["acc_student_pred"],
         accuracy_kt=metrics["acc_kt"],
+        correctness_llm=metrics["acc_true_pred"],
+        correctness_student=metrics["acc_true_student"],
     )
 
     if trace_id is not None:
