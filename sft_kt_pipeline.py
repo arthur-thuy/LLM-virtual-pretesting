@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # sft_kt_pipeline.py
-# Supervised fine-tuning pipeline for knowledge tracing on o4-mini.
-# - Prepares JSONL (messages format) with your prompt
-# - Starts fine-tune on o4-mini
+# Supervised fine-tuning pipeline for knowledge tracing on gpt-4o-mini-2024-07-18.
+# - Prepares JSONL (messages format) with the provided (hardcoded) prompt
+# - Starts fine-tune on gpt-4o-mini-2024-07-18
 # - Evaluates on _test split (exact match with student_option_id)
 
 import os
@@ -11,6 +11,7 @@ import json
 import ast
 import time
 import math
+import numpy as np
 import argparse
 import random
 from dataclasses import dataclass
@@ -30,19 +31,19 @@ except Exception:
 # Configuration defaults
 # ----------------------------
 
-DEFAULT_MODEL = "o4-mini"
+DEFAULT_MODEL = "gpt-4o-mini-2024-07-18"
 HISTORY_K = 5  # number of prior examples to include
 RANDOM_SEED = 42
 VAL_FRACTION = 0.08  # validation split by student_id
 MAX_OUTPUT_TOKENS = 4  # at inference time; index-only
-TEMPERATURE = 0.0
+TEMPERATURE = 1
 
 # ----------------------------
-# Prompt templates (adjusted per your specs)
+# Prompt templates
 # ----------------------------
 
 SYSTEM_PROMPT = (
-    "You are a student working on an exam on databases, containing multiple choice questions. "
+    "You are a student of the level {{student_level_group}} working on an exam on databases, containing multiple choice questions. "
     "You are shown a set of questions that you answered earlier in the exam, together with the correct answers and your student answers. "
     "Analyze your responses to identify possible misconceptions that led to incorrect answers. "
     "Inspect the new question and think how you would answer it as such a student. "
@@ -56,6 +57,68 @@ HUMAN2_PREFIX = "New multiple choice question:\n"
 # ----------------------------
 # Utilities
 # ----------------------------
+def evaluate_base_model(client, base_model: str, eval_prompts: List[Dict[str, Any]], max_items: Optional[int] = None) -> Dict[str, Any]:
+    acc_numer = 0; acc_denom = 0; details = []
+    total = len(eval_prompts if max_items is None else eval_prompts[:max_items])
+    print(f"[baseline] Evaluating base model {base_model} on {total} examples...")
+    for ex in tqdm(eval_prompts[:max_items] if max_items is not None else eval_prompts):
+        messages = ex["messages"]
+        gold = ex["gold"]; num_opts = int(gold.get("num_options", 4))
+        resp = client.chat.completions.create(
+            model=base_model,
+            messages=messages,
+            temperature=TEMPERATURE,
+        )
+        out = resp.choices[0].message.content if resp.choices else None
+        pred = parse_index(out, num_opts)
+        correct = (pred == int(gold["student_option_id"]))
+        acc_numer += int(correct); acc_denom += 1
+        details.append({"gold": int(gold["student_option_id"]), "pred": pred, "raw": out, "correct": correct})
+    return {"overall_accuracy": acc_numer/acc_denom if acc_denom else 0.0, "n": acc_denom, "details": details}
+
+
+def estimate_tokens_per_example(train_df, qmap, hist_k=5, sample_n=4000):
+    # build sample prompts and approximate tokens (chars/4)
+    df = train_df.sort_values(["student_id","time","interact_id"])
+    system = ("You are a student of the level {{student_level_group}} working on an exam on databases, containing multiple choice questions. "
+              "You are shown a set of questions that you answered earlier in the exam, together with the correct answers and your student answers. "
+              "Analyze your responses to identify possible misconceptions that led to incorrect answers. "
+              "Inspect the new question and think how you would answer it as such a student. "
+              "You may answer incorrectly if that is what the student is likely to do for this question. "
+              "Important: Respond with ONLY the integer index (1-based) of the chosen multiple choice option. Do not include any other text.")
+    HUMAN1="Question-answer records:"; HUMAN2="New multiple choice question:\n"
+    def fmt_options(opts): return "\n".join(f"{i+1}) {opt}" for i,opt in enumerate(opts))
+    def hist_block(prev_rows):
+        parts=[]
+        for r in prev_rows:
+            qrow=qmap.get(int(r["question_id"]))
+            if not qrow: 
+                continue
+            verdict = "Correct" if bool(r["student_option_correct"]) else "Incorrect"
+            parts.append(
+                f"Q{r['question_id']}: {qrow['q_text']}\nOptions:\n{fmt_options(qrow['options'])}\n"
+                f"Correct answer: {qrow['correct_option_id']}\nYour answer: {r['student_option_id']} ({verdict})\n---"
+            )
+        return "\n".join(parts) if parts else "(No prior records)\n---"
+
+    tok_estimates=[]
+    prev_by_student={}
+    taken=0
+    for _,row in df.iterrows():
+        sid=row["student_id"]
+        prev_by_student.setdefault(sid, [])
+        qrow=qmap.get(int(row["question_id"]))
+        if not qrow:
+            prev_by_student[sid].append(row); continue
+        hb = hist_block(prev_by_student[sid][-hist_k:])
+        nb = f"Q{row['question_id']}: {qrow['q_text']}\nOptions:\n{fmt_options(qrow['options'])}"
+        user = f"{HUMAN1}\n{hb}\n\n{HUMAN2}{nb}"
+        chars = len(system) + len(user) + 2
+        tok_estimates.append(chars/4.0)
+        prev_by_student[sid].append(row)
+        taken += 1
+        if taken >= sample_n: break
+    return float(np.mean(tok_estimates)) if tok_estimates else 900.0
 
 def parse_option_texts(x: Any) -> List[str]:
     """Parse the option_texts column which is a string representation of a Python list."""
@@ -102,7 +165,7 @@ def fmt_history_record(qid: Any,
         fmt_options(options),
         f"Correct answer: {correct_idx}",
         f"Your answer: {student_idx}{verdict_str}",
-        "---",
+        "\n\n",
     ]
     return "\n".join(block)
 
@@ -178,15 +241,15 @@ class Interaction:
     student_id: Any
     question_id: Any
     student_idx: int
+    student_level_group: int
     correct_flag: Optional[bool]
     time: pd.Timestamp
 
 def load_interactions(csv_path: str) -> List[Interaction]:
     dfi = pd.read_csv(csv_path)
     required = {"interact_id", "student_id", "question_id", "student_option_id", "student_option_correct", "time"}
-    missing = required - set(dfi.columns)
-    if missing:
-        raise ValueError(f"Interactions CSV missing columns: {missing}")
+    if [r for r in required if r not in dfi.columns]:
+        raise ValueError(f"Interactions CSV missing columns: {[r for r in required if r not in dfi.columns]}")
     # parse datetime and coerce fields
     dfi["time"] = pd.to_datetime(dfi["time"], errors="coerce")
     dfi["student_option_id"] = dfi["student_option_id"].apply(lambda x: safe_int(x, default=None))
@@ -200,6 +263,7 @@ def load_interactions(csv_path: str) -> List[Interaction]:
                 interact_id=getattr(row, "interact_id"),
                 student_id=getattr(row, "student_id"),
                 question_id=getattr(row, "question_id"),
+                student_level_group=safe_int(getattr(row, "student_level_group"), default=None),
                 student_idx=safe_int(getattr(row, "student_option_id"), default=None),
                 correct_flag=coerce_bool(getattr(row, "student_option_correct")),
                 time=getattr(row, "time"),
@@ -211,12 +275,12 @@ def load_interactions(csv_path: str) -> List[Interaction]:
 # JSONL builders
 # ----------------------------
 
-def build_example_messages(history_blocks: str, new_question_block: str) -> List[Dict[str, str]]:
+def build_example_messages(history_blocks: str, new_question_block: str, student_level_group: int) -> List[Dict[str, str]]:
     # We combine the two human parts into one user message for simplicity,
-    # keeping the same semantics as your original prompt.
-    user_content = f"{HUMAN1_HEADER}\n{history_blocks}\n\n{HUMAN2_PREFIX}{new_question_block}"
+    # keeping the same semantics as the original prompt.
+    user_content = f"{HUMAN1_HEADER}\n{history_blocks}\n\n{HUMAN2_PREFIX}{new_question_block}\nYour answer: "
     return [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": SYSTEM_PROMPT.replace('{{student_level_group}}', str(student_level_group))},
         {"role": "user", "content": user_content},
     ]
 
@@ -242,13 +306,11 @@ def build_jsonl_for_split(
     questions: Dict[Any, Question],
     history_k: int,
     students_for_split: Optional[set] = None,
-    restrict_to_students: Optional[set] = None,
     drop_missing_questions: bool = True
 ) -> List[Dict[str, Any]]:
     """
     Build JSONL lines for a split (train or val).
     - students_for_split: if provided, include only those students
-    - restrict_to_students: if provided, also restrict to those students (used for val build)
     """
     # group interactions by student and sort chronologically
     by_student: Dict[Any, List[Interaction]] = defaultdict(list)
@@ -272,7 +334,7 @@ def build_jsonl_for_split(
             hist_blocks = format_history([(h_inter, questions.get(h_inter.question_id)) for h_inter in window if questions.get(h_inter.question_id) is not None])
 
             new_block = fmt_new_question(qid=inter.question_id, q_text=q.text, options=q.options)
-            messages = build_example_messages(hist_blocks, new_block)
+            messages = build_example_messages(hist_blocks, new_block, student_level_group=inter.student_level_group)
 
             # target is the student's chosen index (1-based)
             target = inter.student_idx
@@ -286,9 +348,9 @@ def build_jsonl_for_split(
                 "meta": {
                     "student_id": sid,
                     "question_id": inter.question_id,
-                    "difficulty": q.difficulty,
-                    "num_options": q.num_options,
-                    "time": inter.time.isoformat() if pd.notna(inter.time) else None,
+                    # "difficulty": q.difficulty,
+                    # "num_options": q.num_options,
+                    # "time": inter.time.isoformat() if pd.notna(inter.time) else None,
                     "correct_option_id": q.correct_idx,
                     "student_option_correct": inter.correct_flag,
                 },
@@ -320,7 +382,7 @@ def build_eval_prompts(
                 continue
             hist_blocks = format_history([(h_inter, questions.get(h_inter.question_id)) for h_inter in window if questions.get(h_inter.question_id) is not None])
             new_block = fmt_new_question(qid=inter.question_id, q_text=q.text, options=q.options)
-            messages = build_example_messages(hist_blocks, new_block)
+            messages = build_example_messages(hist_blocks, new_block, student_level_group=inter.student_level_group)
             prompts.append({
                 "messages": messages,
                 "gold": {
@@ -421,12 +483,12 @@ def evaluate_model_on_prompts(client, model: str, eval_prompts: List[Dict[str, A
         messages = ex["messages"]
         gold = ex["gold"]
         num_opts = int(gold.get("num_options", 4))
-        # Use Chat Completions for messages (o4-mini supports it as well)
+        # Use Chat Completions for messages (gpt-4o-mini-2024-07-18 supports it as well)
         resp = client.chat.completions.create(
             model=model,
             messages=messages,
             temperature=TEMPERATURE,
-            max_tokens=MAX_OUTPUT_TOKENS,
+            # max_completion_tokens=MAX_OUTPUT_TOKENS,
         )
         raw_out = resp.choices[0].message.content if (resp and resp.choices and resp.choices[0].message) else None
         pred = parse_index(raw_out, num_opts)
@@ -462,19 +524,25 @@ def evaluate_model_on_prompts(client, model: str, eval_prompts: List[Dict[str, A
 # ----------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="SFT pipeline for knowledge tracing (o4-mini).")
+    parser = argparse.ArgumentParser(description="SFT pipeline for knowledge tracing (gpt-4o-mini-2024-07-18).")
     parser.add_argument("--data-dir", type=str, default=".", help="Directory containing CSVs.")
-    parser.add_argument("--questions-csv", type=str, default=None, help="Path to questions CSV (defaults to *_questions.csv in data dir).")
-    parser.add_argument("--train-csv", type=str, default=None, help="Path to interactions train CSV (defaults to *_interactions_train.csv).")
-    parser.add_argument("--test-csv", type=str, default=None, help="Path to interactions test CSV (defaults to *_interactions_test.csv).")
-    parser.add_argument("--out-dir", type=str, default="./outputs_sft", help="Where to write JSONL and reports.")
-    parser.add_argument("--model", type=str, default=DEFAULT_MODEL, help="Base model to fine-tune (default: o4-mini).")
+    parser.add_argument("--questions_csv", type=str, default=None, help="Path to questions CSV (defaults to *_questions.csv in data dir).")
+    parser.add_argument("--train_csv", type=str, default=None, help="Path to interactions train CSV (defaults to *_interactions_train.csv).")
+    parser.add_argument("--test_csv", type=str, default=None, help="Path to interactions test CSV (defaults to *_interactions_test.csv).")
+    parser.add_argument("--out_dir", type=str, default="./outputs_sft", help="Where to write JSONL and reports.")
+    parser.add_argument("--model", type=str, default=DEFAULT_MODEL, help="Base model to fine-tune (default: gpt-4o-mini-2024-07-18).")
     parser.add_argument("--suffix", type=str, default="kt_o4mini", help="Suffix/name for the fine-tuned model.")
-    parser.add_argument("--val-frac", type=float, default=VAL_FRACTION, help="Fraction of students for validation.")
-    parser.add_argument("--hist-k", type=int, default=HISTORY_K, help="Number of prior interactions to include in context.")
-    parser.add_argument("--eval-max", type=int, default=None, help="Max eval items (for quick runs).")
-    parser.add_argument("--prepare-only", action="store_true", help="Only prepare JSONL, do not start fine-tune.")
-    parser.add_argument("--skip-eval", action="store_true", help="Skip evaluation after fine-tuning.")
+    parser.add_argument("--val_frac", type=float, default=VAL_FRACTION, help="Fraction of students for validation.")
+    parser.add_argument("--hist_k", type=int, default=HISTORY_K, help="Number of prior interactions to include in context.")
+    parser.add_argument("--eval_max", type=int, default=50, help="Max eval items (for quick runs).")
+    parser.add_argument("--prepare_only", action="store_true", help="Only prepare JSONL, do not start fine-tune.")
+    parser.add_argument("--skip_eval", action="store_true", help="Skip evaluation after fine-tuning.")
+    parser.add_argument("--budget-usd", type=float, default=5.0,
+        help="Max training budget for one run; if estimate exceeds this, subsample train.")
+    parser.add_argument("--trainer_mtok_per_hour", type=float, default=120.0,
+        help="Assumed trainer throughput in million tokens/hour for estimating runtime cost.")
+    parser.add_argument("--epochs", type=int, default=1,
+        help="Number of epochs for fine-tuning (default 1 to stay on budget).")
     args = parser.parse_args()
 
     random.seed(RANDOM_SEED)
@@ -486,14 +554,14 @@ def main():
         cands = [os.path.join(args.data_dir, f) for f in os.listdir(args.data_dir) if f.endswith(glob_suffix)]
         return cands[0] if cands else None
 
-    q_csv = args.questions_csv or find_one("_questions.csv")
-    train_csv = args.train_csv or find_one("_interactions_train.csv")
-    test_csv = args.test_csv or find_one("_interactions_test.csv")
+    q_csv = args.questions_csv or find_one("dbe_kt22_questions.csv")
+    train_csv = args.train_csv or find_one("dbe_kt22_interactions_train.csv")
+    test_csv = args.test_csv or find_one("dbe_kt22_interactions_test.csv")
 
     if not q_csv or not os.path.exists(q_csv):
-        raise FileNotFoundError("Questions CSV not found. Use --questions-csv to specify it.")
+        raise FileNotFoundError("Questions CSV not found. Use --questions_csv to specify it.")
     if not train_csv or not os.path.exists(train_csv):
-        raise FileNotFoundError("Train interactions CSV not found. Use --train-csv to specify it.")
+        raise FileNotFoundError("Train interactions CSV not found. Use --train_csv to specify it.")
     if test_csv and not os.path.exists(test_csv):
         test_csv = None  # ignore if bad path
 
@@ -502,12 +570,56 @@ def main():
     if test_csv:
         print(f"[load] test:      {test_csv}")
     else:
-        print("[load] test:      (not found; evaluation will be skipped unless --skip-eval)")
-
+        print("[load] test:      (not found; evaluation will be skipped unless --skip_eval)")
     # Load data
     questions = load_questions(q_csv)
     train_inters = load_interactions(train_csv)
     test_inters = load_interactions(test_csv) if test_csv else []
+    dfq = pd.read_csv(q_csv)
+    def parse_opts(x):
+        import ast
+        try: return ast.literal_eval(x)
+        except Exception: return []
+    dfq["options"] = dfq["option_texts"].apply(parse_opts)
+    qmap_est = dfq.set_index("question_id").to_dict(orient="index")
+
+    train_df = pd.read_csv(train_csv)
+    train_df["time"] = pd.to_datetime(train_df["time"], errors="coerce")
+
+    avg_tok = estimate_tokens_per_example(train_df, qmap_est, hist_k=args.hist_k, sample_n=4000)
+    n_train_rows = len(train_df)
+    epoch_tokens = avg_tok * n_train_rows
+
+    # Estimate cost for requested epochs
+    trainer_tph_tokens = args.trainer_mtok_per_hour * 1_000_000.0
+    hours_per_epoch = epoch_tokens / trainer_tph_tokens
+    est_cost = hours_per_epoch * 100.0 * args.epochs  # $100/hr for gpt-4o-mini-2024-07-18 training
+    print(f"[estimate] avg_tokens/example≈{avg_tok:.0f}, rows={n_train_rows}, tokens/epoch≈{epoch_tokens/1e6:.1f}M, hours/epoch≈{hours_per_epoch:.2f}, est_cost≈${est_cost:.2f}")
+
+    # If estimated cost exceeds budget, subsample by student to meet budget
+    retain_frac = 1.0
+    if est_cost > args.budget_usd:
+        target_hours = args.budget_usd / 100.0
+        target_tokens = target_hours * trainer_tph_tokens / max(1, args.epochs)
+        retain_frac = min(1.0, target_tokens / epoch_tokens)
+        print(f"[budget] budget=${args.budget_usd:.2f} → target tokens≈{target_tokens/1e6:.1f}M → retain≈{retain_frac*100:.1f}%")
+
+        # stratified subsample by student
+        rng = np.random.default_rng(42)
+        def take_frac(g):
+            m = int(len(g) * retain_frac)
+            if m < 1: m = 1
+            return g.sample(n=m, random_state=42)
+        train_df = train_df.groupby("student_id", group_keys=False).apply(take_frac)
+
+        # write back to CSV path to keep rest of pipeline unchanged (optional)
+        tmp_sub = os.path.join(args.out_dir, "interactions_train_subsampled.csv")
+        train_df.to_csv(tmp_sub, index=False)
+        print(f"[budget] wrote subsampled interactions → {tmp_sub}")
+        # reload interactions from subsample for the build steps
+        train_inters = load_interactions(tmp_sub)
+    else:
+        train_inters = load_interactions(train_csv)
 
     # Report basic stats
     n_q = len(questions)
@@ -545,15 +657,25 @@ def main():
         print(f"[write] eval_prompts.jsonl -> {eval_jsonl_path}  ({len(eval_prompts)} examples)")
 
     if args.prepare_only:
-        print("[done] Prepared JSONL files only (--prepare-only).")
+        print("[done] Prepared JSONL files only (--prepare_only).")
         return
-    input()
+    
+    input("Press any key to continue (base model evaluation)...")
+
+    from openai import OpenAI
+    client = OpenAI()
+
+    if eval_jsonl_path and not args.skip_eval:
+        base_report = evaluate_base_model(client, args.model, read_jsonl(eval_jsonl_path), max_items=args.eval_max)
+        base_path = os.path.join(args.out_dir, "baseline_report.json")
+        with open(base_path, "w", encoding="utf-8") as f: json.dump(base_report, f, indent=2)
+        print(f"[baseline] base accuracy={base_report['overall_accuracy']:.4f} on n={base_report['n']} → {base_path}")
+
+    input("Press any key to continue (SFT)...")
 
     # ----------------------------
     # Start fine-tuning
     # ----------------------------
-    from openai import OpenAI
-    client = OpenAI()
 
     print("[upload] uploading training/validation files to OpenAI...")
     train_file_id = upload_file(client, train_jsonl_path)
@@ -576,7 +698,7 @@ def main():
     # Evaluation
     # ----------------------------
     if args.skip_eval or not eval_jsonl_path:
-        print("[eval] Skipped (no test file or --skip-eval).")
+        print("[eval] Skipped (no test file or --skip_eval).")
         return
 
     eval_prompts = read_jsonl(eval_jsonl_path)
