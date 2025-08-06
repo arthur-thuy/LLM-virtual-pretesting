@@ -48,6 +48,19 @@ class StrOutputStudent(BaseModel):
     student_answer: int = Field(description="The index of your answer")
 
 
+# @STRUCTURED_OUTPUTTER_REGISTRY.register("student_miscon")
+# class StrOutputStudentMiscon(BaseModel):
+#     """Answer to a multiple-choice question."""
+
+#     answer_explanation: str = Field(
+#         description=(
+#             "If answering correctly, explain how the student would arrive to the answer given the mastered knowledge concepts. "  # noqa
+#             "If answering incorrectly, explain how the student would arrive to the answer given the misconceptions."  # noqa
+#         )
+#     )
+#     student_answer: int = Field(description="The index of the student's answer")
+
+
 @STRUCTURED_OUTPUTTER_REGISTRY.register("luca_emnlp")
 class StrOutputLucaEMNLP(BaseModel):
     """Answer to a multiple-choice question."""
@@ -68,6 +81,7 @@ class StrOutputLucaEMNLP(BaseModel):
 @STRUCTURED_OUTPUTTER_REGISTRY.register("misconceptions")
 class StrOutputMisconceptions(BaseModel):
     """Answer to a multiple-choice question."""
+
     # TODO: Use letters A, B, C, D to refer to the options
 
     correct_1_knowledge_concepts: str = Field(
