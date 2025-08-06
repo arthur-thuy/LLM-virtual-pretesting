@@ -13,11 +13,11 @@ _C.RUNS = 1
 # model architecture
 _C.MODEL = CN()
 # model name
-_C.MODEL.NAME = "qwen3:8b"
+_C.MODEL.NAME = "o4-mini-2025-04-16"  # "qwen3:8b"
 # model temperature
 _C.MODEL.TEMPERATURE = 0.0
 # max tokens
-_C.MODEL.MAX_TOKENS = 1024
+_C.MODEL.MAX_TOKENS = None
 # timeout (openai and anthropic only)
 _C.MODEL.TIMEOUT = None
 # max retries (openai and anthropic only)
@@ -44,25 +44,10 @@ _C.EXAMPLE_FORMATTER = CN()
 _C.EXAMPLE_FORMATTER.QUESTIONS = CN()
 _C.EXAMPLE_FORMATTER.QUESTIONS.NAME = "quotes"
 
-# # example selector
-# _C.EXAMPLE_SELECTOR = CN()
-# # example selector name
-# _C.EXAMPLE_SELECTOR.NAME = "studentlevel_random"
-# # number of examples to select
-# _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 1
-# # example selector embedding model
-# _C.EXAMPLE_SELECTOR.EMBEDDING = "text-embedding-3-large"
-
 # systemprompt
 _C.PROMPT = CN()
 # system prompt name
 _C.PROMPT.NAME = "collect_misconceptions"
-
-# _C.ROLEPLAY = CN()
-# # number of student levels to simulate
-# _C.ROLEPLAY.NUM_STUDENT_LEVELS = 5
-# # student level scale
-# _C.ROLEPLAY.STUDENT_SCALE = "proficiency_5_str"
 
 
 def get_cfg_defaults() -> CN:
