@@ -362,9 +362,10 @@ def build_collect_misconceptions(few_shot_prompt, native_str_output: bool) -> li
     system_prompt_str = (
         "You are shown a multiple choice question of an exam on {exam_type}. "
         "You have to analyse the question as follows:\n"
-        "- for the correct answer option, list the knowledge concepts that the student should know to correctly select it;\n"  # noqa
-        "- for each distractor, list the misconceptions that might lead the student to select it;\n\n"  # noqa
+        "- Skills: for the correct answer option, list the knowledge concepts that the student should know to correctly select it;\n"  # noqa
+        "- Misconceptions: for each distractor, list the misconceptions that might lead the student to select it;\n\n"  # noqa
         "Your answers should be very concise; each field should have a maximum of 10 words. "  # noqa
+        "The skill description should start with 'Understands' and the misconception description should start with 'Confuses'. "  # noqa
     )
     human_prompt_str = "Multiple choice question:\n{input}"
 
@@ -373,5 +374,58 @@ def build_collect_misconceptions(few_shot_prompt, native_str_output: bool) -> li
     messages = [
         ("system", system_prompt_str),
         ("human", human_prompt_str),
+    ]
+    return messages
+
+
+#######################################
+### REPLICATING WITH MISCONCEPTIONS ###
+#######################################
+
+
+@PROMPT_REGISTRY.register("replicate_miscon_student_chocolate")
+def build_replicate_miscon_student_chocolate(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are a student working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
+        "From your earlier answers on the exam, the teacher has identified a set of knowledge concepts that you master and a set of misconceptions that you have. "  # noqa
+        "Inspect the new question and think how you would answer it as a student, keeping in mind your skills and misconceptions. "  # noqa
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+        "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
+        "If you answer correctly, explain why you think the answer is correct. "
+        "Provide your answer as the integer index of the multiple choice option."
+    )
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        few_shot_prompt,
+        ("human", human1_prompt_str),
+    ]
+    return messages
+
+
+@PROMPT_REGISTRY.register("replicate_miscon_student_chocolate_zero")
+def build_replicate_miscon_student_chocolate_zero(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are a student working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
+        "Inspect the new question and think how you would answer it as a student. "  # noqa
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+        "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
+        "If you answer correctly, explain why you think the answer is correct. "
+        "Provide your answer as the integer index of the multiple choice option."
+    )
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human1_prompt_str),
     ]
     return messages
