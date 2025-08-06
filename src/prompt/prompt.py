@@ -362,8 +362,8 @@ def build_collect_misconceptions(few_shot_prompt, native_str_output: bool) -> li
     system_prompt_str = (
         "You are shown a multiple choice question of an exam on {exam_type}. "
         "You have to analyse the question as follows:\n"
-        "  - for the correct answer option, list the knowledge concepts that the student should know to correctly select it;\n"  # noqa
-        "  - for each distractor, list the misconceptions that might lead the student to select it;\n"  # noqa
+        "- for the correct answer option, list the knowledge concepts that the student should know to correctly select it;\n"  # noqa
+        "- for each distractor, list the misconceptions that might lead the student to select it;\n\n"  # noqa
         "Your answers should be very concise; each field should have a maximum of 10 words. "  # noqa
     )
     human_prompt_str = "Multiple choice question:\n{input}"
