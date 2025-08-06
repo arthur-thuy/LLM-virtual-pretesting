@@ -82,7 +82,7 @@ def _add_derived_configs(
     """
     # add derived config variables at runtime
     if problem_type == "replicate":
-        cfg.ID = create_config_id(cfg)
+        cfg.ID = create_replication_config_id(cfg)
     elif problem_type == "roleplay":
         cfg.ID_ROLEPLAY = create_roleplay_config_id(cfg)
     elif problem_type == "misconceptions":
@@ -137,8 +137,8 @@ def load_configs(
     return configs
 
 
-def create_config_id(cfg: CfgNode) -> str:
-    """Create identifier for config.
+def create_replication_config_id(cfg: CfgNode) -> str:
+    """Create identifier for config during replication.
 
     Parameters
     ----------
@@ -154,7 +154,6 @@ def create_config_id(cfg: CfgNode) -> str:
     cfg_id += f"~T_{cfg.MODEL.TEMPERATURE}"
     cfg_id += f"~SO_{cfg.STRUCTURED_OUTPUTTER.NAME}"
     cfg_id += f"~SP_{cfg.PROMPT.NAME}"
-    cfg_id += f"~EFQ_{cfg.EXAMPLE_FORMATTER.QUESTIONS.NAME}"
     cfg_id += f"~EFI_{cfg.EXAMPLE_FORMATTER.INTERACTIONS.NAME}"
     cfg_id += f"~ES_{cfg.EXAMPLE_SELECTOR.NAME}{cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES}"
     return cfg_id
