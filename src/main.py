@@ -32,6 +32,7 @@ from tools.configurator import (
     check_config_equivalence,
 )
 from tools.constants import TEST, TRAIN, VALIDATION, VALLARGE, VALSMALL  # noqa
+from tools.data_manager.utils import bring_correct_option_forward
 from tools.evaluate import evaluate, predict
 from tools.utils import (
     delete_previous_content,
@@ -90,6 +91,15 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         num_interactions=len(datasets[VALIDATION]),
     )
 
+    if cfg.PROBLEM_TYPE == "misconceptions":
+        # bring correct option to first place
+        datasets[TRAIN] = datasets[TRAIN].apply(
+            bring_correct_option_forward,
+            axis=1,
+        )
+        # keep only train questions with 4 answer options
+        datasets[TRAIN] = datasets[TRAIN][datasets[TRAIN]["num_answer_options"] == 4]
+
     # subset
     if args.dry_run:
         logger.info("Dry run: using only 10 observations")
@@ -97,7 +107,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     # dataframes
     datasets_fmt = build_example_formatter(
-        example_formatter_cfg=cfg.EXAMPLE_FORMATTER,
+        example_formatter_cfg=cfg.EXAMPLE_FORMATTER.INTERACTIONS,
         datasets=datasets,
         is_interaction=True,
     )
