@@ -59,29 +59,49 @@ def build_prompt(
             native_structured_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
         )
     else:
-        logger.info(
-            "Building few-shot prompt",
-            system_prompt=cfg.PROMPT.NAME,
-            native_structured_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
-            example_selector=cfg.EXAMPLE_SELECTOR.NAME,
-            num_examples=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
-        )
         if cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES == 0 :
             # If no examples are used, we can skip the example selector
             few_shot_prompt = None
+            logger.info(
+                "Building zero-shot prompt",
+                system_prompt=cfg.PROMPT.NAME,
+                native_structured_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+            )
         else:
-            example_selector, input_vars = build_example_selector(
-                cfg, examples=examples, q_ids_train=q_ids_train
+            logger.info(
+                "Building few-shot prompt",
+                system_prompt=cfg.PROMPT.NAME,
+                native_structured_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+                example_selector=cfg.EXAMPLE_SELECTOR.NAME,
+                num_examples=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
             )
-            few_shot_prompt = FewShotChatMessagePromptTemplate(
-                # The input variables select the values to pass to the example_selector
-                input_variables=input_vars,
-                example_selector=example_selector,
-                # each example is 2 messages: 1 human, 1 AI
-                example_prompt=ChatPromptTemplate.from_messages(
-                    [("human", "{input}"), ("ai", "{output}")]
-                ),
-            )
+            if cfg.PROBLEM_TYPE in ["replicate", "roleplay"]:
+                example_selector, input_vars = build_example_selector(
+                    cfg, examples=examples, q_ids_train=q_ids_train
+                )
+                few_shot_prompt = FewShotChatMessagePromptTemplate(
+                    # values to pass to the example_selector
+                    input_variables=input_vars,
+                    example_selector=example_selector,
+                    # each example is 2 messages: 1 human, 1 AI
+                    example_prompt=ChatPromptTemplate.from_messages(
+                        [("human", "{input}"), ("ai", "{output}")]
+                    ),
+                )
+
+            elif cfg.PROBLEM_TYPE == "misconceptions":
+                example_selector, input_vars = build_example_selector(
+                    cfg, examples=examples, q_ids_train=q_ids_train
+                )
+                few_shot_prompt = FewShotChatMessagePromptTemplate(
+                    # values to pass to the example_selector
+                    input_variables=input_vars,
+                    example_selector=example_selector,
+                    # each example is 2 messages: 1 human, 1 AI
+                    example_prompt=ChatPromptTemplate.from_messages(
+                        [("human", "{skills_misconceptions}")]
+                    ),
+                )
 
     # Set up a parser (not used if model supports structured output)
     parser = PydanticOutputParser(pydantic_object=struc_output)
