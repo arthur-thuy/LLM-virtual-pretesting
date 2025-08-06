@@ -1,0 +1,8 @@
+EXAMPLE_SELECTOR:
+  NUM_EXAMPLES: 0
+MODEL:
+  TEMPERATURE: 1.0
+PROMPT:
+  NAME: replicate_miscon_student_chocolate_zero
+STRUCTURED_OUTPUTTER:
+  NAME: student

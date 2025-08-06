@@ -1,0 +1,9 @@
+EXAMPLE_SELECTOR:
+  NAME: miscon_studentid_random
+  NUM_EXAMPLES: 3
+MODEL:
+  TEMPERATURE: 0.0
+PROMPT:
+  NAME: replicate_miscon_student_chocolate
+STRUCTURED_OUTPUTTER:
+  NAME: student
