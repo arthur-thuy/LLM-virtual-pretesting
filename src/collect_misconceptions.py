@@ -12,6 +12,7 @@ load_env(os.path.join("..", ".env"))  # noqa
 
 # related third party imports
 import structlog
+import pydantic
 from langfuse import Langfuse
 from langfuse.decorators import langfuse_context, observe
 from yacs.config import CfgNode
@@ -30,6 +31,7 @@ from tools.configurator import (
     save_config,
 )
 from tools.constants import TEST, TRAIN, VALIDATION  # noqa
+from tools.data_manager.utils import bring_correct_option_forward
 from tools.evaluate import predict
 from tools.utils import (
     delete_previous_content,
@@ -55,6 +57,41 @@ parser.add_argument(
 )
 
 
+def output_to_dict(llm_outputs: list[pydantic.BaseModel], inputs: list[dict]) -> dict:
+    """Convert LLM outputs and inputs into a structured dictionary.
+
+    Parameters
+    ----------
+    llm_outputs : list[pydantic.BaseModel]
+        A list of LLM output objects, which are pydantic objects
+    inputs : list[dict]
+        A list of input data dictionaries, each containing a "question_id" key.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping question IDs to their corresponding misconception data.
+    """
+    miscon_mapping = {}
+    for llm_output, input_data in zip(llm_outputs, inputs):
+        if llm_output is not None:
+            dict_tmp = {
+                1: llm_output.correct_1_knowledge_concepts,
+                2: llm_output.distractor_2_misconceptions,
+                3: llm_output.distractor_3_misconceptions,
+                4: llm_output.distractor_4_misconceptions,
+            }
+        else:
+            dict_tmp = {
+                1: None,
+                2: None,
+                3: None,
+                4: None,
+            }
+        miscon_mapping[input_data["question_id"]] = dict_tmp
+    return miscon_mapping
+
+
 # Create a trace via Langfuse decorators and get a Langchain Callback handler for it
 @observe()  # automtically log function as a trace to Langfuse
 def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -> None:
@@ -62,7 +99,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # update trace attributes (e.g, name, session_id, user_id)
     langfuse_context.update_current_trace(
         # name="custom-trace",
-        session_id=f"{cfg.ID_MISCON}~Run{run_n}",
+        session_id=f"{cfg.ID_MISCON}",
         metadata=convert_to_dict(cfg),
         tags=["dry-run" if args.dry_run else "full-run"],
     )
@@ -77,25 +114,12 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     datasets.pop(VALIDATION)
     datasets.pop(TEST)
 
-    def bring_correct_option_forward(row):
-        """
-        Bring the correct option to the front of the option_texts list.
-        """
-        correct_option_index = (
-            row["correct_option_id"] - 1
-        )  # Convert to zero-based index
-        row["option_texts"].insert(0, row["option_texts"].pop(correct_option_index))
-        row["correct_option_id"] = (
-            1  # Update correct option index to 1 (first position)
-        )
-        return row
-
-    # apply function to bring correct option forward
+    # bring correct option forward
     datasets[TRAIN] = datasets[TRAIN].apply(
         bring_correct_option_forward,
         axis=1,
     )
-    # keep only questions with 4 answer options
+    # keep only train questions with 4 answer options
     datasets[TRAIN] = datasets[TRAIN][datasets[TRAIN]["num_answer_options"] == 4]
 
     # subset
@@ -147,14 +171,24 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         langfuse_handler=langfuse_handler,
     )
 
-    # TODO: parse results and convert to good format
+    # parse results and convert to dict
+    miscon_mapping = output_to_dict(
+        llm_outputs=val_preds_raw["train_preds_validated"],
+        inputs=list_train,
+    )
 
-    write_pickle(  # TODO: dict
+    write_pickle(
         {
             "preds_raw": {**val_preds_raw},
+            "data": list_train,
         },
         save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID_MISCON),  # TODO: update path
         fname=f"run_{run_n}",
+    )
+    write_pickle(
+        miscon_mapping,
+        save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID_MISCON),
+        fname="miscon_mapping",
     )
     print_elapsed_time(start_time, run_n)
     langfuse_handler.flush()
@@ -179,25 +213,22 @@ def main() -> None:
 
     errors = []
     for cfg in configs:
-
         print("\n", "=" * 10, f"Config: {cfg.ID_MISCON}", "=" * 10)
         # start experiment loop
-        for run_n in range(1, cfg.RUNS + 1):
-            run_single_cfg(
-                cfg=cfg,
-                run_n=run_n,
-                args=args,
-                langfuse_session=langfuse_session,
-            )
+        run_single_cfg(
+            cfg=cfg,
+            run_n=1,
+            args=args,
+            langfuse_session=langfuse_session,
+        )
         save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID_MISCON)
         # try:
-        #     for run_n in range(1, cfg.RUNS + 1):
-        #         run_single_cfg(
-        #             cfg=cfg,
-        #             run_n=run_n,
-        #             args=args,
-        #             langfuse_session=langfuse_session,
-        #         )
+        #     run_single_cfg(
+        #         cfg=cfg,
+        #         run_n=1,
+        #         args=args,
+        #         langfuse_session=langfuse_session,
+        #     )
         #     save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID_MISCON)
         # except Exception as e:
         #     errors.append((cfg.ID_MISCON, e))
