@@ -85,6 +85,8 @@ def eval_metric_monotonicity(
 ) -> float:
     """Evaluate the monotonicity of the model's performance across different student levels.
 
+    Adapted from EMNLP paper Luca
+
     Parameters
     ----------
     y_true : NDArray
@@ -118,9 +120,9 @@ def eval_metric_monotonicity(
     llm_group_correctness = (
         df.groupby("student_level_group")["llm_correct"].mean().to_numpy()
     )
-    assert len(student_group_correctness) == len(llm_group_correctness), (
-        "Number of student groups and LLM groups must match"
-    )
+    assert len(student_group_correctness) == len(
+        llm_group_correctness
+    ), "Number of student groups and LLM groups must match"
 
     # print(f"{student_group_correctness=}")
     # print(f"{llm_group_correctness=}")
@@ -183,7 +185,7 @@ def compute_metrics(
         # knowledge tracing
         "acc_kt": accuracy_score(y_true=student_correct, y_pred=llm_correct),
         "f1_kt": f1_score(y_true=student_correct, y_pred=llm_correct, average="micro"),
-        "level_monotonicity": eval_metric_monotonicity(
+        "monotonicity": eval_metric_monotonicity(
             y_true=y_val_true,
             y_student=y_val_student,
             y_llm=y_val_pred,
@@ -239,6 +241,7 @@ def evaluate(
         accuracy_kt=metrics["acc_kt"],
         correctness_llm=metrics["acc_true_pred"],
         correctness_student=metrics["acc_true_student"],
+        monotonicity=round(metrics["monotonicity"], 2),
     )
 
     if trace_id is not None:
