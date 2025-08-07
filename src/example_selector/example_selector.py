@@ -258,6 +258,12 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
             if interact["student_id"] == student_id and interact["time"] <= time
         ]
         # NOTE: there can be max 1 interaction per question_id and student_id
+        if len(student_interactions) == 0:
+            print(f"{len(self.examples)}")
+            logger.warning(
+                f"No interactions found for student {student_id} before time {time}"
+            )
+            return []
 
         # randomly select from questions
         k = min(self.k, len(student_interactions))
@@ -343,6 +349,11 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
             for interact in self.examples
             if interact["student_id"] == student_id and interact["time"] <= time
         ]
+
+        if len(student_interactions) == 0:
+            logger.warning(f"No interactions found for student {student_id}")
+            return []
+
         q_answered = set([interact["question_id"] for interact in student_interactions])
         q_answered = list(
             map(str, q_answered - {question_id})
