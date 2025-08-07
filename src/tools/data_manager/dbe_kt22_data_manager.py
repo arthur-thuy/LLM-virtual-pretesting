@@ -78,23 +78,24 @@ class DBEKT22Datamanager:
 
         #  undersample majority classes from "student_level_group"
         rus = RandomUnderSampler(sampling_strategy="not minority")
-        df_interactions_res, _ = rus.fit_resample(
+        df_interactions_rus, _ = rus.fit_resample(
             df_interactions, df_interactions[STUDENT_LEVEL_GROUP]
         )
 
         # value counts of primary KCs
         print("Value counts of student levels after undersampling:")
         level_value_counts = (
-            df_interactions_res[STUDENT_LEVEL_GROUP].value_counts().reset_index()
+            df_interactions_rus[STUDENT_LEVEL_GROUP].value_counts().reset_index()
         )
         level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
         print(level_value_counts)  # TODO: remove
 
         # remove the STUDENT_LEVEL and STUDENT_LEVEL_GROUP
         # because they will be re-estimated for the training interactions
-        df_interactions_res = df_interactions_res.drop(
-            columns=[STUDENT_LEVEL, STUDENT_LEVEL_GROUP]
-        )
+        # df_interactions_rus = df_interactions_rus.drop(
+        #     columns=[STUDENT_LEVEL, STUDENT_LEVEL_GROUP]
+        # )
+        # NOTE: need this to check average correctness per level
 
         if save_dataset:
             output_path = os.path.join(write_dir, f"{self.name}_questions.csv")
@@ -105,11 +106,11 @@ class DBEKT22Datamanager:
             logger.info(
                 "Saving interactions dataset",
                 path=output_path,
-                num_interactions=len(df_interactions_res),
+                num_interactions=len(df_interactions_rus),
             )
-            df_interactions_res.to_csv(output_path, index=False)
+            df_interactions_rus.to_csv(output_path, index=False)
 
-        return df_questions, df_interactions_res
+        return df_questions, df_interactions_rus
 
     def _process_question_row(
         self, row, df_q_choice: pd.DataFrame
