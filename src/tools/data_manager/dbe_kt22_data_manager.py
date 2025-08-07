@@ -149,6 +149,8 @@ class DBEKT22Datamanager:
         df_question["num_answer_options"] = df_question.apply(
             lambda row: count_answer_options(row, df_question_choice), axis=1
         )
+        # TODO: only keep questions with 4 options
+        df_question = df_question[df_question["num_answer_options"] == 4]
 
         df = pd.DataFrame()
         df[[QUESTION_ID, Q_TEXT, Q_DIFFICULTY, "num_answer_options"]] = df_question[
@@ -217,7 +219,7 @@ class DBEKT22Datamanager:
         return df
 
     def _process_interact_row(self, row, df_q: pd.DataFrame) -> int:
-        option_ids = df_q[df_q[QUESTION_ID] == row[QUESTION_ID]].iloc[0][Q_OPTION_IDS]
+        option_ids = df_q[df_q[QUESTION_ID] == row[QUESTION_ID]].iloc[0][Q_OPTION_IDS]  # TODO: fix error!
         assert (
             row[S_OPTION_ID] in option_ids
         ), f"Option id {row[S_OPTION_ID]} not in {option_ids} of question ID {row[QUESTION_ID]}"  # noqa
