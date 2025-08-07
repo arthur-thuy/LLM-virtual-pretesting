@@ -20,7 +20,7 @@ _C.MODEL.NAME = "qwen3:8b"
 # model temperature
 _C.MODEL.TEMPERATURE = 0.0
 # max tokens
-_C.MODEL.MAX_TOKENS = None
+_C.MODEL.MAX_TOKENS = 1024
 # timeout (openai and anthropic only)
 _C.MODEL.TIMEOUT = None
 # max retries (openai and anthropic only)
