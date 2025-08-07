@@ -103,7 +103,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # subset
     if args.dry_run:
         logger.info("Dry run: using only 10 observations")
-        datasets[VALIDATION] = datasets[VALIDATION].iloc[:10, :]
+        datasets[VALIDATION] = datasets[VALIDATION].loc[list(range(0, 100, 10))]
 
     # dataframes
     datasets_fmt = build_example_formatter(
@@ -171,6 +171,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
             "metrics": {**val_metrics},
             "preds_raw": {**val_preds_raw},
             "preds": {**val_preds},
+            "val_data": datasets_fmt[VALIDATION],
         },
         save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID),
         fname=f"run_{run_n}",
@@ -212,22 +213,30 @@ def main() -> None:
             print("\n", "=" * 10, f"Config: {cfg.ID}", "=" * 10)
 
             # start experiment loop
-            try:
-                for run_n in range(1, cfg.RUNS + 1):
-                    run_single_cfg(
-                        cfg=cfg,
-                        run_n=run_n,
-                        args=args,
-                        langfuse_session=langfuse_session,
-                    )
-                save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
-            except Exception as e:
-                errors.append((cfg.ID, e))
-                logger.error(
-                    "Error occurred during the experiment",
-                    config=cfg.ID,
-                    error=str(e),
+            for run_n in range(1, cfg.RUNS + 1):
+                run_single_cfg(
+                    cfg=cfg,
+                    run_n=run_n,
+                    args=args,
+                    langfuse_session=langfuse_session,
                 )
+            save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
+            # try:
+            #     for run_n in range(1, cfg.RUNS + 1):
+            #         run_single_cfg(
+            #             cfg=cfg,
+            #             run_n=run_n,
+            #             args=args,
+            #             langfuse_session=langfuse_session,
+            #         )
+            #     save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID)
+            # except Exception as e:
+            #     errors.append((cfg.ID, e))
+            #     logger.error(
+            #         "Error occurred during the experiment",
+            #         config=cfg.ID,
+            #         error=str(e),
+            #     )
         else:
             print(cfg.ID, "already evaluated.")
 
