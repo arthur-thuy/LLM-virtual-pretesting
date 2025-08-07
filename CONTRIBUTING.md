@@ -36,7 +36,7 @@ python main_replication.py experiment_kate
 > Optional argument: `--dry-run` to predict only for 10 examples.
 
 8. The results are stored in `output/experiment_kate_<date>/`.
-9. Inspect the results in `analysis.ipynb` by filling in the appropriate `EXP_NAME` value (see the output folder for the exact name with timestamp).
+9. Inspect the results in `analysis_replication.ipynb` by filling in the appropriate `EXP_NAME` value (see the output folder for the exact name with timestamp).
 10. To inspect the prompt structure, refer to the [Langfuse dashboard](https://cloud.langfuse.com/project/cm8n8clg300k7ad07l3pjqklk).
 
 
@@ -84,7 +84,7 @@ def build_studentid_random(cfg: CfgNode, examples: list[dict]) -> BaseExampleSel
 > In this case, LangChain needs the input variables that the example selector uses.
 
 4. In your configuration folder, change the `config.py` or a yaml file to use this new building block.
-5. As usual, run with `python main_replication.py experiment_kate` and inspect the results in `analysis.ipynb`.
+5. As usual, run with `python main_replication.py experiment_kate` and inspect the results in `analysis_replication.ipynb`.
 6. Commit the changes and push to your remote branch:
 ```bash
 $ git add src/example_selector/example_selector.py
