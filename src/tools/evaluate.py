@@ -8,8 +8,9 @@ from typing import Any, Literal, Optional
 import numpy as np
 import pandas as pd
 import structlog
+import scipy
 from langfuse import Langfuse
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 from pydantic import BaseModel
 from sklearn.metrics import accuracy_score, f1_score, root_mean_squared_error
 
@@ -79,10 +80,72 @@ def predict(
     return logs
 
 
+def eval_metric_monotonicity(
+    y_true: NDArray, y_student: NDArray, y_llm: NDArray, student_level_group: NDArray
+) -> float:
+    """Evaluate the monotonicity of the model's performance across different student levels.
+
+    Parameters
+    ----------
+    y_true : NDArray
+        Ground truth labels for the questions.
+    y_student : NDArray
+        Student's answers for the questions.
+    y_llm : NDArray
+        LLM's answers for the questions.
+    student_level_group : NDArray
+        Student levels for the interactions.
+
+    Returns
+    -------
+    float
+        Monotonicity score of the model's performance.
+    """
+    student_correct = y_student == y_true
+    llm_correct = y_llm == y_true
+    df = pd.DataFrame(
+        {
+            "student_level_group": student_level_group,
+            "student_correct": student_correct,
+            "llm_correct": llm_correct,
+        }
+    )
+    df["student_level_group"] = df["student_level_group"].astype(int)
+    df = df.sort_values("student_level_group", ascending=True)
+    student_group_correctness = (
+        df.groupby("student_level_group")["student_correct"].mean().to_numpy()
+    )
+    llm_group_correctness = (
+        df.groupby("student_level_group")["llm_correct"].mean().to_numpy()
+    )
+    assert len(student_group_correctness) == len(llm_group_correctness), (
+        "Number of student groups and LLM groups must match"
+    )
+
+    # print(f"{student_group_correctness=}")
+    # print(f"{llm_group_correctness=}")
+
+    correlation_score = scipy.stats.linregress(
+        llm_group_correctness, student_group_correctness
+    ).rvalue
+    penalty_non_monotonicity = np.sum(
+        [
+            (
+                np.sqrt(np.abs(llm_group_correctness[i + 1] - llm_group_correctness[i]))
+                if llm_group_correctness[i + 1] < llm_group_correctness[i]
+                else 0.0
+            )
+            for i in range(len(llm_group_correctness) - 1)
+        ]
+    )
+    return (correlation_score - penalty_non_monotonicity).item()
+
+
 def compute_metrics(
     y_val_pred: ArrayLike,
     y_val_true: ArrayLike,
     y_val_student: ArrayLike,
+    student_level_group: ArrayLike,
 ) -> dict[str, Any]:
     """Compute metrics.
 
@@ -120,6 +183,12 @@ def compute_metrics(
         # knowledge tracing
         "acc_kt": accuracy_score(y_true=student_correct, y_pred=llm_correct),
         "f1_kt": f1_score(y_true=student_correct, y_pred=llm_correct, average="micro"),
+        "level_monotonicity": eval_metric_monotonicity(
+            y_true=y_val_true,
+            y_student=y_val_student,
+            y_llm=y_val_pred,
+            student_level_group=student_level_group,
+        ),
     }
     return metrics
 
@@ -157,10 +226,12 @@ def evaluate(
     y_val_student = dataset[S_OPTION_ID].to_numpy()
     y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
     student_ids = dataset[STUDENT_ID].to_numpy()
+    student_level_group = dataset[STUDENT_LEVEL_GROUP].to_numpy()
     metrics = compute_metrics(
         y_val_pred=y_val_pred,
         y_val_true=y_val_true,
         y_val_student=y_val_student,
+        student_level_group=student_level_group,
     )
     logger.info(
         "Evaluate - end",

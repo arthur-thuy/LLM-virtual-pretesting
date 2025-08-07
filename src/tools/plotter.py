@@ -10,6 +10,7 @@ import structlog
 from sklearn.metrics import confusion_matrix, accuracy_score
 import numpy as np
 import seaborn as sns
+import pandas as pd
 from matplotlib.patches import Rectangle
 
 # local application/library specific imports
@@ -253,4 +254,57 @@ def plot_kt_confusion(
         ensure_dir(os.path.dirname(savefig_kwargs["fname"]))
         plt.savefig(**savefig_kwargs)
     plt.show()
+    plt.show()
+
+
+def plot_level_correctness(
+    preds_dict: dict,
+    config_id: str = None,
+    save: bool = False,
+    savefig_kwargs: Optional[dict] = None,
+):
+    """Plot student & LLM correctness per level.
+
+    Parameters
+    ----------
+    preds_dict : dict
+        Dictionary containing predictions and true labels for students.
+    config_id : str, optional
+        Configuration ID, by default None
+    save : bool, optional
+        Whether to save the plot, by default False
+    savefig_kwargs : Optional[dict], optional
+        Dictionary with save arguments, by default None
+    """
+    student_correct = preds_dict["y_student"] == preds_dict["y_true"]
+    llm_correct = preds_dict["y_pred"] == preds_dict["y_true"]
+
+    # Create a DataFrame with the data you already have
+    df = pd.DataFrame(
+        {
+            "student_level_group": preds_dict["student_level_group"],
+            "student_correct": student_correct,
+            "llm_correct": llm_correct,
+        }
+    )
+    student_group_correctness = df.groupby("student_level_group")[
+        "student_correct"
+    ].mean()
+    llm_group_correctness = df.groupby("student_level_group")["llm_correct"].mean()
+
+    _, ax = plt.subplots()
+    student_group_correctness.plot(kind="line", ax=ax, label="Student")
+    llm_group_correctness.plot(kind="line", ax=ax, label="LLM")
+    ax.set(
+        xlabel="Student levels",
+        ylabel="MCQ correctness",
+    )
+    ax.set_ylim(-0.05, 1.05)
+    ax.set_title((None if save else config_id), fontsize=9)
+    ax.legend(loc="upper left", fontsize=9)
+    ax.grid(True, linestyle="--", alpha=0.7)
+    if save:
+        plt.tight_layout()
+        ensure_dir(os.path.dirname(savefig_kwargs["fname"]))
+        plt.savefig(**savefig_kwargs)
     plt.show()
