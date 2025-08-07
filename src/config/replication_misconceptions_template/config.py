@@ -8,7 +8,7 @@ _C = CN()
 _C.SEED = 42
 
 # number of runs
-_C.RUNS = 3
+_C.RUNS = 1
 
 # problem type
 _C.PROBLEM_TYPE = "misconceptions"
@@ -20,7 +20,7 @@ _C.MODEL.NAME = "o4-mini-2025-04-16"
 # model temperature
 _C.MODEL.TEMPERATURE = 0.0
 # max tokens
-_C.MODEL.MAX_TOKENS = 1024
+_C.MODEL.MAX_TOKENS = 4096
 # timeout (openai and anthropic only)
 _C.MODEL.TIMEOUT = None
 # max retries (openai and anthropic only)
