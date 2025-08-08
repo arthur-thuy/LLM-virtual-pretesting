@@ -340,6 +340,8 @@ def apply_student_scale_map(
         Dictionary of DataFrames with applied student scale map.
     """
     for df in interactions.values():
-        df[STUDENT_LEVEL_GROUP] = df[STUDENT_LEVEL_GROUP].map(student_scale_map)
+        df[STUDENT_LEVEL_GROUP] = (
+            df[STUDENT_LEVEL_GROUP].astype(str).map(student_scale_map)
+        )
 
     return interactions
