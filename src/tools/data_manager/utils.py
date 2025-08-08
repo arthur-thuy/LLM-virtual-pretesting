@@ -8,7 +8,12 @@ import pandas as pd
 import structlog
 
 # local application/library specific imports
-# /
+from tools.constants import (
+    Q_CORRECT_OPTION_ID,
+    Q_OPTION_TEXTS,
+    S_OPTION_ID,
+)
+
 
 # set up logger
 logger = structlog.get_logger(__name__)
@@ -36,7 +41,8 @@ def bring_correct_option_forward(row):
     """
     Bring the correct option to the front of the option_texts list.
     """
-    correct_option_index = row["correct_option_id"] - 1  # Convert to zero-based index
-    row["option_texts"].insert(0, row["option_texts"].pop(correct_option_index))
-    row["correct_option_id"] = 1  # Update correct option index to 1 (first position)
+    correct_option_index = row[Q_CORRECT_OPTION_ID] - 1  # Convert to zero-based index
+    row[Q_OPTION_TEXTS].insert(0, row[Q_OPTION_TEXTS].pop(correct_option_index))
+    row[Q_CORRECT_OPTION_ID] = 1  # Update correct option index to 1 (first position)
+    row[S_OPTION_ID] = None  # make unusable, but not needed for misconception listing
     return row
