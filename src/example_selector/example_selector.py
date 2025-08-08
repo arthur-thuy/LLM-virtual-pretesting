@@ -259,7 +259,6 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
         ]
         # NOTE: there can be max 1 interaction per question_id and student_id
         if len(student_interactions) == 0:
-            print(f"{len(self.examples)}")
             logger.warning(
                 f"No interactions found for student {student_id} before time {time}"
             )
