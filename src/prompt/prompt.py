@@ -393,9 +393,34 @@ def build_replicate_miscon_student_chocolate(
         "From your earlier answers on the exam, the teacher has identified a set of knowledge concepts that you master and a set of misconceptions that you have. "  # noqa
         "Inspect the new question and think how you would answer it as a student, keeping in mind your skills and misconceptions. "  # noqa
         "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
-        "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
-        "If you answer correctly, explain why you think the answer is correct. "
-        "Provide your answer as the integer index of the multiple choice option."
+        # "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
+        # "If you answer correctly, explain why you think the answer is correct. "
+        # "Provide your answer as the integer index of the multiple choice option."
+    )
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        few_shot_prompt,
+        ("human", human1_prompt_str),
+    ]
+    return messages
+
+
+@PROMPT_REGISTRY.register("replicate_miscon_student_chocolate_studentlevel")
+def build_replicate_miscon_student_chocolate_studentlevel(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are a student of level {student_level_group} {student_scale} working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
+        "From your earlier answers on the exam, the teacher has identified a set of knowledge concepts that you master and a set of misconceptions that you have. "  # noqa
+        "Inspect the new question and think how you would answer it as a student of level {student_level_group} {student_scale}, keeping in mind your skills and misconceptions. "  # noqa
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+        # "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
+        # "If you answer correctly, explain why you think the answer is correct. "
+        # "Provide your answer as the integer index of the multiple choice option."
     )
     human1_prompt_str = "New multiple choice question:\n\n{input}"
 
