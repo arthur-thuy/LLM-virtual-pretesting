@@ -12,7 +12,7 @@ MODEL:
   NATIVE_STRUCTURED_OUTPUT: true
   TEMPERATURE: 0.0
   TIMEOUT: null
-OUTPUT_DIR: ./output/collect_misconceptions_20250807-150231
+OUTPUT_DIR: ./output/collect_misconceptions_20250808-101728
 PROMPT:
   NAME: collect_misconceptions
 RUNS: 1
