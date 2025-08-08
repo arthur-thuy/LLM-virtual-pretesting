@@ -83,7 +83,7 @@ def predict(
 def eval_metric_monotonicity(
     y_true: NDArray, y_student: NDArray, y_llm: NDArray, student_level_group: NDArray
 ) -> float:
-    """Evaluate the monotonicity of the model's performance across different student levels.
+    """Evaluate the model monotonicity across different student levels.
 
     Adapted from EMNLP paper Luca
 
