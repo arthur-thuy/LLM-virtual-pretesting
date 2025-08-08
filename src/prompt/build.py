@@ -99,7 +99,7 @@ def build_prompt(
                     example_selector=example_selector,
                     # each example is 2 messages: 1 human, 1 AI
                     example_prompt=ChatPromptTemplate.from_messages(
-                        [("human", "{skills_misconceptions}")]
+                        [("system", "{skills_misconceptions}")]
                     ),
                 )
 
