@@ -149,7 +149,7 @@ class DBEKT22Datamanager:
         df_question["num_answer_options"] = df_question.apply(
             lambda row: count_answer_options(row, df_question_choice), axis=1
         )
-        # TODO: only keep questions with 4 options
+        # only keep questions with 4 options
         df_question = df_question[df_question["num_answer_options"] == 4]
 
         df = pd.DataFrame()
@@ -219,7 +219,7 @@ class DBEKT22Datamanager:
         return df
 
     def _process_interact_row(self, row, df_q: pd.DataFrame) -> int:
-        option_ids = df_q[df_q[QUESTION_ID] == row[QUESTION_ID]].iloc[0][Q_OPTION_IDS]  # TODO: fix error!
+        option_ids = df_q[df_q[QUESTION_ID] == row[QUESTION_ID]].iloc[0][Q_OPTION_IDS]
         assert (
             row[S_OPTION_ID] in option_ids
         ), f"Option id {row[S_OPTION_ID]} not in {option_ids} of question ID {row[QUESTION_ID]}"  # noqa
@@ -234,6 +234,12 @@ class DBEKT22Datamanager:
     ) -> pd.DataFrame:
         # student-question interactions
         df_interact = pd.read_csv(os.path.join(read_dir, "Transaction.csv"))
+
+        # only keep interactions of questions in df_questions
+        df_interact = df_interact[
+            df_interact[QUESTION_ID].isin(df_questions[QUESTION_ID])
+        ].reset_index()
+
         df_interact[TIME] = pd.to_datetime(
             df_interact["end_time"].str[:-6], format="%Y-%m-%d %H:%M:%S.%f"
         )
