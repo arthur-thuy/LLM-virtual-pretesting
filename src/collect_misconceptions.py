@@ -124,8 +124,6 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         is_interaction=False,
         axis=1,
     )
-    # # keep only train questions with 4 answer options
-    # datasets[TRAIN] = datasets[TRAIN][datasets[TRAIN]["num_answer_options"] == 4]
 
     # subset
     if args.dry_run:
