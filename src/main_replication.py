@@ -95,6 +95,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         # bring correct option to first place
         datasets[TRAIN] = datasets[TRAIN].apply(
             bring_correct_option_forward,
+            is_interaction=True,
             axis=1,
         )
 
