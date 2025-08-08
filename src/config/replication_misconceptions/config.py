@@ -8,7 +8,7 @@ _C = CN()
 _C.SEED = 42
 
 # number of runs
-_C.RUNS = 1
+_C.RUNS = 2
 
 # problem type
 _C.PROBLEM_TYPE = "misconceptions"

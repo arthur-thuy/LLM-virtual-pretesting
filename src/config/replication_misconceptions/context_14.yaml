@@ -4,6 +4,6 @@ EXAMPLE_SELECTOR:
 MODEL:
   TEMPERATURE: 1.0
 PROMPT:
-  NAME: replicate_student_chocolate
+  NAME: replicate_student_chocolate_studentlevel
 STRUCTURED_OUTPUTTER:
-  NAME: student
+  NAME: student_bool
