@@ -13,6 +13,7 @@ load_env(os.path.join("..", ".env"))  # noqa
 # related third party imports
 import structlog
 import pydantic
+import pandas as pd
 from langfuse import Langfuse
 from langfuse.decorators import langfuse_context, observe
 from yacs.config import CfgNode
@@ -111,12 +112,16 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     # load data
     datasets = build_roleplay_dataset(cfg.LOADER)[0]
-    datasets.pop(VALIDATION)
-    datasets.pop(TEST)
+    # concat all datasets into one
+    dataset_concat = pd.concat(
+        [datasets[TRAIN], datasets[VALIDATION], datasets[TEST]],
+        ignore_index=True,
+    )
 
     # bring correct option forward
-    datasets[TRAIN] = datasets[TRAIN].apply(
+    dataset_concat = dataset_concat.apply(
         bring_correct_option_forward,
+        is_interaction=False,
         axis=1,
     )
     # # keep only train questions with 4 answer options
@@ -125,17 +130,17 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # subset
     if args.dry_run:
         logger.info("Dry run: using only 10 observations")
-        datasets[TRAIN] = datasets[TRAIN].iloc[:10, :]
+        dataset_concat = dataset_concat.iloc[:10, :]
 
     # dataframes
     datasets_fmt = build_example_formatter(
         example_formatter_cfg=cfg.EXAMPLE_FORMATTER.QUESTIONS,
-        datasets=datasets,
+        datasets={"concat": dataset_concat},
         is_interaction=False,
     )
 
     # list of dicts
-    list_train = df_to_listdict(datasets_fmt[TRAIN])
+    list_all = df_to_listdict(datasets_fmt["concat"])
 
     # seed
     set_seed(cfg.SEED + run_n)
@@ -162,9 +167,9 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     chain = prompt | model
 
     # predict & evaluate
-    val_preds_raw = predict(
+    concat_preds_raw = predict(
         chain=chain,
-        data=list_train,
+        data=list_all,
         prefix="train",
         structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
         json_schema=StrucOutput,
@@ -173,14 +178,14 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     # parse results and convert to dict
     miscon_mapping = output_to_dict(
-        llm_outputs=val_preds_raw["train_preds_validated"],
-        inputs=list_train,
+        llm_outputs=concat_preds_raw["train_preds_validated"],
+        inputs=list_all,
     )
 
     write_pickle(
         {
-            "preds_raw": {**val_preds_raw},
-            "data": list_train,
+            "preds_raw": {**concat_preds_raw},
+            "data": list_all,
         },
         save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID_MISCON),  # TODO: update path
         fname=f"run_{run_n}",
