@@ -40,9 +40,8 @@ from tools.constants import (  # noqa
 )
 from tools.evaluate import evaluate_q_difficulty, evaluate_roleplay, predict
 from tools.irt_estimator import (
-    compute_student_levels,
     explode_student_levels,
-    group_student_levels,
+    apply_student_scale_map,
 )
 from tools.utils import (
     delete_previous_content,
@@ -110,14 +109,11 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     # get student scale mapping
     student_scale_map, student_scale_str = build_student_scale(cfg=cfg)
-
-    # Compute IRT parameters and group students
-    interact_train_fmt = compute_student_levels(df_interactions=interact_train_fmt)
-    interact_train_fmt = group_student_levels(
-        df_interactions=interact_train_fmt,
-        num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS,
-        student_scale_map=student_scale_map,
-    )
+    # apply student scale map to predefined groups!
+    interact_train_fmt = apply_student_scale_map(
+        interactions={TRAIN: interact_train_fmt},
+        student_scale_map=student_scale_map
+    )[TRAIN]
 
     # create one row for each student level
     for split, df_q in questions_fmt.items():
@@ -235,9 +231,7 @@ def main() -> None:
                         langfuse_session=langfuse_session,
                     )
 
-                save_config(
-                    cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID_ROLEPLAY
-                )
+                save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID_ROLEPLAY)
             except Exception as e:
                 errors.append((cfg.ID, e))
                 logger.error(

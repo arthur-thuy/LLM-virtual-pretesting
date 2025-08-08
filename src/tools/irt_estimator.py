@@ -211,7 +211,7 @@ def compute_student_levels(
 
 
 def group_student_levels(
-    df_interactions: pd.DataFrame, num_groups: int, student_scale_map: Dict[str, str]
+    df_interactions: pd.DataFrame, num_groups: int
 ) -> pd.DataFrame:
     """Group students into levels based on their estimated ability.
 
@@ -220,20 +220,16 @@ def group_student_levels(
     df_interactions : pd.DataFrame
         DataFrame containing student interactions with columns:
             - STUDENT_ID: Unique identifier for students.
-            - QUESTION_ID: Unique identifier for questions.
-            - S_OPTION_CORRECT: Boolean indicating if the student's response was correct.
             - STUDENT_LEVEL: Estimated ability of each student.
     num_groups : int
         Number of groups to divide students into based on their ability.
-    student_scale_map : Dict[str, str]
-        Mapping of student level digits to string values
 
     Returns
     -------
     pd.DataFrame
         DataFrame with an additional column 'student_level_group' indicating the group of each student.
     """
-    assert set([STUDENT_ID, QUESTION_ID, S_OPTION_CORRECT, STUDENT_LEVEL]).issubset(
+    assert set([STUDENT_ID, STUDENT_LEVEL]).issubset(
         df_interactions.columns
     ), "Missing required columns in interactions DataFrame."
     df_interactions_tmp = df_interactions.copy()
@@ -273,10 +269,7 @@ def group_student_levels(
         len(df_interactions_tmp[STUDENT_LEVEL_GROUP].unique()) <= num_groups
     ), "Number of unique student level groups should not exceed the number of groups."
 
-    # NOTE: map student levels (digits) onto the real values (which can be strings)
-    df_interactions_tmp[STUDENT_LEVEL_GROUP] = df_interactions_tmp[
-        STUDENT_LEVEL_GROUP
-    ].map(student_scale_map)
+    # merge student levels into val and test sets
 
     # value counts of primary KCs
     level_value_counts = (
@@ -284,14 +277,6 @@ def group_student_levels(
     )
     level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
     print(level_value_counts)  # TODO: remove
-    ###################################
-    ## equal number of students per group
-    # df_interactions_tmp[STUDENT_LEVEL_GROUP] = pd.qcut(
-    #     df_interactions_tmp[STUDENT_LEVEL],
-    #     q=num_groups,
-    #     labels=[str(i) for i in range(1, num_groups + 1)],
-    # ).astype(str)
-    ###################################
     return df_interactions_tmp
 
 
@@ -334,3 +319,27 @@ def write_student_scale(num_groups: int) -> str:
     """
     scale = f"(1 is the lowest level; {num_groups} is the highest level)"
     return scale
+
+
+def apply_student_scale_map(
+    interactions: dict[pd.DataFrame],
+    student_scale_map: Dict[str, str],
+) -> dict[pd.DataFrame]:
+    """Apply the student scale map to the interactions.
+
+    Parameters
+    ----------
+    interactions : dict[pd.DataFrame]
+        Dictionary of DataFrames containing student interactions.
+    student_scale_map : Dict[str, str]
+        Mapping of student level digits to string values.
+
+    Returns
+    -------
+    dict[pd.DataFrame]
+        Dictionary of DataFrames with applied student scale map.
+    """
+    for df in interactions.values():
+        df[STUDENT_LEVEL_GROUP] = df[STUDENT_LEVEL_GROUP].map(student_scale_map)
+
+    return interactions

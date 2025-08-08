@@ -22,6 +22,7 @@ from tools.constants import (
     VALSMALL,
 )
 from tools.utils import set_seed
+# from tools.irt_estimator import compute_student_levels, group_student_levels
 
 logger = structlog.get_logger(__name__)
 
@@ -352,3 +353,65 @@ class DataLoader:
         q_ids_test = test_questions[QUESTION_ID].tolist()
 
         return q_ids_train, q_ids_val, q_ids_test
+
+    # def add_student_levels(self, num_groups: int) -> None:  # TODO: remove
+    #     """Add student levels to the interactions.
+
+    #     Parameters
+    #     ----------
+    #     num_groups : int
+    #         The number of groups to create for student levels.
+    #     """
+    #     logger.info(
+    #         "Adding student levels",
+    #         num_groups=num_groups,
+    #     )
+    #     interactions_splits = self.read_splitted_interactions()
+    #     interactions_splits[TRAIN] = compute_student_levels(interactions_splits[TRAIN])
+    #     interactions_splits[TRAIN] = group_student_levels(
+    #         interactions_splits[TRAIN], num_groups=num_groups
+    #     )
+    #     interactions_splits = self.apply_levels_to_eval(
+    #         interactions_splits,
+    #     )
+
+    #     for split_name, split_value in interactions_splits.items():
+    #         split_value.to_csv(
+    #             os.path.join(
+    #                 self.write_dir,
+    #                 f"{self.dataset_name}_interactions_{split_name}.csv",
+    #             ),
+    #             index=False,
+    #         )
+    #         logger.info(
+    #             f"Writing {split_name} split",
+    #             num_interactions=len(split_value),
+    #             num_distinct_questions=len(
+    #                 split_value[QUESTION_ID].unique(),
+    #             ),
+    #             num_distinct_students=len(
+    #                 split_value["student_id"].unique(),
+    #             ),
+    #         )
+
+    # def apply_levels_to_eval(
+    #     self, interactions: dict[pd.DataFrame]
+    # ) -> dict[pd.DataFrame]:
+    #     """Apply student levels to validation and test sets."""
+    #     # apply student levels to validation and test sets
+    #     for split in [VALSMALL, VALLARGE, TEST]:
+    #         interactions[split] = interactions[split].merge(
+    #             interactions[TRAIN][[STUDENT_ID, STUDENT_LEVEL_GROUP]].drop_duplicates(
+    #                 STUDENT_ID
+    #             ),
+    #             on=STUDENT_ID,
+    #             how="left",
+    #         )
+
+    #         # assert that all interactions have a student level
+    #         print(f"{interactions[split][STUDENT_LEVEL_GROUP].isnull().sum()=}")
+    #         assert (
+    #             interactions[split][STUDENT_LEVEL_GROUP].notnull().all()
+    #         ), f"Missing student levels in {split} split"
+
+    #     return interactions

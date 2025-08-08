@@ -23,6 +23,7 @@ from model.build import build_model
 from prompt.build import build_prompt
 from prompt.utils import df_to_listdict
 from structured_outputter.build import build_structured_outputter
+from student_scale.build import build_student_scale
 from tools.configurator import (
     check_cfg,
     convert_to_dict,
@@ -31,6 +32,7 @@ from tools.configurator import (
     save_config,
     check_config_equivalence,
 )
+from tools.irt_estimator import apply_student_scale_map
 from tools.constants import TEST, TRAIN, VALIDATION, VALLARGE, VALSMALL  # noqa
 from tools.data_manager.utils import bring_correct_option_forward
 from tools.evaluate import evaluate, predict
@@ -111,6 +113,13 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         is_interaction=True,
     )
 
+    # get student scale mapping
+    student_scale_map, student_scale_str = build_student_scale(cfg=cfg)
+    # apply student scale map to predefined groups!
+    datasets_fmt = apply_student_scale_map(
+        interactions=datasets_fmt, student_scale_map=student_scale_map
+    )
+
     # list of dicts
     list_train = df_to_listdict(datasets_fmt[TRAIN])
     list_val = df_to_listdict(datasets_fmt[VALIDATION])
@@ -127,7 +136,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         cfg=cfg,
         examples=list_train,
         struc_output=StrucOutput,
-        student_scale_str="",
+        student_scale_str=student_scale_str,
         q_ids_train=None,
     )
 

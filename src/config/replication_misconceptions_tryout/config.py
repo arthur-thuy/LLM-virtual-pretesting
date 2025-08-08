@@ -29,7 +29,7 @@ _C.MODEL.MAX_RETRIES = None
 # structured output
 _C.STRUCTURED_OUTPUTTER = CN()
 # structured output name
-_C.STRUCTURED_OUTPUTTER.NAME = "student"  # "student_miscon"
+_C.STRUCTURED_OUTPUTTER.NAME = "student_bool"  # "student_miscon"
 
 # data loader
 _C.LOADER = CN()
@@ -58,7 +58,13 @@ _C.EXAMPLE_SELECTOR.EMBEDDING = "text-embedding-3-large"
 # system prompt
 _C.PROMPT = CN()
 # system prompt name
-_C.PROMPT.NAME = "replicate_miscon_student_chocolate"
+_C.PROMPT.NAME = "replicate_miscon_student_chocolate_studentlevel"  # "replicate_miscon_student_chocolate"
+
+_C.ROLEPLAY = CN()
+# number of student levels to simulate
+_C.ROLEPLAY.NUM_STUDENT_LEVELS = 5
+# student level scale
+_C.ROLEPLAY.STUDENT_SCALE = "proficiency_5_str"
 
 
 def get_cfg_defaults() -> CN:

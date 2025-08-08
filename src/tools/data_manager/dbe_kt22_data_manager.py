@@ -69,11 +69,9 @@ class DBEKT22Datamanager:
             df_interactions=df_interactions, df_questions=df_questions
         )
         # get student level bins for interactions
-        student_scale_map, _ = build_digits_int(num_groups=5)
         df_interactions = group_student_levels(
             df_interactions=df_interactions,
             num_groups=5,
-            student_scale_map=student_scale_map,
         )
 
         #  undersample majority classes from "student_level_group"
@@ -90,12 +88,10 @@ class DBEKT22Datamanager:
         level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
         print(level_value_counts)  # TODO: remove
 
-        # remove the STUDENT_LEVEL and STUDENT_LEVEL_GROUP
-        # because they will be re-estimated for the training interactions
-        # df_interactions_rus = df_interactions_rus.drop(
-        #     columns=[STUDENT_LEVEL, STUDENT_LEVEL_GROUP]
-        # )
-        # NOTE: need this to check average correctness per level
+        # drop student level, because only group is used
+        df_interactions_rus = df_interactions_rus.drop(
+            columns=[STUDENT_LEVEL]
+        )
 
         if save_dataset:
             output_path = os.path.join(write_dir, f"{self.name}_questions.csv")
