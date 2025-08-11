@@ -61,7 +61,7 @@ def _merge_config(config_path: Union[str, Path]) -> CfgNode:
 def _add_derived_configs(
     cfg: CfgNode,
     config_dir: Union[str, Path],
-    problem_type: Literal["replicate", "roleplay", "misconceptions"],
+    problem_type: Literal["replicate", "roleplay", "collect_misconceptions"],
     freeze: bool = True,
 ) -> CfgNode:
     """Add derived config variables at runtime.
@@ -85,8 +85,10 @@ def _add_derived_configs(
         cfg.ID = create_replication_config_id(cfg)
     elif problem_type == "roleplay":
         cfg.ID_ROLEPLAY = create_roleplay_config_id(cfg)
-    elif problem_type == "misconceptions":
+    elif problem_type == "collect_misconceptions":
         cfg.ID_MISCON = create_misconception_config_id(cfg)
+    else:
+        raise ValueError(f"Invalid problem type: {problem_type}")
     cfg.OUTPUT_DIR = os.path.join(".", "output", config_dir)
     cfg.MODEL.NATIVE_STRUCTURED_OUTPUT = MODEL_STRUCTURED_OUTPUT[cfg.MODEL.NAME]
     if freeze:
@@ -96,7 +98,7 @@ def _add_derived_configs(
 
 def load_configs(
     fpath: str,
-    problem_type: Literal["replicate", "roleplay", "misconceptions"],
+    problem_type: Literal["replicate", "roleplay", "collect_misconceptions"],
     freeze: bool = True,
 ) -> tuple[CfgNode, ...]:
     """Load one or more config files from path.
@@ -248,7 +250,8 @@ def get_config_ids(configs: tuple[dict]) -> list[Any]:
 
 
 def check_cfg(
-    cfg: CfgNode, problem_type: Literal["replicate", "roleplay", "misconceptions"]
+    cfg: CfgNode,
+    problem_type: Literal["replicate", "roleplay", "collect_misconceptions"],
 ) -> None:
     """Check config for logical errors.
 
@@ -286,6 +289,13 @@ def check_cfg(
                 "either 'student' or 'teacher'. "
                 f"Prompt is {cfg.PROMPT.NAME}, "
                 f"structured outputter is {cfg.STRUCTURED_OUTPUTTER.NAME}."
+            )
+
+    if cfg.CONTEXT_TYPE == "misconceptions":
+        if "miscon" not in cfg.EXAMPLE_SELECTOR.NAME:
+            raise ValueError(
+                "Example selector must have substring 'miscon' for misconceptions "
+                f"as context, got {cfg.EXAMPLE_SELECTOR.NAME}."
             )
 
 

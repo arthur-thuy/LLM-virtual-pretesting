@@ -202,7 +202,7 @@ def main() -> None:
     args = parser.parse_args()
 
     # config
-    configs = load_configs(args.config, problem_type="misconceptions")
+    configs = load_configs(args.config, problem_type="collect_misconceptions")
 
     # remove previous contents (take dir form first cfg)
     delete_previous_content(configs[0].OUTPUT_DIR)

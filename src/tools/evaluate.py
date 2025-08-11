@@ -81,7 +81,11 @@ def predict(
 
 
 def eval_metric_monotonicity(
-    y_true: NDArray, y_student: NDArray, y_llm: NDArray, student_level_group: NDArray
+    y_true: NDArray,
+    y_llm: NDArray,
+    student_level_group: NDArray,
+    y_student: Optional[NDArray] = None,
+    student_group_correctness: Optional[NDArray] = None,
 ) -> float:
     """Evaluate the model monotonicity across different student levels.
 
@@ -91,34 +95,62 @@ def eval_metric_monotonicity(
     ----------
     y_true : NDArray
         Ground truth labels for the questions.
-    y_student : NDArray
-        Student's answers for the questions.
     y_llm : NDArray
         LLM's answers for the questions.
     student_level_group : NDArray
         Student levels for the interactions.
+    y_student : Optional[NDArray]
+        Student's answers for the questions. None if roleplaying.
+    student_group_correctness : Optional[NDArray]
+        Pre-computed correctness of the student group.
 
     Returns
     -------
     float
         Monotonicity score of the model's performance.
     """
-    student_correct = y_student == y_true
+    # checks
+    none_count = sum([y_student is None, student_group_correctness is None])
+    if none_count != 1:
+        raise ValueError(
+            "Exactly one of 'y_student' or 'student_group_correctness' must be None"
+        )
+
     llm_correct = y_llm == y_true
-    df = pd.DataFrame(
-        {
-            "student_level_group": student_level_group,
-            "student_correct": student_correct,
-            "llm_correct": llm_correct,
-        }
-    )
-    df["student_level_group"] = df["student_level_group"].astype(int)
-    df = df.sort_values("student_level_group", ascending=True)
-    student_group_correctness = (
-        df.groupby("student_level_group")["student_correct"].mean().to_numpy()
-    )
+    # compute student_group_correctness from val set (replication)
+    # or take array from train set (roleplay)
+    if student_group_correctness is None:
+        student_correct = y_student == y_true
+        df = pd.DataFrame(
+            {
+                "student_level_group": student_level_group,
+                "student_correct": student_correct,
+                "llm_correct": llm_correct,
+            }
+        )
+        df["student_level_group"] = df["student_level_group"].astype(int)
+        df = df.sort_values(
+            "student_level_group", ascending=True
+        )  # TODO: does this work with string levels?
+        student_group_correctness = (
+            df.groupby("student_level_group", sort=False)["student_correct"]
+            .mean()
+            .to_numpy()
+        )
+    else:
+        df = pd.DataFrame(
+            {
+                "student_level_group": student_level_group,
+                "llm_correct": llm_correct,
+            }
+        )
+        df["student_level_group"] = df["student_level_group"].astype(int)
+        df = df.sort_values(
+            "student_level_group", ascending=True
+        )  # NOTE: inputs are digits because using unformatted dataset
+
     llm_group_correctness = (
-        df.groupby("student_level_group")["llm_correct"].mean().to_numpy()
+        df.groupby("student_level_group", sort=False)["llm_correct"].mean().to_numpy()
     )
     assert len(student_group_correctness) == len(
         llm_group_correctness
@@ -143,13 +175,13 @@ def eval_metric_monotonicity(
     return (correlation_score - penalty_non_monotonicity).item()
 
 
-def compute_metrics(
+def compute_metrics_replication(
     y_val_pred: ArrayLike,
     y_val_true: ArrayLike,
     y_val_student: ArrayLike,
     student_level_group: ArrayLike,
 ) -> dict[str, Any]:
-    """Compute metrics.
+    """Compute metrics of student replication.
 
     Parameters
     ----------
@@ -159,6 +191,8 @@ def compute_metrics(
         True values.
     y_val_student : ArrayLike
         Student values.
+    student_level_group : ArrayLike
+        Student levels for the interactions.
 
     Returns
     -------
@@ -195,7 +229,7 @@ def compute_metrics(
     return metrics
 
 
-def evaluate(
+def evaluate_replication(
     preds_validated: list,
     dataset: pd.DataFrame,
     prefix: Literal["val", "test"],
@@ -229,7 +263,7 @@ def evaluate(
     y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
     student_ids = dataset[STUDENT_ID].to_numpy()
     student_level_group = dataset[STUDENT_LEVEL_GROUP].to_numpy()
-    metrics = compute_metrics(
+    metrics = compute_metrics_replication(
         y_val_pred=y_val_pred,
         y_val_true=y_val_true,
         y_val_student=y_val_student,
@@ -270,9 +304,10 @@ def evaluate(
 def compute_metrics_roleplay(
     y_val_pred: ArrayLike,
     y_val_true: ArrayLike,
-    prefix: Literal["val", "test"],
+    student_level_group: ArrayLike,
+    student_group_correctness: ArrayLike,
 ) -> dict[str, Any]:
-    """Compute metrics.
+    """Compute metrics for student roleplaying.
 
     Parameters
     ----------
@@ -280,8 +315,8 @@ def compute_metrics_roleplay(
         Predicted values.
     y_val_true : ArrayLike
         True values.
-    y_val_student : ArrayLike
-        Student values.
+    student_level_group : ArrayLike
+        Student levels for the interactions.
 
     Returns
     -------
@@ -290,12 +325,16 @@ def compute_metrics_roleplay(
     """
     # compute metrics
     metrics = {
-        f"answers_{prefix}_accuracy": accuracy_score(
-            y_true=y_val_true, y_pred=y_val_pred
-        ),
-        f"answers_{prefix}_invalid": np.mean(y_val_pred == -1),
-        f"answers_{prefix}_f1": f1_score(
-            y_true=y_val_true, y_pred=y_val_pred, average="micro"
+        "acc_true_pred": accuracy_score(y_true=y_val_true, y_pred=y_val_pred),
+        "prop_invalid": np.mean(y_val_pred == -1),
+        "f1_true_pred": f1_score(y_true=y_val_true, y_pred=y_val_pred, average="micro"),
+        # TODO: could use accuracies from train set as baseline for monotonicity
+        "monotonicity": eval_metric_monotonicity(  # TODO: get ground truth accuracy
+            y_true=y_val_true,
+            y_llm=y_val_pred,
+            student_level_group=student_level_group,
+            y_student=None,
+            student_group_correctness=student_group_correctness,
         ),
     }
     return metrics
@@ -305,6 +344,7 @@ def evaluate_roleplay(
     preds_validated: list,
     dataset: pd.DataFrame,
     prefix: Literal["val", "test"],
+    student_group_correctness: NDArray,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Evaluate.
 
@@ -326,45 +366,29 @@ def evaluate_roleplay(
     # NOTE: "student_answer" refers to the structured output class
     y_val_pred = np.array([output.student_answer for output in preds_validated])
     y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
-    student_level_groups = dataset[
-        STUDENT_LEVEL_GROUP
-    ].unique()  # TODO: order this alphabetically?
-    # calculate metrics per student group
-    metrics = dict()
-    for student_level in student_level_groups:
-        y_val_pred_student = y_val_pred[dataset[STUDENT_LEVEL_GROUP] == student_level]
-        y_val_true_student = y_val_true[dataset[STUDENT_LEVEL_GROUP] == student_level]
-        if len(y_val_pred_student) > 0:
-            metrics_group = compute_metrics_roleplay(
-                y_val_pred=y_val_pred_student,
-                y_val_true=y_val_true_student,
-                prefix=prefix,
-            )
-            logger.info(
-                "Evaluate - student group",
-                student_level=student_level,
-                num_students=len(y_val_pred_student),
-                accuracy=metrics_group[f"answers_{prefix}_accuracy"],
-            )
-            metrics[student_level] = metrics_group
-    logger.info("Evaluate - end")
-    # NOTE: invert metrics dict
-    inverted_metrics = {
-        metric: {level: metrics[level][metric] for level in metrics}
-        for metric in metrics[list(metrics.keys())[0]].keys()
-    }
+    student_level_group = dataset[STUDENT_LEVEL_GROUP].to_numpy()
+    metrics = compute_metrics_roleplay(
+        y_val_pred=y_val_pred,
+        y_val_true=y_val_true,
+        student_level_group=student_level_group,
+        student_group_correctness=student_group_correctness,
+    )
+    logger.info(
+        "Evaluate - end",
+        monotonicity=round(metrics["monotonicity"], 2),
+    )
+    metrics = {f"{prefix}_{k}": v for k, v in metrics.items()}
     preds = {
         f"{prefix}_y_pred": y_val_pred,
         f"{prefix}_y_true": y_val_true,
-        f"{prefix}_{STUDENT_LEVEL_GROUP}": student_level_groups,
+        f"{prefix}_{STUDENT_LEVEL_GROUP}": student_level_group,
     }
-    return inverted_metrics, preds
+    return metrics, preds
 
 
 def evaluate_q_difficulty(
     preds_validated: list,
     dataset: pd.DataFrame,
-    df_questions: pd.DataFrame,
     prefix: Literal["val", "test"],
 ):
     from tools.irt_estimator import irt_estimation
@@ -382,7 +406,7 @@ def evaluate_q_difficulty(
     )
     # Compute IRT parameters
     _, difficulty_dict, _ = irt_estimation(interactions_df=df)
-    df_q_tmp = df_questions.copy()
+    df_q_tmp = dataset.copy()
     df_q_tmp["q_diff_pred"] = df_q_tmp[QUESTION_ID].map(difficulty_dict)
     # compute RMSE
     metrics = {

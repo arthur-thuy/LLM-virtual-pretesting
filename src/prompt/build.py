@@ -75,7 +75,7 @@ def build_prompt(
                 example_selector=cfg.EXAMPLE_SELECTOR.NAME,
                 num_examples=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
             )
-            if cfg.PROBLEM_TYPE in ["replicate", "roleplay"]:
+            if cfg.CONTEXT_TYPE == "snippets":
                 example_selector, input_vars = build_example_selector(
                     cfg, examples=examples, q_ids_train=q_ids_train
                 )
@@ -89,7 +89,7 @@ def build_prompt(
                     ),
                 )
 
-            elif cfg.PROBLEM_TYPE == "misconceptions":
+            elif cfg.CONTEXT_TYPE == "misconceptions":
                 example_selector, input_vars = build_example_selector(
                     cfg, examples=examples, q_ids_train=q_ids_train
                 )

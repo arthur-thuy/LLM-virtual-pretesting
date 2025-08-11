@@ -10,8 +10,8 @@ _C.SEED = 42
 # number of runs
 _C.RUNS = 1
 
-# problem type
-_C.PROBLEM_TYPE = "misconceptions"
+# context type
+_C.CONTEXT_TYPE = "misconceptions"
 
 # model architecture
 _C.MODEL = CN()

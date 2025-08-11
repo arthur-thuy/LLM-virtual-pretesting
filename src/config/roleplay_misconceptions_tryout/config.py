@@ -10,8 +10,8 @@ _C.SEED = 42
 # number of runs
 _C.RUNS = 1
 
-# problem type
-_C.PROBLEM_TYPE = "misconceptions"
+# context type
+_C.CONTEXT_TYPE = "misconceptions"
 
 # model architecture
 _C.MODEL = CN()
@@ -45,6 +45,9 @@ _C.EXAMPLE_FORMATTER = CN()
 # interactions
 _C.EXAMPLE_FORMATTER.INTERACTIONS = CN()
 _C.EXAMPLE_FORMATTER.INTERACTIONS.NAME = "quotes"
+# questions
+_C.EXAMPLE_FORMATTER.QUESTIONS = CN()
+_C.EXAMPLE_FORMATTER.QUESTIONS.NAME = "quotes"
 
 # example selector
 _C.EXAMPLE_SELECTOR = CN()

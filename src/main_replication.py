@@ -35,7 +35,7 @@ from tools.configurator import (
 from tools.irt_estimator import apply_student_scale_map
 from tools.constants import TEST, TRAIN, VALIDATION, VALLARGE, VALSMALL  # noqa
 from tools.data_manager.utils import bring_correct_option_forward
-from tools.evaluate import evaluate, predict
+from tools.evaluate import evaluate_replication, predict
 from tools.utils import (
     delete_previous_content,
     print_elapsed_time,
@@ -93,8 +93,9 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         num_interactions=len(datasets[VALIDATION]),
     )
 
-    if cfg.PROBLEM_TYPE == "misconceptions":
+    if cfg.CONTEXT_TYPE == "misconceptions":  # NOTE: alternative is "snippets"
         # bring correct option to first place
+        logger.info("Misconceptions as context: bringing correct option forward")
         datasets[TRAIN] = datasets[TRAIN].apply(
             bring_correct_option_forward,
             is_interaction=True,
@@ -157,9 +158,9 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         json_schema=StrucOutput,
         langfuse_handler=langfuse_handler,
     )
-    val_metrics, val_preds = evaluate(
+    val_metrics, val_preds = evaluate_replication(
         preds_validated=val_preds_raw["val_preds_validated"],
-        dataset=datasets[VALIDATION],
+        dataset=datasets[VALIDATION],  # unformatted dataset!
         prefix="val",
         langfuse_session=langfuse_session,
         trace_id=trace_id,

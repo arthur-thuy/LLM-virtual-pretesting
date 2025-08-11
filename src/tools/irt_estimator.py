@@ -297,7 +297,7 @@ def explode_student_levels(
     pd.DataFrame
         DataFrame with an additional column 'student_level_group'.
     """
-    student_level_groups_list = list(student_scale_map.values())
+    student_level_groups_list = list(student_scale_map.keys())
     df_tmp = df_questions.copy()
     df_tmp[STUDENT_LEVEL_GROUP] = [student_level_groups_list] * len(df_tmp)
     df_tmp = df_tmp.explode(STUDENT_LEVEL_GROUP)
