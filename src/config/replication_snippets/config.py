@@ -11,7 +11,7 @@ _C.SEED = 42
 _C.RUNS = 2
 
 # context type
-_C.CONTEXT_TYPE = "misconceptions"
+_C.CONTEXT_TYPE = "snippets"
 
 # model architecture
 _C.MODEL = CN()
@@ -29,7 +29,7 @@ _C.MODEL.MAX_RETRIES = None
 # structured output
 _C.STRUCTURED_OUTPUTTER = CN()
 # structured output name
-_C.STRUCTURED_OUTPUTTER.NAME = "student_bool"
+_C.STRUCTURED_OUTPUTTER.NAME = "teacher_bool"
 
 # data loader
 _C.LOADER = CN()
@@ -49,7 +49,7 @@ _C.EXAMPLE_FORMATTER.INTERACTIONS.NAME = "quotes"
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
 # example selector name
-_C.EXAMPLE_SELECTOR.NAME = "miscon_studentid_random"
+_C.EXAMPLE_SELECTOR.NAME = "studentid_random"
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 5
 # example selector embedding model
@@ -58,7 +58,7 @@ _C.EXAMPLE_SELECTOR.EMBEDDING = "text-embedding-3-large"
 # system prompt
 _C.PROMPT = CN()
 # system prompt name
-_C.PROMPT.NAME = "student_chocolate_level_context"
+_C.PROMPT.NAME = "teacher_marshmellow_level_context"
 
 _C.ROLEPLAY = CN()
 # number of student levels to simulate

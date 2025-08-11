@@ -20,7 +20,7 @@ _C.MODEL.NAME = "o4-mini-2025-04-16"
 # model temperature
 _C.MODEL.TEMPERATURE = 0.0
 # max tokens
-_C.MODEL.MAX_TOKENS = 4096
+_C.MODEL.MAX_TOKENS = 2048
 # timeout (openai and anthropic only)
 _C.MODEL.TIMEOUT = None
 # max retries (openai and anthropic only)
@@ -29,7 +29,7 @@ _C.MODEL.MAX_RETRIES = None
 # structured output
 _C.STRUCTURED_OUTPUTTER = CN()
 # structured output name
-_C.STRUCTURED_OUTPUTTER.NAME = "student_bool"
+_C.STRUCTURED_OUTPUTTER.NAME = "student_bool"  # "student_miscon"
 
 # data loader
 _C.LOADER = CN()
@@ -45,11 +45,14 @@ _C.EXAMPLE_FORMATTER = CN()
 # interactions
 _C.EXAMPLE_FORMATTER.INTERACTIONS = CN()
 _C.EXAMPLE_FORMATTER.INTERACTIONS.NAME = "quotes"
+# questions
+_C.EXAMPLE_FORMATTER.QUESTIONS = CN()
+_C.EXAMPLE_FORMATTER.QUESTIONS.NAME = "quotes"
 
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
 # example selector name
-_C.EXAMPLE_SELECTOR.NAME = "miscon_studentid_random"
+_C.EXAMPLE_SELECTOR.NAME = "miscon_studentlevel_random"
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 5
 # example selector embedding model

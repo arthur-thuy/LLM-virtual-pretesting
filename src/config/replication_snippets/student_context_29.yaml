@@ -1,0 +1,9 @@
+EXAMPLE_SELECTOR:
+  NAME: studentid_random
+  NUM_EXAMPLES: 5
+MODEL:
+  TEMPERATURE: 1.0
+PROMPT:
+  NAME: student_chocolate_nolevel_context
+STRUCTURED_OUTPUTTER:
+  NAME: student_bool
