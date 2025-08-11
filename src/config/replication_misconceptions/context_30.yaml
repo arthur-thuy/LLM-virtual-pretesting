@@ -1,8 +1,8 @@
 EXAMPLE_SELECTOR:
   NAME: miscon_studentid_kc_exact
-  NUM_EXAMPLES: 1
+  NUM_EXAMPLES: 5
 MODEL:
-  TEMPERATURE: 0.0
+  TEMPERATURE: 1.0
 PROMPT:
   NAME: student_chocolate_nolevel_context
 STRUCTURED_OUTPUTTER:

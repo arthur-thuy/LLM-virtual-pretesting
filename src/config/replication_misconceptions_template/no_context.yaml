@@ -5,7 +5,7 @@ STRUCTURED_OUTPUTTER:
   NAME: "student_bool"
 
 PROMPT:
-  NAME: ["replicate_student_chocolate_zero_studentlevel"]
+  NAME: ["student_chocolate_level_nocontext"]
 
 EXAMPLE_SELECTOR:
   NUM_EXAMPLES: 0

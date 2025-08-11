@@ -58,7 +58,7 @@ _C.EXAMPLE_SELECTOR.EMBEDDING = "text-embedding-3-large"
 # system prompt
 _C.PROMPT = CN()
 # system prompt name
-_C.PROMPT.NAME = "replicate_student_chocolate"
+_C.PROMPT.NAME = "student_chocolate_level_context"
 
 _C.ROLEPLAY = CN()
 # number of student levels to simulate

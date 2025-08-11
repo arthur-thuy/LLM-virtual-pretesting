@@ -383,8 +383,8 @@ def build_collect_misconceptions(few_shot_prompt, native_str_output: bool) -> li
 #######################################
 
 
-@PROMPT_REGISTRY.register("replicate_student_chocolate")
-def build_replicate_student_chocolate(
+@PROMPT_REGISTRY.register("student_chocolate_nolevel_context")
+def build_student_chocolate_nolevel_context(
     few_shot_prompt, native_str_output: bool
 ) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
@@ -409,8 +409,8 @@ def build_replicate_student_chocolate(
     return messages
 
 
-@PROMPT_REGISTRY.register("replicate_student_chocolate_studentlevel")
-def build_replicate_student_chocolate_studentlevel(
+@PROMPT_REGISTRY.register("student_chocolate_level_context")
+def build_student_chocolate_level_context(
     few_shot_prompt, native_str_output: bool
 ) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
@@ -435,32 +435,8 @@ def build_replicate_student_chocolate_studentlevel(
     return messages
 
 
-@PROMPT_REGISTRY.register("replicate_student_chocolate_zero")
-def build_replicate_student_chocolate_zero(
-    few_shot_prompt, native_str_output: bool
-) -> list:
-    # NOTE: do not add a statement about JSON output! -> this is added automatically
-    system_prompt_str = (
-        "You are a student working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
-        "Inspect the new question and think how you would answer it as a student. "  # noqa
-        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
-        # NOTE: no hint to question difficulty because no indication of student level
-        # "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
-        # "If you answer correctly, explain why you think the answer is correct. "
-        # "Provide your answer as the integer index of the multiple choice option."
-    )
-    human1_prompt_str = "New multiple choice question:\n\n{input}"
-
-    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
-    messages = [
-        ("system", system_prompt_str),
-        ("human", human1_prompt_str),
-    ]
-    return messages
-
-
-@PROMPT_REGISTRY.register("replicate_student_chocolate_zero_studentlevel")
-def build_replicate_student_chocolate_zero_studentlevel(
+@PROMPT_REGISTRY.register("student_chocolate_level_nocontext")
+def build_student_chocolate_level_nocontext(
     few_shot_prompt, native_str_output: bool
 ) -> list:
     # NOTE: do not add a statement about JSON output! -> this is added automatically
