@@ -63,6 +63,35 @@ class StrOutputStudentBool(BaseModel):
     student_answer: int = Field(description="The index of your answer")
 
 
+@STRUCTURED_OUTPUTTER_REGISTRY.register("student_bool_nocontext")
+class StrOutputStudentBoolNoContext(BaseModel):
+    """Answer to a multiple-choice question without context."""
+
+    student_answer: int = Field(description="The index of your answer")
+
+
+@STRUCTURED_OUTPUTTER_REGISTRY.register("teacher_bool")
+class StrOutputTeacherBool(BaseModel):
+    """Answer to a multiple-choice question."""
+
+    used_misconception: bool = Field(
+        description=(
+            "Indicates whether a misconception listed above was used in the answer"
+        )
+    )
+    used_skill: bool = Field(
+        description=("Indicates whether a skill listed above was used in the answer")
+    )
+    student_answer: int = Field(description="The index of the student's answer")
+
+
+@STRUCTURED_OUTPUTTER_REGISTRY.register("teacher_bool_nocontext")
+class StrOutputTeacherBoolNoContext(BaseModel):
+    """Answer to a multiple-choice question without context."""
+
+    student_answer: int = Field(description="The index of the student's answer")
+
+
 # @STRUCTURED_OUTPUTTER_REGISTRY.register("student_miscon")
 # class StrOutputStudentMiscon(BaseModel):
 #     """Answer to a multiple-choice question."""

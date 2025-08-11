@@ -457,3 +457,50 @@ def build_student_chocolate_level_nocontext(
         ("human", human1_prompt_str),
     ]
     return messages
+
+
+@PROMPT_REGISTRY.register("teacher_marshmellow_level_context")
+def build_teacher_marshmellow_level_context(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are an expert teacher preparing a set of multiple choice exam questions on {exam_type}. "  # noqa
+        "From earlier tests of a student of level {student_level_group} {student_scale} in your class, you have identified a set of knowledge concepts that they master and a set of misconceptions that they have. "
+        "Inspect the new question and think how that student of level {student_level_group} would answer it, keeping in mind their skills and misconceptions. "  # noqa
+        "Think about how the student level relates to the question difficulty. "
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+    )
+
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        few_shot_prompt,
+        ("human", human1_prompt_str),
+    ]
+    return messages
+
+
+@PROMPT_REGISTRY.register("teacher_marshmellow_level_nocontext")
+def build_teacher_marshmellow_level_nocontext(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are an expert teacher preparing a set of multiple choice exam questions on {exam_type}. "  # noqa
+        "From earlier tests of a student of level {student_level_group} {student_scale} in your class, you have identified a set of knowledge concepts that they master and a set of misconceptions that they have. "
+        "Inspect the new question and think how that student of level {student_level_group} {student_scale} would answer it. "  # noqa
+        "Think about how the student level relates to the question difficulty. "
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+    )
+
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human1_prompt_str),
+    ]
+    return messages
