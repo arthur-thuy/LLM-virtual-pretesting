@@ -287,10 +287,10 @@ def plot_level_correctness(
             "llm_correct": llm_correct,
         }
     )
-    student_group_correctness = df.groupby("student_level_group")[
+    student_group_correctness = df.groupby("student_level_group", sort=False)[
         "student_correct"
     ].mean()
-    llm_group_correctness = df.groupby("student_level_group")["llm_correct"].mean()
+    llm_group_correctness = df.groupby("student_level_group", sort=False)["llm_correct"].mean()
 
     _, ax = plt.subplots()
     student_group_correctness.plot(kind="line", ax=ax, label="Student")
