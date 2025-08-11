@@ -232,7 +232,10 @@ def get_configs_out(experiment: str) -> tuple[dict[str, Any], ...]:
     return configs
 
 
-def get_config_ids(configs: tuple[dict]) -> list[Any]:
+def get_config_ids(
+    configs: tuple[dict],
+    problem_type: Literal["replicate", "roleplay", "collect_misconceptions"],
+) -> list[Any]:
     """Get config IDs from configs.
 
     Parameters
@@ -245,7 +248,15 @@ def get_config_ids(configs: tuple[dict]) -> list[Any]:
     List[Any]
         Tuple of config IDs
     """
-    config_ids = [cfg["ID"] for cfg in configs]
+    if problem_type == "replicate":
+        key_name = "ID"
+    elif problem_type == "roleplay":
+        key_name = "ID_ROLEPLAY"
+    elif problem_type == "collect_misconceptions":
+        key_name = "ID_MISCON"
+    else:
+        raise ValueError(f"Invalid problem type: {problem_type}")
+    config_ids = [cfg[key_name] for cfg in configs]
     return config_ids
 
 

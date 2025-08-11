@@ -538,6 +538,7 @@ def get_llm_student_preds(
     config_id: str,
     run_id: int,
     split: Literal["val", "test"],
+    problem_type: Literal["roleplay", "replicate"],
 ) -> dict[str, Any]:
     """Get predictions of the LLM student model.
 
@@ -561,13 +562,28 @@ def get_llm_student_preds(
     logger.info("Reading predictions", config_id=config_id, run_id=run_id, split=split)
     output_path = os.path.join("output", exp_name, config_id, f"run_{run_id}.pickle")
     logs = read_pickle(output_path)
-    preds_dict = logs["preds"]
-    return {
-        "y_pred": preds_dict[f"{split}_y_pred"],
-        "y_true": preds_dict[f"{split}_y_true"],
-        "y_student": preds_dict[f"{split}_y_student"],
-        "student_ids": preds_dict[f"{split}_student_ids"],
-        "student_level_group": logs["val_data"]["student_level_group"]
-        .astype(str)
-        .to_numpy(),
-    }
+
+    if problem_type == "replicate":
+        preds_dict = logs["preds"]
+        return_dict = {
+            "y_pred": preds_dict[f"{split}_y_pred"],
+            "y_true": preds_dict[f"{split}_y_true"],
+            "y_student": preds_dict[f"{split}_y_student"],
+            "student_ids": preds_dict[f"{split}_student_ids"],
+            "student_level_group": logs["val_data"]["student_level_group"]
+            .astype(str)
+            .to_numpy(),
+        }
+    elif problem_type == "roleplay":
+        preds_dict = logs["preds_answers"]
+        return_dict = {
+            "y_pred": preds_dict[f"{split}_y_pred"],
+            "y_true": preds_dict[f"{split}_y_true"],
+            "student_level_group": logs["val_data"]["student_level_group"]
+            .astype(str)
+            .to_numpy(),
+            "student_group_correctness": logs["student_group_correctness"],
+        }
+    else:
+        raise ValueError(f"Unknown problem type: {problem_type}")
+    return return_dict

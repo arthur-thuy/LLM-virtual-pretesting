@@ -131,7 +131,7 @@ def eval_metric_monotonicity(
         df["student_level_group"] = df["student_level_group"].astype(int)
         df = df.sort_values(
             "student_level_group", ascending=True
-        )  # TODO: does this work with string levels?
+        )  # NOTE: inputs are digits because using unformatted dataset
         student_group_correctness = (
             df.groupby("student_level_group", sort=False)["student_correct"]
             .mean()
@@ -159,20 +159,30 @@ def eval_metric_monotonicity(
     # print(f"{student_group_correctness=}")
     # print(f"{llm_group_correctness=}")
 
-    correlation_score = scipy.stats.linregress(
-        llm_group_correctness, student_group_correctness
-    ).rvalue
-    penalty_non_monotonicity = np.sum(
-        [
-            (
-                np.sqrt(np.abs(llm_group_correctness[i + 1] - llm_group_correctness[i]))
-                if llm_group_correctness[i + 1] < llm_group_correctness[i]
-                else 0.0
-            )
-            for i in range(len(llm_group_correctness) - 1)
-        ]
-    )
-    return (correlation_score - penalty_non_monotonicity).item()
+    try:
+        correlation_score = scipy.stats.linregress(
+            llm_group_correctness, student_group_correctness
+        ).rvalue
+        penalty_non_monotonicity = np.sum(
+            [
+                (
+                    np.sqrt(np.abs(llm_group_correctness[i + 1] - llm_group_correctness[i]))
+                    if llm_group_correctness[i + 1] < llm_group_correctness[i]
+                    else 0.0
+                )
+                for i in range(len(llm_group_correctness) - 1)
+            ]
+        )
+        score = (correlation_score - penalty_non_monotonicity).item()
+    except ValueError as e:
+        logger.error(
+            "Error computing monotonicity score",
+            error=str(e),
+            llm_group_correctness=llm_group_correctness,
+            student_group_correctness=student_group_correctness,
+        )
+        score = np.nan
+    return score
 
 
 def compute_metrics_replication(

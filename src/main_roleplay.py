@@ -177,7 +177,6 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
         .mean()
         .to_numpy()
     )
-    print(f"{questions[VALIDATION].columns.tolist()=}")  # TODO: remove
     val_metrics_answers, val_preds_answers = evaluate_roleplay(
         preds_validated=val_preds_raw["val_preds_validated"],
         dataset=questions[VALIDATION],  # unformatted dataset!
@@ -195,11 +194,11 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
     write_pickle(
         {
             "preds_raw": {**val_preds_raw},
-            "metrics_qdiff": {**val_metrics_qdiff},
-            "metrics_answers": {**val_metrics_answers},
+            "metrics": {**val_metrics_qdiff, **val_metrics_answers},
             "preds_answers": {**val_preds_answers},
             "preds_qdiff": {**val_preds_qdiff},
             "val_data": questions_fmt[VALIDATION],
+            "student_group_correctness": train_student_group_correctness,
         },
         save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID_ROLEPLAY),
         fname=f"run_{run_n}",
