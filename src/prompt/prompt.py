@@ -392,7 +392,7 @@ def build_student_chocolate_nolevel_context(
         "You are a student working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
         "From your earlier answers on the exam, the teacher has identified a set of knowledge concepts that you master and a set of misconceptions that you have. "  # noqa
         "Inspect the new question and think how you would answer it as a student, keeping in mind your skills and misconceptions. "  # noqa
-        "Think about how the student level relates to the question difficulty."
+        "Think about how the student level relates to the question difficulty. "
         "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
         # "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
         # "If you answer correctly, explain why you think the answer is correct. "
@@ -418,7 +418,7 @@ def build_student_chocolate_level_context(
         "You are a student of level {student_level_group} {student_scale} working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
         "From your earlier answers on the exam, the teacher has identified a set of knowledge concepts that you master and a set of misconceptions that you have. "  # noqa
         "Inspect the new question and think how you would answer it as a student of level {student_level_group}, keeping in mind your skills and misconceptions. "  # noqa
-        "Think about how the student level relates to the question difficulty."
+        "Think about how the student level relates to the question difficulty. "
         "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
         # "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
         # "If you answer correctly, explain why you think the answer is correct. "
@@ -443,8 +443,8 @@ def build_student_chocolate_level_nocontext(
     system_prompt_str = (
         "You are a student of level {student_level_group} {student_scale} working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
         "Inspect the new question and think how you would answer it as a student of level {student_level_group}"  # noqa
+        "Think about how the student level relates to the question difficulty. "
         "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
-        "Think about how the student level relates to the question difficulty."
         # "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
         # "If you answer correctly, explain why you think the answer is correct. "
         # "Provide your answer as the integer index of the multiple choice option."
