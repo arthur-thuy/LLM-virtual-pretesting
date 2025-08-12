@@ -20,7 +20,7 @@ _C.MODEL.NAME = "o4-mini-2025-04-16"
 # model temperature
 _C.MODEL.TEMPERATURE = 0.0
 # max tokens
-_C.MODEL.MAX_TOKENS = 2048
+_C.MODEL.MAX_TOKENS = 4096
 # timeout (openai and anthropic only)
 _C.MODEL.TIMEOUT = None
 # max retries (openai and anthropic only)
