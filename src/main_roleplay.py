@@ -199,6 +199,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
             "preds_qdiff": {**val_preds_qdiff},
             "val_data": questions_fmt[VALIDATION],
             "student_group_correctness": train_student_group_correctness,
+            "student_scale_map": student_scale_map,
         },
         save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID_ROLEPLAY),
         fname=f"run_{run_n}",

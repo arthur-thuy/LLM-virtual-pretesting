@@ -583,6 +583,7 @@ def get_llm_student_preds(
             .astype(str)
             .to_numpy(),
             "student_group_correctness": logs["student_group_correctness"],
+            "question_ids": logs["val_data"]["question_id"].to_numpy(),
         }
     else:
         raise ValueError(f"Unknown problem type: {problem_type}")

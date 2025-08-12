@@ -166,7 +166,9 @@ def eval_metric_monotonicity(
         penalty_non_monotonicity = np.sum(
             [
                 (
-                    np.sqrt(np.abs(llm_group_correctness[i + 1] - llm_group_correctness[i]))
+                    np.sqrt(
+                        np.abs(llm_group_correctness[i + 1] - llm_group_correctness[i])
+                    )
                     if llm_group_correctness[i + 1] < llm_group_correctness[i]
                     else 0.0
                 )
@@ -316,6 +318,8 @@ def compute_metrics_roleplay(
     y_val_true: ArrayLike,
     student_level_group: ArrayLike,
     student_group_correctness: ArrayLike,
+    question_ids: ArrayLike,
+    prop_df: pd.DataFrame,
 ) -> dict[str, Any]:
     """Compute metrics for student roleplaying.
 
@@ -327,6 +331,12 @@ def compute_metrics_roleplay(
         True values.
     student_level_group : ArrayLike
         Student levels for the interactions.
+    student_group_correctness : ArrayLike
+        Pre-computed correctness of the student group.
+    question_ids : ArrayLike
+        Question IDs.
+    prop_df : pd.DataFrame
+        A DataFrame containing the student proportions of each answer option.
 
     Returns
     -------
@@ -338,14 +348,20 @@ def compute_metrics_roleplay(
         "acc_true_pred": accuracy_score(y_true=y_val_true, y_pred=y_val_pred),
         "prop_invalid": np.mean(y_val_pred == -1),
         "f1_true_pred": f1_score(y_true=y_val_true, y_pred=y_val_pred, average="micro"),
-        # TODO: could use accuracies from train set as baseline for monotonicity
-        "monotonicity": eval_metric_monotonicity(  # TODO: get ground truth accuracy
+        "monotonicity": eval_metric_monotonicity(
             y_true=y_val_true,
             y_llm=y_val_pred,
             student_level_group=student_level_group,
             y_student=None,
             student_group_correctness=student_group_correctness,
         ),
+        "distractor_alignment": eval_distractor_alignment(
+            y_true_array=y_val_true,
+            y_llm_array=y_val_pred,
+            student_level_group_array=student_level_group,
+            question_id_array=question_ids,
+            prop_df=prop_df,
+        ).item(),
     }
     return metrics
 
@@ -377,15 +393,25 @@ def evaluate_roleplay(
     y_val_pred = np.array([output.student_answer for output in preds_validated])
     y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
     student_level_group = dataset[STUDENT_LEVEL_GROUP].to_numpy()
+    question_ids = dataset[QUESTION_ID].to_numpy()
+
+    # read proportions
+    df_prop = pd.read_csv("../data/platinum/dbe_kt22_proportions_val.csv")
+    df_prop["dict"] = df_prop["dict"].apply(eval)
+
     metrics = compute_metrics_roleplay(
         y_val_pred=y_val_pred,
         y_val_true=y_val_true,
         student_level_group=student_level_group,
         student_group_correctness=student_group_correctness,
+        question_ids=question_ids,
+        prop_df=df_prop,
     )
+
     logger.info(
         "Evaluate - end",
         monotonicity=round(metrics["monotonicity"], 2),
+        distr_alignment=round(metrics["distractor_alignment"], 2),
     )
     metrics = {f"{prefix}_{k}": v for k, v in metrics.items()}
     preds = {
@@ -435,3 +461,88 @@ def evaluate_q_difficulty(
         f"{prefix}_y_true": df_q_tmp[Q_DIFFICULTY].to_numpy(),
     }
     return metrics, preds
+
+
+def alignment_score_single(y_true: int, y_llm: int, dict_props: dict) -> float:
+    """Calculate the alignment score for a single question.
+
+    Parameters
+    ----------
+    y_true : int
+        The true answer.
+    y_llm : int
+        The LLM predicted answer.
+    dict_props : dict
+        A dictionary mapping answer options to student proportions.
+
+    Returns
+    -------
+    float
+        The alignment score.
+    """
+    llm_answer_incorrect = y_true != y_llm
+    if llm_answer_incorrect:
+        dict_tmp = dict_props.copy()
+        prop_answer_llm = dict_tmp[y_llm]
+        # remove correct idx from dict
+        dict_tmp.pop(y_true, None)
+        idx_most_popular_distractor = max(dict_tmp, key=dict_tmp.get)
+        prop_most_popular_distractor = dict_tmp[idx_most_popular_distractor]
+        # calculate score
+        try:
+            score = prop_answer_llm / prop_most_popular_distractor
+        except ZeroDivisionError:
+            score = 0.0
+    else:
+        score = np.nan
+    return score
+
+
+def eval_distractor_alignment(
+    y_true_array: NDArray,
+    y_llm_array: NDArray,
+    student_level_group_array: NDArray,
+    question_id_array: NDArray,
+    prop_df: pd.DataFrame,
+) -> float:
+    """Evaluate the alignment of distractor answers.
+
+    Parameters
+    ----------
+    y_true_array : NDArray
+        The true answers.
+    y_llm_array : NDArray
+        The LLM predicted answers.
+    student_level_group_array : NDArray
+        The student level groups.
+    question_id_array : NDArray
+        The question IDs.
+    prop_df : pd.DataFrame
+        A DataFrame containing the student proportions of each answer option.
+
+    Returns
+    -------
+    float
+        The mean alignment score.
+    """
+    # convert to int
+    student_level_group_array = student_level_group_array.astype(int)
+
+    scores = []
+    for y_true, y_llm, student_level_group, question_id in zip(
+        y_true_array, y_llm_array, student_level_group_array, question_id_array
+    ):
+        dict_tmp = (
+            prop_df[
+                (prop_df["question_id"] == question_id)
+                & (prop_df["student_level_group"] == student_level_group)
+            ]["dict"]
+            .item()
+            .copy()
+        )
+        score = alignment_score_single(y_true=y_true, y_llm=y_llm, dict_props=dict_tmp)
+        scores.append(score)
+
+    # compute mean and ignore NaNs
+    mean_score = np.nanmean(scores) if scores else 0.0
+    return mean_score
