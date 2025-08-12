@@ -5,4 +5,4 @@ MODEL:
 PROMPT:
   NAME: teacher_marshmellow_level_nocontext
 STRUCTURED_OUTPUTTER:
-  NAME: teacher_bool_nocontext
+  NAME: teacher

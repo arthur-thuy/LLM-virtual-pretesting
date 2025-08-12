@@ -1,0 +1,8 @@
+EXAMPLE_SELECTOR:
+  NUM_EXAMPLES: 0
+MODEL:
+  TEMPERATURE: 0.0
+PROMPT:
+  NAME: student_chocolate_level_nocontext
+STRUCTURED_OUTPUTTER:
+  NAME: student
