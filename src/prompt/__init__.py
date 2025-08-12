@@ -8,4 +8,4 @@
 
 # local application/library specific imports
 from prompt.build import PROMPT_REGISTRY, build_prompt
-from prompt.prompt import build_replicate_student_tomato
+from prompt.prompt import build_student_pepper_level_context
