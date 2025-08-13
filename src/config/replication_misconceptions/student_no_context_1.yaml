@@ -5,4 +5,4 @@ MODEL:
 PROMPT:
   NAME: student_chocolate_level_nocontext
 STRUCTURED_OUTPUTTER:
-  NAME: student
+  NAME: student_bool_nocontext

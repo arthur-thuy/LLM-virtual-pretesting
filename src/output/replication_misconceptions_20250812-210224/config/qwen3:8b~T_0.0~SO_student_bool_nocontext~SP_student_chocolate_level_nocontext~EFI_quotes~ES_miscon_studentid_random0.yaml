@@ -1,0 +1,30 @@
+CONTEXT_TYPE: misconceptions
+EXAMPLE_FORMATTER:
+  INTERACTIONS:
+    NAME: quotes
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: miscon_studentid_random
+  NUM_EXAMPLES: 0
+ID: qwen3:8b~T_0.0~SO_student_bool_nocontext~SP_student_chocolate_level_nocontext~EFI_quotes~ES_miscon_studentid_random0
+LOADER:
+  JOIN_KEY: question_id
+  NAME: dbe_kt22
+  RUN_LARGE_VAL: false
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: 4096
+  NAME: qwen3:8b
+  NATIVE_STRUCTURED_OUTPUT: true
+  TEMPERATURE: 0.0
+  TIMEOUT: null
+OUTPUT_DIR: ./output/replication_misconceptions_20250812-210224
+PROMPT:
+  NAME: student_chocolate_level_nocontext
+ROLEPLAY:
+  NUM_STUDENT_LEVELS: 5
+  STUDENT_SCALE: proficiency_5_str
+RUNS: 2
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: student_bool_nocontext

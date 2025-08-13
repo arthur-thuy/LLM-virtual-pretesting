@@ -16,7 +16,7 @@ _C.CONTEXT_TYPE = "misconceptions"
 # model architecture
 _C.MODEL = CN()
 # model name
-_C.MODEL.NAME = "o4-mini-2025-04-16"
+_C.MODEL.NAME = "qwen3:8b"  # "o4-mini-2025-04-16"
 # model temperature
 _C.MODEL.TEMPERATURE = 0.0
 # max tokens
