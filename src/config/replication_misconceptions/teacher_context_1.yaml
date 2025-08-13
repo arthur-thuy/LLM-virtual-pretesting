@@ -1,9 +1,0 @@
-EXAMPLE_SELECTOR:
-  NAME: miscon_studentid_random
-  NUM_EXAMPLES: 1
-MODEL:
-  TEMPERATURE: 0.0
-PROMPT:
-  NAME: teacher_marshmellow_level_context
-STRUCTURED_OUTPUTTER:
-  NAME: teacher_bool

@@ -1,0 +1,13 @@
+MODEL:
+  TEMPERATURE: [1.0]
+  NAME: ["o4-mini-2025-04-16"]
+
+STRUCTURED_OUTPUTTER:
+  NAME: "teacher_bool"
+
+PROMPT:
+  NAME: ["teacher_marshmellow_level_context"]
+
+EXAMPLE_SELECTOR:
+  NUM_EXAMPLES: [1, 3, 5]
+  NAME: ["miscon_studentid_random", "miscon_studentid_kc_exact"]
