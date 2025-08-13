@@ -191,7 +191,6 @@ def compute_metrics_replication(
     y_val_pred: ArrayLike,
     y_val_true: ArrayLike,
     y_val_student: ArrayLike,
-    student_level_group: ArrayLike,
 ) -> dict[str, Any]:
     """Compute metrics of student replication.
 
@@ -203,8 +202,6 @@ def compute_metrics_replication(
         True values.
     y_val_student : ArrayLike
         Student values.
-    student_level_group : ArrayLike
-        Student levels for the interactions.
 
     Returns
     -------
@@ -231,12 +228,6 @@ def compute_metrics_replication(
         # knowledge tracing
         "acc_kt": accuracy_score(y_true=student_correct, y_pred=llm_correct),
         "f1_kt": f1_score(y_true=student_correct, y_pred=llm_correct, average="micro"),
-        "monotonicity": eval_metric_monotonicity(
-            y_true=y_val_true,
-            y_student=y_val_student,
-            y_llm=y_val_pred,
-            student_level_group=student_level_group,
-        ),
     }
     return metrics
 
@@ -274,12 +265,10 @@ def evaluate_replication(
     y_val_student = dataset[S_OPTION_ID].to_numpy()
     y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
     student_ids = dataset[STUDENT_ID].to_numpy()
-    student_level_group = dataset[STUDENT_LEVEL_GROUP].to_numpy()
     metrics = compute_metrics_replication(
         y_val_pred=y_val_pred,
         y_val_true=y_val_true,
         y_val_student=y_val_student,
-        student_level_group=student_level_group,
     )
     logger.info(
         "Evaluate - end",
@@ -287,7 +276,6 @@ def evaluate_replication(
         accuracy_kt=metrics["acc_kt"],
         correctness_llm=metrics["acc_true_pred"],
         correctness_student=metrics["acc_true_student"],
-        monotonicity=round(metrics["monotonicity"], 2),
     )
 
     if trace_id is not None:
