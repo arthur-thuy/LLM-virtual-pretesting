@@ -1,0 +1,32 @@
+CONTEXT_TYPE: misconceptions
+EXAMPLE_FORMATTER:
+  INTERACTIONS:
+    NAME: quotes
+  QUESTIONS:
+    NAME: quotes
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: miscon_studentlevel_random
+  NUM_EXAMPLES: 1
+ID_ROLEPLAY: o4-mini-2025-04-16~T_1.0~SO_student_bool~L_5~SP_student_chocolate_level_context~SS_proficiency_5_str~EFQ_quotes~EFI_quotes~ES_miscon_studentlevel_random1
+LOADER:
+  JOIN_KEY: question_id
+  NAME: dbe_kt22
+  RUN_LARGE_VAL: false
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: 4096
+  NAME: o4-mini-2025-04-16
+  NATIVE_STRUCTURED_OUTPUT: true
+  TEMPERATURE: 1.0
+  TIMEOUT: null
+OUTPUT_DIR: ./output/roleplay_misconceptions_20250812-173641
+PROMPT:
+  NAME: student_chocolate_level_context
+ROLEPLAY:
+  NUM_STUDENT_LEVELS: 5
+  STUDENT_SCALE: proficiency_5_str
+RUNS: 2
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: student_bool
