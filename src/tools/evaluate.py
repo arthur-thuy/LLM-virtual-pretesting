@@ -281,7 +281,7 @@ def evaluate_replication(
         "Evaluate - end",
         acc=metrics["acc"],
         acc_kt=metrics["acc_kt"],
-        f1_macro=metrics["f1_macro"],
+        f1_macro=metrics["f1_macro"].round(2),
         correctness_llm=metrics["llm_correctness"],
         correctness_student=metrics["student_correctness"],
     )
