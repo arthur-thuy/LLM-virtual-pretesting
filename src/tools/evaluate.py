@@ -279,11 +279,11 @@ def evaluate_replication(
     )
     logger.info(
         "Evaluate - end",
-        acc=metrics["acc"],
-        acc_kt=metrics["acc_kt"],
-        f1_macro=metrics["f1_macro"].round(2),
-        correctness_llm=metrics["llm_correctness"],
-        correctness_student=metrics["student_correctness"],
+        acc=round(metrics["acc"], 2),
+        acc_kt=round(metrics["acc_kt"], 2),
+        f1_macro=round(metrics["f1_macro"], 2),
+        correctness_llm=round(metrics["llm_correctness"], 2),
+        correctness_student=round(metrics["student_correctness"], 2),
     )
 
     if trace_id is not None:
