@@ -38,7 +38,7 @@ _C.LOADER.NAME = "dbe_kt22"
 # dataset join key
 _C.LOADER.JOIN_KEY = "question_id"
 # run large validation set
-_C.LOADER.RUN_LARGE_VAL = False
+_C.LOADER.RUN_LARGE_VAL = True
 
 # example formatter
 _C.EXAMPLE_FORMATTER = CN()
