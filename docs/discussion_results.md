@@ -15,3 +15,9 @@ Should we keep the best student prompt and teacher prompt configuration for each
 
 - check whether there is a trend for temperature within the models, as opposed to averaging over all the models
 - temp 1.0 decreases the LLM correctness significantly! It brings it closer to the student correctness.
+
+## Number of examples
+
+Problem is that some students have a limited number of previous interactions ("random") or previous interactions of relevant knowledge concepts ("kc_exact").
+As such, the model may not get the number of examples that it requests.
+This might limit the advantage that the configurations with a larger number of examples can get.
