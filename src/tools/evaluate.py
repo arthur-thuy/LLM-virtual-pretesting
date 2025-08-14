@@ -214,20 +214,27 @@ def compute_metrics_replication(
 
     # compute metrics
     metrics = {
-        "acc_student_pred": accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
-        "acc_true_student": accuracy_score(y_true=y_val_true, y_pred=y_val_student),
-        "acc_true_pred": accuracy_score(y_true=y_val_true, y_pred=y_val_pred),
+        "acc": accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
+        "student_correctness": accuracy_score(
+            y_true=y_val_true, y_pred=y_val_student
+        ),
+        "llm_correctness": accuracy_score(y_true=y_val_true, y_pred=y_val_pred),
         "prop_invalid": np.mean(y_val_pred == -1),
-        "f1_student_pred": f1_score(
+        # F1 micro
+        "f1_micro": f1_score(
             y_true=y_val_student, y_pred=y_val_pred, average="micro"
         ),
-        "f1_true_student": f1_score(
-            y_true=y_val_true, y_pred=y_val_student, average="micro"
+        # F1 macro
+        "f1_macro": f1_score(
+            y_true=y_val_student, y_pred=y_val_pred, average="macro"
         ),
-        "f1_true_pred": f1_score(y_true=y_val_true, y_pred=y_val_pred, average="micro"),
+        # F1 weighted
+        "f1_weighted": f1_score(
+            y_true=y_val_student, y_pred=y_val_pred, average="weighted"
+        ),
         # knowledge tracing
         "acc_kt": accuracy_score(y_true=student_correct, y_pred=llm_correct),
-        "f1_kt": f1_score(y_true=student_correct, y_pred=llm_correct, average="micro"),
+        "f1_kt": f1_score(y_true=student_correct, y_pred=llm_correct, average="binary"),
     }
     return metrics
 
@@ -272,17 +279,18 @@ def evaluate_replication(
     )
     logger.info(
         "Evaluate - end",
-        accuracy=metrics["acc_student_pred"],
-        accuracy_kt=metrics["acc_kt"],
-        correctness_llm=metrics["acc_true_pred"],
-        correctness_student=metrics["acc_true_student"],
+        acc=metrics["acc"],
+        acc_kt=metrics["acc_kt"],
+        f1_macro=metrics["f1_macro"],
+        correctness_llm=metrics["llm_correctness"],
+        correctness_student=metrics["student_correctness"],
     )
 
     if trace_id is not None:
         langfuse_session.score(
             trace_id=trace_id,
-            name=f"{prefix}_accuracy",
-            value=metrics["acc_student_pred"],
+            name=f"{prefix}_f1_macro",
+            value=metrics["f1_macro"],
             data_type="NUMERIC",
         )
         langfuse_session.score(
