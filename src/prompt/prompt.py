@@ -161,7 +161,7 @@ def build_student_chocolate_level_nocontext(
     # NOTE: do not add a statement about JSON output! -> this is added automatically
     system_prompt_str = (
         "You are a student of level {student_level_group} {student_scale} working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
-        "Inspect the new question and think how you would answer it as a student of level {student_level_group}"  # noqa
+        "Inspect the new question and think how you would answer it as a student of level {student_level_group}. "  # noqa
         "Think about how the student level relates to the question difficulty. "
         "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
         # # extra for structured outputter
