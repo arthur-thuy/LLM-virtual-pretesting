@@ -21,3 +21,12 @@ Should we keep the best student prompt and teacher prompt configuration for each
 Problem is that some students have a limited number of previous interactions ("random") or previous interactions of relevant knowledge concepts ("kc_exact").
 As such, the model may not get the number of examples that it requests.
 This might limit the advantage that the configurations with a larger number of examples can get.
+
+=> fix issue with stratifying the train interactions\
+=> determine student levels on the train set + bring to eval sets (check that every student in eval set has at least some interactions in train)
+
+## Model
+
+- Analyse impact of varying model size in a family (on answer correctness)
+- compare open-weight vs closed LLMs
+
