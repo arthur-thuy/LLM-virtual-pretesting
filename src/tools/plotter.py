@@ -21,6 +21,29 @@ from tools.utils import ensure_dir, read_pickle
 logger = structlog.get_logger(__name__)
 
 
+def activate_latex(sans_serif: bool = False):
+    """Activate latex for matplotlib."""
+    if sans_serif:
+        plt.rcParams.update(
+            {
+                "text.usetex": True,
+                "font.family": "Helvetica",
+                "text.latex.preamble": r"\usepackage[cm]{sfmath}",
+            }
+        )
+    else:
+        plt.rcParams.update(
+            {"text.usetex": True, "font.family": "Computer Modern Roman"}
+        )
+
+
+def deactivate_latex():
+    """Deactivate latex for matplotlib."""
+    plt.rcParams.update(
+        {"text.usetex": False, "font.family": "DejaVu Sans", "text.latex.preamble": ""}
+    )
+
+
 # def plot_student_level_performance(  # TODO: remove
 #     exp_name: str,
 #     config_id: str,
@@ -410,4 +433,46 @@ def _plot_level_correctness_roleplay(
         plt.tight_layout()
         ensure_dir(os.path.dirname(savefig_kwargs["fname"]))
         plt.savefig(**savefig_kwargs)
+    plt.show()
+
+
+def plot_llm_correctness(
+    df_results: pd.DataFrame, model_family: str, savename: Optional[str] = None
+) -> None:
+    """_summary_
+
+    Parameters
+    ----------
+    df_results : pd.DataFrame
+        DataFrame containing the results
+    model_family : str
+        Name of the model family
+    savename : Optional[str], optional
+        Name to save plot to, by default None
+    """
+    df_correctness = df_results[["model", "llm correctness", "student correctness"]]
+    df_correctness = df_correctness[df_correctness["model"].str.match(model_family)]
+    df_correctness = df_correctness.sort_values(by="model", ascending=True)
+    student_correctness_scalar = df_correctness["student correctness"].values[0]
+
+    _, ax = plt.subplots()
+
+    # density
+    sns.kdeplot(data=df_correctness, x="llm correctness", hue="model", fill=True, ax=ax)
+
+    ax.axvline(student_correctness_scalar, color="black", linestyle="--")
+
+    ax.set_xlabel("LLM answer correctness")
+    ax.set_ylabel("Density")
+    ax.grid(True, linestyle="--")
+    # remove legend title
+    ax.legend_.set_title(None)
+    # get ticks in sans-serif if sans-serif is used
+    ax.xaxis.get_major_formatter()._usetex = False
+    ax.yaxis.get_major_formatter()._usetex = False
+
+    if savename is not None:
+        plt.tight_layout()
+        ensure_dir(os.path.dirname(savename))
+        plt.savefig(savename)
     plt.show()
