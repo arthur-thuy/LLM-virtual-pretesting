@@ -8,7 +8,7 @@ _C = CN()
 _C.SEED = 42
 
 # number of runs
-_C.RUNS = 1
+_C.RUNS = 3
 
 # context type
 _C.CONTEXT_TYPE = "misconceptions"
@@ -16,11 +16,11 @@ _C.CONTEXT_TYPE = "misconceptions"
 # model architecture
 _C.MODEL = CN()
 # model name
-_C.MODEL.NAME = "qwen3:8b"
+_C.MODEL.NAME = "o4-mini-2025-04-16"
 # model temperature
 _C.MODEL.TEMPERATURE = 0.0
 # max tokens
-_C.MODEL.MAX_TOKENS = 1024
+_C.MODEL.MAX_TOKENS = 4096
 # timeout (openai and anthropic only)
 _C.MODEL.TIMEOUT = None
 # max retries (openai and anthropic only)
@@ -29,7 +29,7 @@ _C.MODEL.MAX_RETRIES = None
 # structured output
 _C.STRUCTURED_OUTPUTTER = CN()
 # structured output name
-_C.STRUCTURED_OUTPUTTER.NAME = "student_bool"  # "student_miscon"
+_C.STRUCTURED_OUTPUTTER.NAME = "student_bool"
 
 # data loader
 _C.LOADER = CN()
@@ -49,7 +49,7 @@ _C.EXAMPLE_FORMATTER.INTERACTIONS.NAME = "quotes"
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
 # example selector name
-_C.EXAMPLE_SELECTOR.NAME = "miscon_studentid_kc_exact"  # "miscon_studentid_random"
+_C.EXAMPLE_SELECTOR.NAME = "miscon_studentid_random"
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 5
 # example selector embedding model
