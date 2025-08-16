@@ -212,7 +212,8 @@ def main() -> None:
         print(EXP_NAME)
         previous_configs.extend(get_configs_out(EXP_NAME))
     errors = []
-    for cfg in configs:
+    for i, cfg in enumerate(configs):
+
         already_evaluated = False
         for prev_cfg in previous_configs:
             if check_config_equivalence(prev_cfg, cfg):
@@ -220,6 +221,7 @@ def main() -> None:
                 break
         if not already_evaluated:
             print("\n", "=" * 10, f"Config: {cfg.ID}", "=" * 10)
+            print(f"Config {i + 1}/{len(configs)}")
 
             # start experiment loop
             for run_n in range(1, cfg.RUNS + 1):
