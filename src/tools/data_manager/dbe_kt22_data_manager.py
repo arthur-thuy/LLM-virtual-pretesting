@@ -74,23 +74,30 @@ class DBEKT22Datamanager:
             num_groups=5,
         )
 
-        #  undersample majority classes from "student_level_group"
-        rus = RandomUnderSampler(sampling_strategy="not minority")
-        df_interactions_rus, _ = rus.fit_resample(
-            df_interactions, df_interactions[STUDENT_LEVEL_GROUP]
-        )
+        # # TODO: is this necessary?
+        # #  undersample majority classes from "student_level_group"
+        # rus = RandomUnderSampler(sampling_strategy="not minority")
+        # df_interactions_rus, _ = rus.fit_resample(
+        #     df_interactions, df_interactions[STUDENT_LEVEL_GROUP]
+        # )
 
-        # value counts of primary KCs
-        print("Value counts of student levels after undersampling:")
-        level_value_counts = (
-            df_interactions_rus[STUDENT_LEVEL_GROUP].value_counts().reset_index()
-        )
-        level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
-        print(level_value_counts)  # TODO: remove
+        # # value counts of student levels
+        # print("Value counts of student levels after undersampling:")
+        # level_value_counts = (
+        #     df_interactions_rus[STUDENT_LEVEL_GROUP].value_counts().reset_index()
+        # )
+        # level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
+        # print(level_value_counts)  # TODO: remove
 
-        # drop student level, because only group is used
-        df_interactions_rus = df_interactions_rus.drop(
-            columns=[STUDENT_LEVEL]
+        # # drop student level, because only group is used
+        # df_interactions_rus = df_interactions_rus.drop(
+        #     columns=[STUDENT_LEVEL]
+        # )
+
+        # remove the STUDENT_LEVEL and STUDENT_LEVEL_GROUP
+        # because they will be re-estimated for the training interactions
+        df_interactions = df_interactions.drop(
+            columns=[STUDENT_LEVEL, STUDENT_LEVEL_GROUP]
         )
 
         if save_dataset:
@@ -102,11 +109,14 @@ class DBEKT22Datamanager:
             logger.info(
                 "Saving interactions dataset",
                 path=output_path,
-                num_interactions=len(df_interactions_rus),
+                # num_interactions=len(df_interactions_rus),
+                num_interactions=len(df_interactions),
             )
-            df_interactions_rus.to_csv(output_path, index=False)
+            # df_interactions_rus.to_csv(output_path, index=False)
+            df_interactions.to_csv(output_path, index=False)
 
-        return df_questions, df_interactions_rus
+        # return df_questions, df_interactions_rus
+        return df_questions, df_interactions
 
     def _process_question_row(
         self, row, df_q_choice: pd.DataFrame
@@ -245,6 +255,7 @@ class DBEKT22Datamanager:
             .round(3)
         )  # NOTE: first interaction on 07/08/2019
         # NOTE: remove interactions where student answered the question multiple times
+        df_interact = df_interact.sort_values(TIME)
         df_interact = df_interact.drop_duplicates(
             subset=["question_id", "student_id"], keep="first"
         )

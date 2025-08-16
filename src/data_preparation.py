@@ -25,8 +25,8 @@ def main():
     # DBE-KT22
     logger.info("Starting preparation DBE-KT22")
     # NOTE: already built
-    dbekt22_dm = DBEKT22Datamanager()
-    _, _ = dbekt22_dm.build_dataset(read_dir=BRONZE_DIR, write_dir=SILVER_DIR)
+    # dbekt22_dm = DBEKT22Datamanager()
+    # _, _ = dbekt22_dm.build_dataset(read_dir=BRONZE_DIR, write_dir=SILVER_DIR)
     logger.info("Processing DBE-KT22 for student behaviour replication and roleplay")
     # create fixed split
     data_loader = DataLoader(
