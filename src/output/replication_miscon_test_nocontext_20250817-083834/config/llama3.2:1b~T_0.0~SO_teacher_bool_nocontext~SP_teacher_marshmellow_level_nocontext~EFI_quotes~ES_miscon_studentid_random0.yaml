@@ -1,0 +1,32 @@
+CONTEXT_TYPE: misconceptions
+EXAMPLE_FORMATTER:
+  INTERACTIONS:
+    NAME: quotes
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: miscon_studentid_random
+  NUM_EXAMPLES: 0
+ID: llama3.2:1b~T_0.0~SO_teacher_bool_nocontext~SP_teacher_marshmellow_level_nocontext~EFI_quotes~ES_miscon_studentid_random0
+LOADER:
+  JOIN_KEY: question_id
+  NAME: dbe_kt22
+  RUN_LARGE_VAL: false
+  RUN_TEST: true
+  RUN_VAL: false
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: 4096
+  NAME: llama3.2:1b
+  NATIVE_STRUCTURED_OUTPUT: true
+  TEMPERATURE: 0.0
+  TIMEOUT: null
+OUTPUT_DIR: ./output/replication_miscon_test_nocontext_20250817-083834
+PROMPT:
+  NAME: teacher_marshmellow_level_nocontext
+ROLEPLAY:
+  NUM_STUDENT_LEVELS: 5
+  STUDENT_SCALE: proficiency_5_str
+RUNS: 3
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: teacher_bool_nocontext
