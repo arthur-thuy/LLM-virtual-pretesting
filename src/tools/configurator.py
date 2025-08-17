@@ -309,6 +309,12 @@ def check_cfg(
                 f"as context, got {cfg.EXAMPLE_SELECTOR.NAME}."
             )
 
+    if cfg.CONTEXT_TYPE == "replicate":
+        if sum([cfg.LOADER.RUN_VAL, cfg.LOADER.RUN_TEST]) == 0:
+            raise ValueError(
+                "At least one of RUN_VAL or RUN_TEST must be True."
+            )
+
 
 def convert_to_dict(cfg_node, key_list=[]):  # noqa
     """Convert a config node to dictionary"""

@@ -106,6 +106,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     if args.dry_run:
         logger.info("Dry run: using only 10 observations")
         datasets[VALIDATION] = datasets[VALIDATION].loc[list(range(0, 100, 10))]
+        datasets[TEST] = datasets[TEST].loc[list(range(0, 500, 50))]
 
     # dataframes
     datasets_fmt = build_example_formatter(
@@ -124,7 +125,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # list of dicts
     list_train = df_to_listdict(datasets_fmt[TRAIN])
     list_val = df_to_listdict(datasets_fmt[VALIDATION])
-    # list_test = df_to_listdict(datasets_fmt[TEST])  # noqa  # TODO
+    list_test = df_to_listdict(datasets_fmt[TEST])
 
     # seed
     set_seed(cfg.SEED + run_n)
@@ -150,38 +151,58 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     chain = prompt | model
 
     # predict & evaluate
-    val_preds_raw = predict(
-        chain=chain,
-        data=list_val,
-        prefix="val",
-        structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
-        json_schema=StrucOutput,
-        langfuse_handler=langfuse_handler,
-    )
-    val_metrics, val_preds = evaluate_replication(
-        preds_validated=val_preds_raw["val_preds_validated"],
-        dataset=datasets[VALIDATION],  # unformatted dataset!
-        prefix="val",
-        langfuse_session=langfuse_session,
-        trace_id=trace_id,
-    )
+    if cfg.LOADER.RUN_VAL:
+        val_preds_raw = predict(
+            chain=chain,
+            data=list_val,
+            prefix="val",
+            structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+            json_schema=StrucOutput,
+            langfuse_handler=langfuse_handler,
+        )
+        val_metrics, val_preds = evaluate_replication(
+            preds_validated=val_preds_raw["val_preds_validated"],
+            dataset=datasets[VALIDATION],  # unformatted dataset!
+            prefix="val",
+            langfuse_session=langfuse_session,
+            trace_id=trace_id,
+        )
+    else:
+        val_preds_raw = {}
+        val_metrics, val_preds = {}, {}
 
-    # TODO: also for test set
-    # test_metrics, test_preds = evaluate(
-    #     preds_validated=test_preds["test_preds_validated"],
-    #     dataset=datasets[TEST],
-    #     prefix="test",
-    #     langfuse_session=langfuse_session,
-    #     trace_id=trace_id,
-    # )
+    if cfg.LOADER.RUN_TEST:
+        test_preds_raw = predict(
+            chain=chain,
+            data=list_test,
+            prefix="test",
+            structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+            json_schema=StrucOutput,
+            langfuse_handler=langfuse_handler,
+        )
+        test_metrics, test_preds = evaluate_replication(
+            preds_validated=test_preds_raw["test_preds_validated"],
+            dataset=datasets[TEST],  # unformatted dataset!
+            prefix="test",
+            langfuse_session=langfuse_session,
+            trace_id=trace_id,
+        )
+    else:
+        test_preds_raw = {}
+        test_metrics, test_preds = {}, {}
+
+    log_data = {
+        "metrics": {**val_metrics, **test_metrics},
+        "preds_raw": {**val_preds_raw, **test_preds_raw},
+        "preds": {**val_preds, **test_preds},
+    }
+    if cfg.LOADER.RUN_VAL:
+        log_data["val_data"] = datasets_fmt[VALIDATION]
+    if cfg.LOADER.RUN_TEST:
+        log_data["test_data"] = datasets_fmt[TEST]
 
     write_pickle(
-        {
-            "metrics": {**val_metrics},
-            "preds_raw": {**val_preds_raw},
-            "preds": {**val_preds},
-            "val_data": datasets_fmt[VALIDATION],
-        },
+        log_data,
         save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID),
         fname=f"run_{run_n}",
     )
