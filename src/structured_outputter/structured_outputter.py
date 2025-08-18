@@ -148,3 +148,21 @@ class StrOutputMisconceptions(BaseModel):
             "The list of misconceptions that might lead the student to selecting the incorrect answer 4"  # noqa
         )
     )
+
+
+@STRUCTURED_OUTPUTTER_REGISTRY.register("teacher_kt")
+class StrOutputTeacherKT(BaseModel):
+    """Answer to a multiple-choice question."""
+
+    student_correct: bool = Field(
+        description="Whether the student would answer correctly."
+    )
+
+
+@STRUCTURED_OUTPUTTER_REGISTRY.register("student_kt")
+class StrOutputStudentKT(BaseModel):
+    """Answer to a multiple-choice question."""
+
+    student_correct: bool = Field(
+        description="Whether you would answer correctly."
+    )

@@ -196,6 +196,7 @@ def compute_metrics_replication(
     y_val_pred: ArrayLike,
     y_val_true: ArrayLike,
     y_val_student: ArrayLike,
+    only_kt: bool = False,
 ) -> dict[str, Any]:
     """Compute metrics of student replication.
 
@@ -215,27 +216,45 @@ def compute_metrics_replication(
     """
     # helpers for knowledge tracing
     student_correct = np.equal(y_val_student, y_val_true)
-    llm_correct = np.equal(y_val_pred, y_val_true)
+    if only_kt:
+        # directly outputs whether LLM is correct
+        llm_correct = y_val_pred.copy()
+    else:
+        llm_correct = np.equal(y_val_pred, y_val_true)
 
     # compute metrics
-    metrics = {
-        "acc": accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
-        "bal_acc": balanced_accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
-        "student_correctness": accuracy_score(y_true=y_val_true, y_pred=y_val_student),
-        "llm_correctness": accuracy_score(y_true=y_val_true, y_pred=y_val_pred),
-        "prop_invalid": np.mean(y_val_pred == -1),
-        # F1 micro
-        "f1_micro": f1_score(y_true=y_val_student, y_pred=y_val_pred, average="micro"),
-        # F1 macro
-        "f1_macro": f1_score(y_true=y_val_student, y_pred=y_val_pred, average="macro"),
-        # F1 weighted
-        "f1_weighted": f1_score(
-            y_true=y_val_student, y_pred=y_val_pred, average="weighted"
-        ),
+    kt_metrics = {
         # knowledge tracing
         "acc_kt": accuracy_score(y_true=student_correct, y_pred=llm_correct),
+        "bal_acc_kt": balanced_accuracy_score(
+            y_true=student_correct, y_pred=llm_correct
+        ).item(),
         "f1_kt": f1_score(y_true=student_correct, y_pred=llm_correct, average="binary"),
+        "student_correctness": np.mean(student_correct).item(),
+        "llm_correctness": np.mean(llm_correct).item(),
     }
+    if only_kt:
+        metrics = kt_metrics
+    else:
+        # only compute these of non-KT
+        non_kt_metrics = {
+            "acc": accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
+            "bal_acc": balanced_accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
+            "prop_invalid": np.mean(y_val_pred == -1),
+            # F1 micro
+            "f1_micro": f1_score(
+                y_true=y_val_student, y_pred=y_val_pred, average="micro"
+            ),
+            # F1 macro
+            "f1_macro": f1_score(
+                y_true=y_val_student, y_pred=y_val_pred, average="macro"
+            ),
+            # F1 weighted
+            "f1_weighted": f1_score(
+                y_true=y_val_student, y_pred=y_val_pred, average="weighted"
+            ),
+        }
+        metrics = {**kt_metrics, **non_kt_metrics}
     return metrics
 
 
@@ -245,6 +264,7 @@ def evaluate_replication(
     prefix: Literal["val", "test"],
     langfuse_session: Langfuse,
     trace_id: Optional[str] = None,
+    only_kt: bool = False,
 ) -> dict:
     """Evaluate.
 
@@ -268,7 +288,10 @@ def evaluate_replication(
     """
     logger.info("Evaluate - start", split=prefix)
     # NOTE: "student_answer" refers to the structured output class
-    y_val_pred = np.array([output.student_answer for output in preds_validated])
+    if only_kt:
+        y_val_pred = np.array([output.student_correct for output in preds_validated])
+    else:
+        y_val_pred = np.array([output.student_answer for output in preds_validated])
     y_val_student = dataset[S_OPTION_ID].to_numpy()
     y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
     student_ids = dataset[STUDENT_ID].to_numpy()
@@ -276,30 +299,41 @@ def evaluate_replication(
         y_val_pred=y_val_pred,
         y_val_true=y_val_true,
         y_val_student=y_val_student,
+        only_kt=only_kt,
     )
-    logger.info(
-        "Evaluate - end",
-        acc=round(metrics["acc"], 2),
-        acc_kt=round(metrics["acc_kt"], 2),
-        bal_acc=round(metrics["bal_acc"], 2),
-        f1_macro=round(metrics["f1_macro"], 2),
-        correctness_llm=round(metrics["llm_correctness"], 2),
-        correctness_student=round(metrics["student_correctness"], 2),
-    )
+    if not only_kt:
+        logger.info(
+            "Evaluate - end",
+            acc=round(metrics["acc"], 2),
+            acc_kt=round(metrics["acc_kt"], 2),
+            bal_acc=round(metrics["bal_acc"], 2),
+            f1_macro=round(metrics["f1_macro"], 2),
+            correctness_llm=round(metrics["llm_correctness"], 2),
+            correctness_student=round(metrics["student_correctness"], 2),
+        )
+    else:
+        logger.info(
+            "Evaluate - end (KT)",
+            acc_kt=round(metrics["acc_kt"], 2),
+            bal_acc_kt=round(metrics["bal_acc_kt"], 2),
+            f1_kt=round(metrics["f1_kt"], 2),
+            correctness_llm=round(metrics["llm_correctness"], 2),
+            correctness_student=round(metrics["student_correctness"], 2),
+        )
 
-    if trace_id is not None:
-        langfuse_session.score(
-            trace_id=trace_id,
-            name=f"{prefix}_f1_macro",
-            value=metrics["f1_macro"],
-            data_type="NUMERIC",
-        )
-        langfuse_session.score(
-            trace_id=trace_id,
-            name=f"{prefix}_prop_invalid",
-            value=metrics["prop_invalid"],
-            data_type="NUMERIC",
-        )
+    # if trace_id is not None:
+    #     langfuse_session.score(
+    #         trace_id=trace_id,
+    #         name=f"{prefix}_f1_macro",
+    #         value=metrics["f1_macro"],
+    #         data_type="NUMERIC",
+    #     )
+    #     langfuse_session.score(
+    #         trace_id=trace_id,
+    #         name=f"{prefix}_prop_invalid",
+    #         value=metrics["prop_invalid"],
+    #         data_type="NUMERIC",
+    #     )
     metrics = {f"{prefix}_{k}": v for k, v in metrics.items()}
     preds = {
         f"{prefix}_y_pred": y_val_pred,

@@ -29,7 +29,7 @@ _C.MODEL.MAX_RETRIES = None
 # structured output
 _C.STRUCTURED_OUTPUTTER = CN()
 # structured output name
-_C.STRUCTURED_OUTPUTTER.NAME = "student_bool"  # "student_miscon"
+_C.STRUCTURED_OUTPUTTER.NAME = "student_kt"  # "student_bool"  # "student_miscon"
 
 # data loader
 _C.LOADER = CN()
@@ -37,8 +37,10 @@ _C.LOADER = CN()
 _C.LOADER.NAME = "dbe_kt22"
 # dataset join key
 _C.LOADER.JOIN_KEY = "question_id"
-# run large validation set
+# run sets
+_C.LOADER.RUN_VAL = True
 _C.LOADER.RUN_LARGE_VAL = False
+_C.LOADER.RUN_TEST = False
 
 # example formatter
 _C.EXAMPLE_FORMATTER = CN()

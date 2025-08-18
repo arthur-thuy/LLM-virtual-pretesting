@@ -166,6 +166,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
             prefix="val",
             langfuse_session=langfuse_session,
             trace_id=trace_id,
+            only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
         )
     else:
         val_preds_raw = {}
@@ -186,6 +187,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
             prefix="test",
             langfuse_session=langfuse_session,
             trace_id=trace_id,
+            only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
         )
     else:
         test_preds_raw = {}
@@ -193,7 +195,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
 
     log_data = {
         "metrics": {**val_metrics, **test_metrics},
-        "preds_raw": {**val_preds_raw, **test_preds_raw},
+        # "preds_raw": {**val_preds_raw, **test_preds_raw},
         "preds": {**val_preds, **test_preds},
     }
     if cfg.LOADER.RUN_VAL:
