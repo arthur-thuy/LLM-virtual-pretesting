@@ -1,0 +1,10 @@
+EXAMPLE_SELECTOR:
+  NAME: miscon_studentid_kc_exact
+  NUM_EXAMPLES: 3
+MODEL:
+  NAME: llama3.2:1b
+  TEMPERATURE: 0.0
+PROMPT:
+  NAME: student_chocolate_level_context
+STRUCTURED_OUTPUTTER:
+  NAME: student_kt

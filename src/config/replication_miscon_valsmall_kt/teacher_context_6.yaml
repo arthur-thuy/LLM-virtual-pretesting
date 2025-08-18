@@ -1,0 +1,10 @@
+EXAMPLE_SELECTOR:
+  NAME: miscon_studentid_kc_exact
+  NUM_EXAMPLES: 5
+MODEL:
+  NAME: qwen3:0.6b
+  TEMPERATURE: 0.0
+PROMPT:
+  NAME: teacher_marshmellow_level_context
+STRUCTURED_OUTPUTTER:
+  NAME: teacher_kt
