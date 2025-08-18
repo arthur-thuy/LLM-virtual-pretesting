@@ -12,7 +12,12 @@ import scipy
 from langfuse import Langfuse
 from numpy.typing import ArrayLike, NDArray
 from pydantic import BaseModel
-from sklearn.metrics import accuracy_score, f1_score, root_mean_squared_error
+from sklearn.metrics import (
+    accuracy_score,
+    f1_score,
+    root_mean_squared_error,
+    balanced_accuracy_score,
+)
 
 # local application/library specific imports
 from prompt.utils import validate_output
@@ -215,19 +220,14 @@ def compute_metrics_replication(
     # compute metrics
     metrics = {
         "acc": accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
-        "student_correctness": accuracy_score(
-            y_true=y_val_true, y_pred=y_val_student
-        ),
+        "bal_acc": balanced_accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
+        "student_correctness": accuracy_score(y_true=y_val_true, y_pred=y_val_student),
         "llm_correctness": accuracy_score(y_true=y_val_true, y_pred=y_val_pred),
         "prop_invalid": np.mean(y_val_pred == -1),
         # F1 micro
-        "f1_micro": f1_score(
-            y_true=y_val_student, y_pred=y_val_pred, average="micro"
-        ),
+        "f1_micro": f1_score(y_true=y_val_student, y_pred=y_val_pred, average="micro"),
         # F1 macro
-        "f1_macro": f1_score(
-            y_true=y_val_student, y_pred=y_val_pred, average="macro"
-        ),
+        "f1_macro": f1_score(y_true=y_val_student, y_pred=y_val_pred, average="macro"),
         # F1 weighted
         "f1_weighted": f1_score(
             y_true=y_val_student, y_pred=y_val_pred, average="weighted"
@@ -281,6 +281,7 @@ def evaluate_replication(
         "Evaluate - end",
         acc=round(metrics["acc"], 2),
         acc_kt=round(metrics["acc_kt"], 2),
+        bal_acc=round(metrics["bal_acc"], 2),
         f1_macro=round(metrics["f1_macro"], 2),
         correctness_llm=round(metrics["llm_correctness"], 2),
         correctness_student=round(metrics["student_correctness"], 2),
