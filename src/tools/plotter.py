@@ -436,8 +436,8 @@ def _plot_level_correctness_roleplay(
     plt.show()
 
 
-def plot_llm_correctness(
-    df_results: pd.DataFrame, model_family: str, savename: Optional[str] = None
+def plot_llm_correctness_by_model(
+    df_results: pd.DataFrame, model_family: str, exclude_models: list, savename: Optional[str] = None
 ) -> None:
     """Plot LLM correctness over all configurations
 
@@ -455,6 +455,8 @@ def plot_llm_correctness(
     df_correctness["size"] = (
         df_correctness["model"].str.extract(r":(\d+\.?\d*)b$")[0].astype(float)
     )
+    # exclude models from family
+    df_correctness = df_correctness[~df_correctness["model"].isin(exclude_models)]
     df_correctness = df_correctness.sort_values(by="size", ascending=True)
     student_correctness_scalar = df_correctness["student correctness"].values[0]
 
