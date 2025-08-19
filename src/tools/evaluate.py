@@ -309,6 +309,7 @@ def evaluate_replication(
             acc=round(metrics["acc"], 2),
             acc_kt=round(metrics["acc_kt"], 2),
             bal_acc=round(metrics["bal_acc"], 2),
+            bal_acc_kt=round(metrics["bal_acc_kt"], 2),
             f1_macro=round(metrics["f1_macro"], 2),
             correctness_llm=round(metrics["llm_correctness"], 2),
             correctness_student=round(metrics["student_correctness"], 2),
