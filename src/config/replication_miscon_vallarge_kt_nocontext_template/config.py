@@ -1,0 +1,75 @@
+"""Default config file."""
+
+from yacs.config import CfgNode as CN
+
+_C = CN()
+
+# seed for reproducibility
+_C.SEED = 42
+
+# number of runs
+_C.RUNS = 3
+
+# context type
+_C.CONTEXT_TYPE = "misconceptions"
+
+# model architecture
+_C.MODEL = CN()
+# model name
+_C.MODEL.NAME = "o4-mini-2025-04-16"
+# model temperature
+_C.MODEL.TEMPERATURE = 0.0
+# max tokens
+_C.MODEL.MAX_TOKENS = 4096
+# timeout (openai and anthropic only)
+_C.MODEL.TIMEOUT = None
+# max retries (openai and anthropic only)
+_C.MODEL.MAX_RETRIES = None
+
+# structured output
+_C.STRUCTURED_OUTPUTTER = CN()
+# structured output name
+_C.STRUCTURED_OUTPUTTER.NAME = "student_bool"
+
+# data loader
+_C.LOADER = CN()
+# dataset name
+_C.LOADER.NAME = "dbe_kt22"
+# dataset join key
+_C.LOADER.JOIN_KEY = "question_id"
+# run sets
+_C.LOADER.RUN_VAL = True
+_C.LOADER.RUN_LARGE_VAL = True
+_C.LOADER.RUN_TEST = False
+
+# example formatter
+_C.EXAMPLE_FORMATTER = CN()
+# interactions
+_C.EXAMPLE_FORMATTER.INTERACTIONS = CN()
+_C.EXAMPLE_FORMATTER.INTERACTIONS.NAME = "quotes"
+
+# example selector
+_C.EXAMPLE_SELECTOR = CN()
+# example selector name
+_C.EXAMPLE_SELECTOR.NAME = "miscon_studentid_random"
+# number of examples to select
+_C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 5
+# example selector embedding model
+_C.EXAMPLE_SELECTOR.EMBEDDING = "text-embedding-3-large"
+
+# system prompt
+_C.PROMPT = CN()
+# system prompt name
+_C.PROMPT.NAME = "student_chocolate_level_context"
+
+_C.ROLEPLAY = CN()
+# number of student levels to simulate
+_C.ROLEPLAY.NUM_STUDENT_LEVELS = 5
+# student level scale
+_C.ROLEPLAY.STUDENT_SCALE = "proficiency_5_str"
+
+
+def get_cfg_defaults() -> CN:
+    """Get a yacs CfgNode object with default values."""
+    # Return a clone so that the defaults will not be altered
+    return _C.clone()
