@@ -239,7 +239,9 @@ def compute_metrics_replication(
         # only compute these of non-KT
         non_kt_metrics = {
             "acc": accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
-            "bal_acc": balanced_accuracy_score(y_true=y_val_student, y_pred=y_val_pred),
+            "bal_acc": balanced_accuracy_score(
+                y_true=y_val_student, y_pred=y_val_pred
+            ).item(),
             "prop_invalid": np.mean(y_val_pred == -1),
             # F1 micro
             "f1_micro": f1_score(
