@@ -1,0 +1,15 @@
+MODEL:
+  TEMPERATURE: [0.0, 1.0]
+  NAME: [
+        "qwen3:8b",
+      ]
+
+STRUCTURED_OUTPUTTER:
+  NAME: "student_bool"
+
+PROMPT:
+  NAME: ["student_chocolate_level_context"]
+
+EXAMPLE_SELECTOR:
+  NUM_EXAMPLES: [1, 3, 5]
+  NAME: ["miscon_studentid_random", "miscon_studentid_kc_exact"]
