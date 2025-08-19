@@ -1,5 +1,24 @@
 # Discussion results
 
+# Overview of configs
+
+Contextual settings:
+- "replication_miscon_valsmall_kt_20250818-153513"
+- "replication_miscon_vallarge_kt_20250819-115545"
+- "replication_miscon_test_kt_20250819-192630"
+
+Non-contextual settings:
+- "replication_miscon_vallarge_kt_nocontext_XXX"
+- "replication_miscon_test_kt_nocontext_XXX"
+
+=> both test results should be merged into "replication_miscon_test_kt_merged_XXX"
+
+
+In density plots, we can see that the plot over all configs aligns well with the student correctness, which directly hints to Multi-LLM simulation. However, this is not the avenue we want to pursue.
+
+
+
+
 # Running configs on test
 
 Should we keep the best student prompt and teacher prompt configuration for each model?
