@@ -9,9 +9,7 @@ EXAMPLE_SELECTOR:
 LOADER:
   JOIN_KEY: question_id
   NAME: dbe_kt22
-  RUN_LARGE_VAL: false
-  RUN_TEST: false
-  RUN_VAL: true
+
 MODEL:
   MAX_RETRIES: null
   MAX_TOKENS: 4096

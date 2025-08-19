@@ -29,7 +29,7 @@ _C.MODEL.MAX_RETRIES = None
 # structured output
 _C.STRUCTURED_OUTPUTTER = CN()
 # structured output name
-_C.STRUCTURED_OUTPUTTER.NAME = "student_bool"
+_C.STRUCTURED_OUTPUTTER.NAME = "student_kt"
 
 # data loader
 _C.LOADER = CN()
