@@ -146,7 +146,6 @@ if __name__ == "__main__":
                     llm_correctness
                 )
 
-    print(results)
     for data_split in split_to_data_path.keys():
         for history_length in [1, 3, 5]:
             bal_acc_mean, bal_acc_stderr = mean_stderror(
@@ -157,6 +156,27 @@ if __name__ == "__main__":
             )
             print(
                 "%9s | %2d | (mean +- stderror) bal acc: %.3f +- %.3f | llm correctness : %.3f +- %.3f"
+                % (
+                    data_split,
+                    history_length,
+                    bal_acc_mean,
+                    bal_acc_stderr,
+                    llm_correctness_mean,
+                    llm_correctness_stderr,
+                )
+            )
+
+    print("LaTeX version")
+    for data_split in split_to_data_path.keys():
+        for history_length in [1, 3, 5]:
+            bal_acc_mean, bal_acc_stderr = mean_stderror(
+                results[data_split][history_length]["bal_acc"]
+            )
+            llm_correctness_mean, llm_correctness_stderr = mean_stderror(
+                results[data_split][history_length]["llm_correctness"]
+            )
+            print(
+                "%9s | %2d | %.3f \gray{$\pm$ %.3f} & %.3f \gray{$\pm$ %.3f}"
                 % (
                     data_split,
                     history_length,
