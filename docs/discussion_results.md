@@ -8,20 +8,15 @@ Contextual settings:
 - "replication_miscon_test_kt_20250819-192630"
 
 Non-contextual settings:
-- "replication_miscon_vallarge_kt_nocontext_XXX"
-- "replication_miscon_test_kt_nocontext_XXX"
+- "replication_miscon_vallarge_kt_nocontext_20250819-212500"
+- "replication_miscon_test_kt_nocontext_20250820-075221"
 
-=> both test results should be merged into "replication_miscon_test_kt_merged_XXX"
+=> both test results should be merged into "replication_miscon_test_kt_merged_20250820"
 
 
 In density plots, we can see that the plot over all configs aligns well with the student correctness, which directly hints to Multi-LLM simulation. However, this is not the avenue we want to pursue.
 
 
-
-
-# Running configs on test
-
-Should we keep the best student prompt and teacher prompt configuration for each model?
 
 ## Class Imbalance
 
@@ -35,17 +30,7 @@ Should we keep the best student prompt and teacher prompt configuration for each
 - check whether there is a trend for temperature within the models, as opposed to averaging over all the models
 - temp 1.0 decreases the LLM correctness significantly! It brings it closer to the student correctness.
 
-## Number of examples
-
-Problem is that some students have a limited number of previous interactions ("random") or previous interactions of relevant knowledge concepts ("kc_exact").
-As such, the model may not get the number of examples that it requests.
-This might limit the advantage that the configurations with a larger number of examples can get.
-
-=> fix issue with stratifying the train interactions\
-=> determine student levels on the train set + bring to eval sets (check that every student in eval set has at least some interactions in train)
-
 ## Model
 
 - Analyse impact of varying model size in a family (on answer correctness)
-- compare open-weight vs closed LLMs
 
