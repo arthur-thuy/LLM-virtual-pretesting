@@ -135,7 +135,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
     # list of dicts
     list_train = df_to_listdict(interact_train_fmt)
     list_val = df_to_listdict(questions_fmt[VALIDATION])
-    # list_test = df_to_listdict(questions_fmt[TEST])  # TODO
+    list_test = df_to_listdict(questions_fmt[TEST])  # TODO
 
     # seed
     set_seed(cfg.SEED + run_n)
@@ -161,46 +161,90 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
     # chain
     chain = prompt | model
 
-    # predict & evaluate
-    # TODO: same for test
-    val_preds_raw = predict(
-        chain=chain,
-        data=list_val,
-        prefix="val",
-        structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
-        json_schema=StrucOutput,
-        langfuse_handler=langfuse_handler,
-    )
     # compute answer correctness per student level in train set
     train_student_group_correctness = (
         interact_train.groupby("student_level_group")["student_option_correct"]
         .mean()
         .to_numpy()
     )
-    val_metrics_answers, val_preds_answers = evaluate_roleplay(
-        preds_validated=val_preds_raw["val_preds_validated"],
-        dataset=questions[VALIDATION],  # unformatted dataset!
-        prefix="val",
-        student_group_correctness=train_student_group_correctness,
-    )
 
-    # compute IRT and evaluate question difficulty
-    val_metrics_qdiff, val_preds_qdiff = evaluate_q_difficulty(
-        preds_validated=val_preds_raw["val_preds_validated"],
-        dataset=questions[VALIDATION],
-        prefix="val",
-    )
+    # predict & evaluate
+    if cfg.LOADER.RUN_VAL:
+        val_preds_raw = predict(
+            chain=chain,
+            data=list_val,
+            prefix="val",
+            structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+            json_schema=StrucOutput,
+            langfuse_handler=langfuse_handler,
+        )
+        val_metrics_answers, val_preds_answers = evaluate_roleplay(
+            preds_validated=val_preds_raw["val_preds_validated"],
+            dataset=questions[VALIDATION],  # unformatted dataset!
+            prefix="val",
+            student_group_correctness=train_student_group_correctness,
+            only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
+        )
+        # compute IRT and evaluate question difficulty
+        val_metrics_qdiff, val_preds_qdiff = evaluate_q_difficulty(
+            preds_validated=val_preds_raw["val_preds_validated"],
+            dataset=questions[VALIDATION],
+            prefix="val",
+            only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
+        )
+    else:
+        val_preds_raw = {}
+        val_metrics_answers, val_preds_answers = {}, {}
+        val_metrics_qdiff, val_preds_qdiff = {}, {}
+
+    if cfg.LOADER.RUN_TEST:
+        test_preds_raw = predict(
+            chain=chain,
+            data=list_test,
+            prefix="test",
+            structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+            json_schema=StrucOutput,
+            langfuse_handler=langfuse_handler,
+        )
+        test_metrics_answers, test_preds_answers = evaluate_roleplay(
+            preds_validated=test_preds_raw["test_preds_validated"],
+            dataset=questions[TEST],  # unformatted dataset!
+            prefix="test",
+            student_group_correctness=train_student_group_correctness,
+            only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
+        )
+        # compute IRT and evaluate question difficulty
+        test_metrics_qdiff, test_preds_qdiff = evaluate_q_difficulty(
+            preds_validated=test_preds_raw["test_preds_validated"],
+            dataset=questions[TEST],
+            prefix="test",
+            only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
+        )
+    else:
+        test_preds_raw = {}
+        test_metrics_answers, test_preds_answers = {}, {}
+        test_metrics_qdiff, test_preds_qdiff = {}, {}
+
+    log_data = {
+        "metrics": {
+            **val_metrics_qdiff,
+            **val_metrics_answers,
+            **test_metrics_qdiff,
+            **test_metrics_answers,
+        },
+        # "preds_raw": {**val_preds_raw, **test_preds_raw},
+        "preds_answers": {**val_preds_answers, **test_preds_answers},
+        "preds_qdiff": {**val_preds_qdiff, **test_preds_qdiff},
+        "student_group_correctness": train_student_group_correctness,
+        "student_scale_map": student_scale_map,
+    }
+    if cfg.LOADER.RUN_VAL:
+        log_data["val_data"] = questions_fmt[VALIDATION]
+    if cfg.LOADER.RUN_TEST:
+        log_data["test_data"] = questions_fmt[TEST]
 
     write_pickle(
-        {
-            "preds_raw": {**val_preds_raw},
-            "metrics": {**val_metrics_qdiff, **val_metrics_answers},
-            "preds_answers": {**val_preds_answers},
-            "preds_qdiff": {**val_preds_qdiff},
-            "val_data": questions_fmt[VALIDATION],
-            "student_group_correctness": train_student_group_correctness,
-            "student_scale_map": student_scale_map,
-        },
+        log_data,
         save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID_ROLEPLAY),
         fname=f"run_{run_n}",
     )
@@ -228,7 +272,7 @@ def main() -> None:
         print(EXP_NAME)
         previous_configs.extend(get_configs_out(EXP_NAME))
     errors = []
-    for cfg in configs:
+    for i, cfg in enumerate(configs):
         already_evaluated = False
         for prev_cfg in previous_configs:
             if check_config_equivalence(prev_cfg, cfg):
@@ -236,6 +280,7 @@ def main() -> None:
                 break
         if not already_evaluated:
             print("\n", "=" * 10, f"Config: {cfg.ID_ROLEPLAY}", "=" * 10)
+            print(f"Config {i + 1}/{len(configs)}")
 
             # start experiment loop
             for run_n in range(1, cfg.RUNS + 1):

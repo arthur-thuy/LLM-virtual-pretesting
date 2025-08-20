@@ -91,6 +91,7 @@ def eval_metric_monotonicity(
     student_level_group: NDArray,
     y_student: Optional[NDArray] = None,
     student_group_correctness: Optional[NDArray] = None,
+    only_kt: bool = False,
 ) -> float:
     """Evaluate the model monotonicity across different student levels.
 
@@ -121,11 +122,15 @@ def eval_metric_monotonicity(
             "Exactly one of 'y_student' or 'student_group_correctness' must be None"
         )
 
-    llm_correct = y_llm == y_true
+    if only_kt:
+        # directly outputs whether LLM is correct
+        llm_correct = y_llm.copy()
+    else:
+        llm_correct = np.equal(y_llm, y_true)
     # compute student_group_correctness from val set (replication)
     # or take array from train set (roleplay)
     if student_group_correctness is None:
-        student_correct = y_student == y_true
+        student_correct = np.equal(y_student, y_true)
         df = pd.DataFrame(
             {
                 "student_level_group": student_level_group,
@@ -352,8 +357,9 @@ def compute_metrics_roleplay(
     y_val_true: ArrayLike,
     student_level_group: ArrayLike,
     student_group_correctness: ArrayLike,
-    question_ids: ArrayLike,
-    prop_df: pd.DataFrame,
+    # question_ids: ArrayLike,
+    # prop_df: pd.DataFrame,
+    only_kt: bool = False,
 ) -> dict[str, Any]:
     """Compute metrics for student roleplaying.
 
@@ -377,26 +383,39 @@ def compute_metrics_roleplay(
     dict[str, Any]
         Metrics
     """
+    if only_kt:
+        # directly outputs whether LLM is correct
+        llm_correct = y_val_pred.copy()
+    else:
+        llm_correct = np.equal(y_val_pred, y_val_true)
     # compute metrics
-    metrics = {
-        "acc_true_pred": accuracy_score(y_true=y_val_true, y_pred=y_val_pred),
-        "prop_invalid": np.mean(y_val_pred == -1),
-        "f1_true_pred": f1_score(y_true=y_val_true, y_pred=y_val_pred, average="micro"),
+    kt_metrics = {
+        # knowledge tracing
+        "llm_correctness": np.mean(llm_correct).item(),
         "monotonicity": eval_metric_monotonicity(
             y_true=y_val_true,
             y_llm=y_val_pred,
             student_level_group=student_level_group,
             y_student=None,
             student_group_correctness=student_group_correctness,
+            only_kt=only_kt,
         ),
-        "distractor_alignment": eval_distractor_alignment(
-            y_true_array=y_val_true,
-            y_llm_array=y_val_pred,
-            student_level_group_array=student_level_group,
-            question_id_array=question_ids,
-            prop_df=prop_df,
-        ).item(),
     }
+    if only_kt:
+        metrics = kt_metrics
+    else:
+        # only compute these of non-KT
+        non_kt_metrics = {
+            "prop_invalid": np.mean(y_val_pred == -1),
+            # "distractor_alignment": eval_distractor_alignment(
+            #     y_true_array=y_val_true,
+            #     y_llm_array=y_val_pred,
+            #     student_level_group_array=student_level_group,
+            #     question_id_array=question_ids,
+            #     prop_df=prop_df,
+            # ).item(),
+        }
+        metrics = {**kt_metrics, **non_kt_metrics}
     return metrics
 
 
@@ -405,6 +424,7 @@ def evaluate_roleplay(
     dataset: pd.DataFrame,
     prefix: Literal["val", "test"],
     student_group_correctness: NDArray,
+    only_kt: bool = False,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Evaluate.
 
@@ -423,30 +443,41 @@ def evaluate_roleplay(
         Metrics and predictions.
     """
     logger.info("Evaluate - start", split=prefix)
-    # NOTE: "student_answer" refers to the structured output class
-    y_val_pred = np.array([output.student_answer for output in preds_validated])
+    if only_kt:
+        y_val_pred = np.array([output.student_correct for output in preds_validated])
+    else:
+        # NOTE: "student_answer" refers to the structured output class
+        y_val_pred = np.array([output.student_answer for output in preds_validated])
+
     y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
     student_level_group = dataset[STUDENT_LEVEL_GROUP].to_numpy()
-    question_ids = dataset[QUESTION_ID].to_numpy()
+    # question_ids = dataset[QUESTION_ID].to_numpy()
 
-    # read proportions
-    df_prop = pd.read_csv("../data/platinum/dbe_kt22_proportions_val.csv")
-    df_prop["dict"] = df_prop["dict"].apply(eval)
+    # # read proportions
+    # df_prop = pd.read_csv("../data/platinum/dbe_kt22_proportions_val.csv")
+    # df_prop["dict"] = df_prop["dict"].apply(eval)
 
     metrics = compute_metrics_roleplay(
         y_val_pred=y_val_pred,
         y_val_true=y_val_true,
         student_level_group=student_level_group,
         student_group_correctness=student_group_correctness,
-        question_ids=question_ids,
-        prop_df=df_prop,
+        # question_ids=question_ids,
+        # prop_df=df_prop,
     )
-
-    logger.info(
-        "Evaluate - end",
-        monotonicity=round(metrics["monotonicity"], 2),
-        distr_alignment=round(metrics["distractor_alignment"], 2),
-    )
+    if not only_kt:
+        logger.info(
+            "Evaluate - end",
+            correctness_llm=round(metrics["llm_correctness"], 2),
+            monotonicity=round(metrics["monotonicity"], 2),
+            # distr_alignment=round(metrics["distractor_alignment"], 2),
+        )
+    else:
+        logger.info(
+            "Evaluate - end",
+            correctness_llm=round(metrics["llm_correctness"], 2),
+            monotonicity=round(metrics["monotonicity"], 2),
+        )
     metrics = {f"{prefix}_{k}": v for k, v in metrics.items()}
     preds = {
         f"{prefix}_y_pred": y_val_pred,
@@ -460,18 +491,26 @@ def evaluate_q_difficulty(
     preds_validated: list,
     dataset: pd.DataFrame,
     prefix: Literal["val", "test"],
+    only_kt: bool = False,
 ):
     from tools.irt_estimator import irt_estimation
 
     logger.info("Evaluate question difficulty - start", split=prefix)
     # prepare data for IRT estimation
-    y_val_pred = np.array([output.student_answer for output in preds_validated])
-    y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
+    if only_kt:
+        y_val_pred = np.array([output.student_correct for output in preds_validated])
+        # directly outputs whether LLM is correct
+        llm_correct = y_val_pred.copy()
+    else:
+        y_val_pred = np.array([output.student_answer for output in preds_validated])
+        y_val_true = dataset[Q_CORRECT_OPTION_ID].to_numpy()
+        llm_correct = np.equal(y_val_pred, y_val_true)
+
     df = pd.DataFrame(
         {
             STUDENT_ID: dataset[STUDENT_LEVEL_GROUP],
             QUESTION_ID: dataset[QUESTION_ID],
-            S_OPTION_CORRECT: (y_val_pred == y_val_true).astype(int),
+            S_OPTION_CORRECT: llm_correct.astype(int),
         }
     )
     # Compute IRT parameters
