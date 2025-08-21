@@ -1,13 +1,13 @@
 # Discussion results
 
-# Overview of configs
+## Overview of configs
 
-Contextual settings:
+Replication - Contextual settings:
 - "replication_miscon_valsmall_kt_20250818-153513"
 - "replication_miscon_vallarge_kt_20250819-115545"
 - "replication_miscon_test_kt_20250819-192630"
 
-Non-contextual settings:
+Replication - Non-contextual settings:
 - "replication_miscon_vallarge_kt_nocontext_20250819-212500"
 - "replication_miscon_test_kt_nocontext_20250820-075221"
 
@@ -15,6 +15,15 @@ Non-contextual settings:
 
 
 In density plots, we can see that the plot over all configs aligns well with the student correctness, which directly hints to Multi-LLM simulation. However, this is not the avenue we want to pursue.
+
+
+Roleplay - Contextual settings:
+- "roleplay_miscon_test_kt_20250820-204306"
+
+Roleplay - Non-contextual settings:
+- "
+
+=> both test results should be merged into "roleplay_miscon_test_kt_merged_20250821"
 
 
 
