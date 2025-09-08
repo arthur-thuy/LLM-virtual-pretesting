@@ -38,31 +38,45 @@ def create_rate_limiter(requests_per_second: float) -> InMemoryRateLimiter:
 
 @MODEL_PROVIDER_REGISTRY.register("openai")
 def build_openai_model(model_cfg: CfgNode) -> ChatOpenAI:
-    if model_cfg.NAME.startswith("o"):
-        if MODEL_RATE_LIMIT[model_cfg.NAME] is not None:
-            rate_limiter = create_rate_limiter(MODEL_RATE_LIMIT[model_cfg.NAME])
-        else:
-            rate_limiter = None
-        model = ChatOpenAI(
-            model=model_cfg.NAME,
-            max_tokens=model_cfg.MAX_TOKENS,
-            timeout=model_cfg.TIMEOUT,
-            max_retries=model_cfg.MAX_RETRIES,
-            rate_limiter=rate_limiter,
-        )
+    # if model_cfg.NAME.startswith("o"):
+    #     if MODEL_RATE_LIMIT[model_cfg.NAME] is not None:
+    #         rate_limiter = create_rate_limiter(MODEL_RATE_LIMIT[model_cfg.NAME])
+    #     else:
+    #         rate_limiter = None
+    #     model = ChatOpenAI(
+    #         model=model_cfg.NAME,
+    #         max_tokens=model_cfg.MAX_TOKENS,
+    #         timeout=model_cfg.TIMEOUT,
+    #         max_retries=model_cfg.MAX_RETRIES,
+    #         rate_limiter=rate_limiter,
+    #         # TODO: add temperature!!!
+    #     )
+    # else:
+    #     if MODEL_RATE_LIMIT[model_cfg.NAME] is not None:
+    #         rate_limiter = create_rate_limiter(MODEL_RATE_LIMIT[model_cfg.NAME])
+    #     else:
+    #         rate_limiter = None
+    #     model = ChatOpenAI(
+    #         model=model_cfg.NAME,
+    #         temperature=model_cfg.TEMPERATURE,
+    #         max_tokens=model_cfg.MAX_TOKENS,
+    #         timeout=model_cfg.TIMEOUT,
+    #         max_retries=model_cfg.MAX_RETRIES,
+    #         rate_limiter=rate_limiter,
+    #     )
+
+    if MODEL_RATE_LIMIT[model_cfg.NAME] is not None:
+        rate_limiter = create_rate_limiter(MODEL_RATE_LIMIT[model_cfg.NAME])
     else:
-        if MODEL_RATE_LIMIT[model_cfg.NAME] is not None:
-            rate_limiter = create_rate_limiter(MODEL_RATE_LIMIT[model_cfg.NAME])
-        else:
-            rate_limiter = None
-        model = ChatOpenAI(
-            model=model_cfg.NAME,
-            temperature=model_cfg.TEMPERATURE,
-            max_tokens=model_cfg.MAX_TOKENS,
-            timeout=model_cfg.TIMEOUT,
-            max_retries=model_cfg.MAX_RETRIES,
-            rate_limiter=rate_limiter,
-        )
+        rate_limiter = None
+    model = ChatOpenAI(
+        model=model_cfg.NAME,
+        temperature=model_cfg.TEMPERATURE,
+        max_tokens=model_cfg.MAX_TOKENS,
+        timeout=model_cfg.TIMEOUT,
+        max_retries=model_cfg.MAX_RETRIES,
+        rate_limiter=rate_limiter,
+    )
     return model
 
 

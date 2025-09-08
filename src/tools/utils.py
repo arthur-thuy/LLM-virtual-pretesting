@@ -14,7 +14,6 @@ from uuid import UUID
 # related third party imports
 import click
 import dotenv
-import matplotlib.pyplot as plt
 import numpy as np
 import structlog
 from langchain_core.callbacks import BaseCallbackHandler
@@ -176,29 +175,6 @@ def delete_previous_content(dir_name: str) -> None:
             else:
                 logger.warning("Abort process")
                 sys.exit(1)
-
-
-def activate_latex(sans_serif: bool = False):
-    """Activate latex for matplotlib."""
-    if sans_serif:
-        plt.rcParams.update(
-            {
-                "text.usetex": True,
-                "font.family": "Helvetica",
-                "text.latex.preamble": r"\usepackage[cm]{sfmath}",
-            }
-        )
-    else:
-        plt.rcParams.update(
-            {"text.usetex": True, "font.family": "Computer Modern Roman"}
-        )
-
-
-def deactivate_latex():
-    """Deactivate latex for matplotlib."""
-    plt.rcParams.update(
-        {"text.usetex": False, "font.family": "DejaVu Sans", "text.latex.preamble": ""}
-    )
 
 
 class BatchCallback(BaseCallbackHandler):

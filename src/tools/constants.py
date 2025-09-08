@@ -58,9 +58,27 @@ OUTPUT = "output"
 
 # model
 MODEL_STRUCTURED_OUTPUT = {
+    # llama models
     "llama3": False,
     "llama3.2": True,
+    "llama3.1:8b": True,
+    "llama3.2:3b": True,
+    "llama3.2:1b": True,
+
+    # qwen3 models
+    "qwen3:0.6b": True,
+    "qwen3:1.7b": True,
+    "qwen3:4b": True,
+    "qwen3:8b": True,
+    "qwen3:14b": True,
+
+    # olmo2 models
     "olmo2:7b": False,
+
+    # gemma models
+    "gemma3:12b": True,
+
+    # openai models
     "gpt-4o": True,
     "gpt-4o-mini": True,
     "gpt-4.1": True,
@@ -69,18 +87,38 @@ MODEL_STRUCTURED_OUTPUT = {
     "o3": True,
     "o3-2025-04-16": True,
     "o4-mini-2025-04-16": True,
+
+    # gemini models
     "gemini-2.5-flash-preview-05-20": True,
     "gemini-2.5-pro-preview-06-05": True,
+
+    # anthropic models
     "claude-3-7-sonnet-20250219": False,  # NOTE: should work, but doesn't
     "claude-sonnet-4-20250514": False,  # NOTE: should work, but doesn't
     "claude-3-5-haiku-20241022": False,  # NOTE: should work, but doesn't
-    "gemma3:12b": True,
-    "qwen3:8b": True,
 }
 MODEL_PROVIDER = {
+    # llama models
     "llama3": "ollama",
     "llama3.2": "ollama",
+    "llama3.1:8b": "ollama",
+    "llama3.2:3b": "ollama",
+    "llama3.2:1b": "ollama",
+
+    # qwen3 models
+    "qwen3:0.6b": "ollama",
+    "qwen3:1.7b": "ollama",
+    "qwen3:4b": "ollama",
+    "qwen3:8b": "ollama",
+    "qwen3:14b": "ollama",
+
+    # olmo2 models
     "olmo2:7b": "ollama",
+
+    # gemma models
+    "gemma3:12b": "ollama",
+
+    # openai models
     "gpt-4o": "openai",
     "gpt-4o-mini": "openai",
     "gpt-4.1": "openai",
@@ -89,19 +127,39 @@ MODEL_PROVIDER = {
     "o3": "openai",
     "o3-2025-04-16": "openai",
     "o4-mini-2025-04-16": "openai",
+
+    # gemini models
     "gemini-2.5-flash-preview-05-20": "google",
     "gemini-2.5-pro-preview-06-05": "google",
+
+    # anthropic models
     "claude-3-7-sonnet-20250219": "anthropic",
     "claude-sonnet-4-20250514": "anthropic",
     "claude-3-5-haiku-20241022": "anthropic",
-    "gemma3:12b": "ollama",
-    "qwen3:8b": "ollama",
 }
 
 MODEL_RATE_LIMIT = {
+    # llama models
     "llama3": None,
     "llama3.2": None,
+    "llama3.1:8b": None,
+    "llama3.2:3b": None,
+    "llama3.2:1b": None,
+
+    # qwen3 models
+    "qwen3:0.6b": None,
+    "qwen3:1.7b": None,
+    "qwen3:4b": None,
+    "qwen3:8b": None,
+    "qwen3:14b": None,
+
+    # olmo2 models
     "olmo2:7b": None,
+
+    # gemma models
+    "gemma3:12b": None,
+
+    # openai models
     "gpt-4o": None,
     "gpt-4o-mini": None,
     "gpt-4.1": None,
@@ -110,13 +168,15 @@ MODEL_RATE_LIMIT = {
     "o3": 0.25,
     "o3-2025-04-16": 0.25,
     "o4-mini-2025-04-16": None,
+
+    # gemini models
     "gemini-2.5-flash-preview-05-20": None,
     "gemini-2.5-pro-preview-06-05": 0.35,
+
+    # anthropic models
     "claude-3-7-sonnet-20250219": None,
     "claude-sonnet-4-20250514": 1.5,
     "claude-3-5-haiku-20241022": None,
-    "gemma3:12b": None,
-    "qwen3:8b": None,
 }
 
 # prompt info

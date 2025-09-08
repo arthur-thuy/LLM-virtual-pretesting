@@ -1,0 +1,27 @@
+EXAMPLE_FORMATTER:
+  INTERACTIONS:
+    NAME: quotes
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: miscon_studentid_random
+  NUM_EXAMPLES: 3
+ID: o4-mini-2025-04-16~T_0.0~SO_student~SP_replicate_miscon_student_chocolate~EFI_quotes~ES_miscon_studentid_random3
+LOADER:
+  JOIN_KEY: question_id
+  NAME: dbe_kt22
+  RUN_LARGE_VAL: false
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: null
+  NAME: o4-mini-2025-04-16
+  NATIVE_STRUCTURED_OUTPUT: true
+  TEMPERATURE: 0.0
+  TIMEOUT: null
+OUTPUT_DIR: ./output/replication_misconceptions_20250806-170742
+PROBLEM_TYPE: misconceptions
+PROMPT:
+  NAME: replicate_miscon_student_chocolate
+RUNS: 3
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: student

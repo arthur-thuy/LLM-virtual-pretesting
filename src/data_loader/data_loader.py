@@ -8,6 +8,7 @@ import pandas as pd
 import structlog
 import numpy as np
 from sklearn.model_selection import train_test_split
+from imblearn.under_sampling import RandomUnderSampler
 
 # local application/library specific imports
 from tools.constants import (
@@ -20,8 +21,12 @@ from tools.constants import (
     VALIDATION,
     VALLARGE,
     VALSMALL,
+    STUDENT_ID,
+    STUDENT_LEVEL_GROUP,
+    STUDENT_LEVEL,
 )
 from tools.utils import set_seed
+from tools.irt_estimator import compute_student_levels, group_student_levels
 
 logger = structlog.get_logger(__name__)
 
@@ -226,41 +231,87 @@ class DataLoader:
         ### INTERACTIONS ###
         ####################
         if split_interactions:
-            # filter out the train questions
-            i_ids_train = df_interactions[
-                df_interactions[QUESTION_ID].isin(q_ids_train)
-            ][INTERACT_ID].tolist()
-            i_ids_val = df_interactions[df_interactions[QUESTION_ID].isin(q_ids_val)][
-                INTERACT_ID
-            ]
-            i_ids_val = i_ids_val.sample(val_size_interact).tolist()
-            # get valsmall and vallarge splits
-            i_ids_vallarge, i_ids_valsmall = train_test_split(
-                i_ids_val, test_size=valsmall_size_interact
-            )
-            i_ids_test = df_interactions[df_interactions[QUESTION_ID].isin(q_ids_test)][
-                INTERACT_ID
-            ]
-            # test
-            i_ids_test = i_ids_test.sample(test_size_interact).tolist()
 
-            interact_splits = {
-                TRAIN: i_ids_train,
-                VALSMALL: i_ids_valsmall,
-                VALLARGE: i_ids_vallarge,
-                TEST: i_ids_test,
+            df_i_train = df_interactions[df_interactions[QUESTION_ID].isin(q_ids_train)]
+            df_i_val = df_interactions[df_interactions[QUESTION_ID].isin(q_ids_val)]
+            df_i_test = df_interactions[df_interactions[QUESTION_ID].isin(q_ids_test)]
+
+            # ensure that all students in val and test interactions are present in train
+            df_i_val = self.ensure_presence_in_train(df_i_train, df_i_val)
+            df_i_test = self.ensure_presence_in_train(df_i_train, df_i_test)
+
+            # add student levels to each set, computed from train interactions
+            interact_splits_df = {
+                TRAIN: df_i_train,
+                VALIDATION: df_i_val,
+                TEST: df_i_test,
+            }
+            interact_splits_df = self.add_student_levels(
+                interact_splits_df, num_groups=5
+            )
+
+            # subsample sets and stratify on student level?
+            #  undersample majority classes from "student_level_group"
+            rus = RandomUnderSampler(sampling_strategy="not minority")
+            # val
+            df_i_val_rus, _ = rus.fit_resample(
+                interact_splits_df[VALIDATION],
+                interact_splits_df[VALIDATION][STUDENT_LEVEL_GROUP],
+            )
+            _, df_i_val = train_test_split(
+                df_i_val_rus,
+                test_size=val_size_interact,
+                stratify=df_i_val_rus[STUDENT_LEVEL_GROUP],
+            )
+            # get valsmall and vallarge splits
+            # TODO: stratify on student level?
+            df_i_vallarge, df_i_valsmall = train_test_split(
+                df_i_val,
+                test_size=valsmall_size_interact,
+                stratify=df_i_val[STUDENT_LEVEL_GROUP],
+            )
+            # test
+            df_i_test_rus, _ = rus.fit_resample(
+                interact_splits_df[TEST], interact_splits_df[TEST][STUDENT_LEVEL_GROUP]
+            )
+            _, df_i_test = train_test_split(
+                df_i_test_rus,
+                test_size=test_size_interact,
+                stratify=df_i_test_rus[STUDENT_LEVEL_GROUP],
+            )
+
+            interact_splits_df = {
+                TRAIN: interact_splits_df[TRAIN],
+                VALSMALL: df_i_valsmall,
+                VALLARGE: df_i_vallarge,
+                TEST: df_i_test,
             }
         else:
             # we can keep all interactions
-            interact_splits = {
-                TRAIN: df_interactions[INTERACT_ID].tolist(),
+            interact_splits_df = {
+                TRAIN: df_interactions[df_interactions[QUESTION_ID].isin(q_ids_train)]
             }
 
+        # # add student levels to each set, computed from train interactions
+        # interact_splits_df = {
+        #     TRAIN: df_interactions[
+        #         df_interactions[INTERACT_ID].isin(interact_splits[TRAIN])
+        #     ],
+        #     VALSMALL: df_interactions[
+        #         df_interactions[INTERACT_ID].isin(interact_splits[VALSMALL])
+        #     ],
+        #     VALLARGE: df_interactions[
+        #         df_interactions[INTERACT_ID].isin(interact_splits[VALLARGE])
+        #     ],
+        #     TEST: df_interactions[
+        #         df_interactions[INTERACT_ID].isin(interact_splits[TEST])
+        #     ],
+        # }
+        # interact_splits_df = self.add_student_levels(interact_splits_df, num_groups=5)
+
         # writing interactions
-        for split in interact_splits.keys():
-            interactions_tmp = df_interactions[
-                df_interactions[INTERACT_ID].isin(interact_splits[split])
-            ].copy()
+        for split_name, split_df in interact_splits_df.items():
+            interactions_tmp = split_df.copy()
             if join_key is not None:
                 # merge with questions to get more information
                 interactions_tmp = pd.merge(
@@ -269,12 +320,12 @@ class DataLoader:
             interactions_tmp.to_csv(
                 os.path.join(
                     self.write_dir,
-                    f"{self.dataset_name}_interactions_{split}.csv",
+                    f"{self.dataset_name}_interactions_{split_name}.csv",
                 ),
                 index=False,
             )
             logger.info(
-                f"Writing {split} split",
+                f"Writing {split_name} split",
                 num_interactions=len(interactions_tmp),
                 num_distinct_questions=len(
                     interactions_tmp[QUESTION_ID].unique(),
@@ -352,3 +403,68 @@ class DataLoader:
         q_ids_test = test_questions[QUESTION_ID].tolist()
 
         return q_ids_train, q_ids_val, q_ids_test
+
+    def ensure_presence_in_train(
+        self, interact_train: pd.DataFrame, interact_eval: pd.DataFrame
+    ) -> pd.DataFrame:
+        """Ensure all students in the eval set are present in the training set."""
+        missing_students = interact_eval[STUDENT_ID][
+            ~interact_eval[STUDENT_ID].isin(interact_train[STUDENT_ID])
+        ].unique()
+        if missing_students.size > 0:
+            logger.warning(
+                f"Removing missing students in training set: {missing_students}"
+            )
+            interact_eval = interact_eval[
+                ~interact_eval[STUDENT_ID].isin(missing_students)
+            ]
+        return interact_eval
+
+    def add_student_levels(
+        self, interactions_splits: dict[str, pd.DataFrame], num_groups: int
+    ) -> None:
+        """Add student levels to the interactions.
+
+        Parameters
+        ----------
+        num_groups : int
+            The number of groups to create for student levels.
+        """
+        logger.info(
+            "Adding student levels",
+            num_groups=num_groups,
+        )
+        interactions_splits[TRAIN] = compute_student_levels(interactions_splits[TRAIN])
+        interactions_splits[TRAIN] = group_student_levels(
+            interactions_splits[TRAIN], num_groups=num_groups
+        )
+        interactions_splits[TRAIN] = interactions_splits[TRAIN].drop(
+            STUDENT_LEVEL, axis=1
+        )
+        interactions_splits = self.apply_levels_to_eval(
+            interactions_splits,
+        )
+
+        return interactions_splits
+
+    def apply_levels_to_eval(
+        self, interactions: dict[str, pd.DataFrame]
+    ) -> dict[pd.DataFrame]:
+        """Apply student levels to validation and test sets."""
+        # apply student levels to validation and test sets
+        for split in [VALIDATION, TEST]:
+            interactions[split] = interactions[split].merge(
+                interactions[TRAIN][[STUDENT_ID, STUDENT_LEVEL_GROUP]].drop_duplicates(
+                    STUDENT_ID
+                ),
+                on=STUDENT_ID,
+                how="left",
+            )
+
+            # assert that all interactions have a student level
+            # print(f"{interactions[split][STUDENT_LEVEL_GROUP].isnull().sum()=}")
+            assert (
+                interactions[split][STUDENT_LEVEL_GROUP].notnull().all()
+            ), f"Missing student levels in {split} split"
+
+        return interactions

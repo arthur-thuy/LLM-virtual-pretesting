@@ -82,8 +82,10 @@ def build_proficiency_5_str(num_groups: int) -> tuple[dict[str, str], str]:
         "Expert",
     ]  # NOTE: reverse order!
     mapping = {str(i): student_levels[i - 1] for i in student_levels_base}
-    list_string = (
-        f"(with {mapping[str(student_levels_base[0])]} as the lowest level "
-        f"and {mapping[str(student_levels_base[-1])]} as the highest level)"
-    )
+    # list_string = (
+    #     f"(with {mapping[str(student_levels_base[0])]} as the lowest level "
+    #     f"and {mapping[str(student_levels_base[-1])]} as the highest level)"
+    # )
+    list_string = ", ".join([f"{i+1}. {level}" for i, level in enumerate(student_levels)])
+    list_string = f"(of levels {list_string})"
     return mapping, list_string

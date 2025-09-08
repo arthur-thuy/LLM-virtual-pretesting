@@ -59,6 +59,8 @@ def create_dummy_instance(model_class: BaseModel) -> BaseModel:
             field_values[field_name] = ""
         elif field_info == int or getattr(field_info, "__origin__", None) == int:
             field_values[field_name] = -1
+        elif field_info == bool or getattr(field_info, "__origin__", None) == bool:
+            field_values[field_name] = False
         # Add more type checking as needed for other field types
 
     return model_class(**field_values)

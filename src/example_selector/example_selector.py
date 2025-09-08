@@ -12,6 +12,11 @@ from yacs.config import CfgNode
 
 # local application/library specific imports
 from example_selector.build import EXAMPLE_SELECTOR_REGISTRY
+from example_selector.utils import (
+    assert_correct_option,
+    format_skills_miscons,
+    get_skills_miscons_from_interactions,
+)
 from tools.vector_db import get_vector_store
 
 logger = structlog.get_logger()
@@ -37,6 +42,7 @@ def build_studentid_random(
     selector = StudentIDRandomExampleSelector(
         examples=examples,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_miscons=False,
     )
     return (selector, input_vars)
 
@@ -51,6 +57,7 @@ def build_studentid_semantic(
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
         embedding=cfg.EXAMPLE_SELECTOR.EMBEDDING,
         namespace=cfg.LOADER.NAME,
+        return_miscons=False,
     )
     return (selector, input_vars)
 
@@ -87,6 +94,7 @@ def build_studentid_kc_exact(
     selector = StudentIDKCExactExampleSelector(
         examples=examples,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_miscons=False,
     )
     return (selector, input_vars)
 
@@ -149,6 +157,77 @@ def build_studentlevel_kc_exact(
     return (selector, input_vars)
 
 
+@EXAMPLE_SELECTOR_REGISTRY.register("miscon_studentid_random")
+def build_miscon_studentid_random(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    input_vars = ["student_id", "time"]
+    selector = StudentIDRandomExampleSelector(
+        examples=examples,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_miscons=True,
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("miscon_studentid_semantic")
+def build_miscon_studentid_semantic(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    input_vars = ["student_id", "question_id", "q_text", "time"]
+    selector = StudentIDSemanticExampleSelector(
+        examples=examples,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        embedding=cfg.EXAMPLE_SELECTOR.EMBEDDING,
+        namespace=cfg.LOADER.NAME,
+        return_miscons=True,
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("miscon_studentid_kc_exact")
+def build_miscon_studentid_kc_exact(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    input_vars = ["student_id", "question_id", "knowledge_components", "time"]
+    selector = StudentIDKCExactExampleSelector(
+        examples=examples,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_miscons=True,
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("miscon_studentlevel_random")
+def build_miscon_studentlevel_random(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    """Build a random example selector based on student levels."""
+    input_vars = ["student_level_group"]
+    selector = StudentLevelRandomExampleSelector(
+        examples=examples,
+        q_ids_train=q_ids_train,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_miscons=True,
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("miscon_studentlevel_kc_exact")
+def build_miscon_studentlevel_kc_exact(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    """Build a random example selector based on student levels."""
+    input_vars = ["student_level_group", "knowledge_components", "question_id"]
+    selector = StudentLevelKCExactExampleSelector(
+        examples=examples,
+        q_ids_train=q_ids_train,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_miscons=True,
+    )
+    return (selector, input_vars)
+
+
 class RandomExampleSelector(BaseExampleSelector):
     """Randomly select examples."""
 
@@ -178,7 +257,7 @@ class RandomExampleSelector(BaseExampleSelector):
 class StudentIDRandomExampleSelector(BaseExampleSelector):
     """Filter examples of the same student_id and randomly select."""
 
-    def __init__(self, examples: list[dict], k: int):
+    def __init__(self, examples: list[dict], k: int, return_miscons: bool):
         """Initialize the example selector.
 
         Parameters
@@ -187,9 +266,12 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
             List of examples
         k : int
             k-shot prompting
+        return_miscons : bool
+            Whether to return misconceptions or not.
         """
         self.examples = examples
         self.k = k
+        self.return_miscons = return_miscons
 
     def add_example(self, example):
         self.examples.append(example)
@@ -206,18 +288,43 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
             if interact["student_id"] == student_id and interact["time"] <= time
         ]
         # NOTE: there can be max 1 interaction per question_id and student_id
+        if len(student_interactions) == 0:
+            logger.warning(
+                f"No interactions found for student {student_id} before time {time}"
+            )
+            return []
 
         # randomly select from questions
         k = min(self.k, len(student_interactions))
         interactions_selected = random.sample(student_interactions, k)
 
-        return interactions_selected
+        if not self.return_miscons:
+            # if we don't want to return misconceptions, just return the interactions
+            return interactions_selected
+        else:
+            # assert that for each interaction, correct option is 1
+            assert_correct_option(interactions_selected)
+
+            skills, misconceptions = get_skills_miscons_from_interactions(
+                interactions_selected
+            )
+            text = format_skills_miscons(skills, misconceptions)
+
+            # NOTE: return list of length 1 with dict with key "skills_misconceptions"
+            return [{"skills_misconceptions": text}]
 
 
 class StudentIDSemanticExampleSelector(BaseExampleSelector):
     """Filter examples of the same student_id and select based on semantic similarity."""  # noqa
 
-    def __init__(self, examples: list, k: int, embedding: str, namespace: str) -> None:
+    def __init__(
+        self,
+        examples: list,
+        k: int,
+        embedding: str,
+        namespace: str,
+        return_miscons: bool,
+    ) -> None:
         """Initialize the example selector.
 
         Parameters
@@ -230,9 +337,12 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
             The name of the embedding model.
         namespace : str
             The namespace of the Pinecone index.
+        return_miscons : bool
+            Whether to return misconceptions or not.
         """
         self.examples = examples
         self.k = k
+        self.return_miscons = return_miscons
 
         self.vectorstore = get_vector_store(
             index_name=embedding,
@@ -268,6 +378,11 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
             for interact in self.examples
             if interact["student_id"] == student_id and interact["time"] <= time
         ]
+
+        if len(student_interactions) == 0:
+            logger.warning(f"No interactions found for student {student_id}")
+            return []
+
         q_answered = set([interact["question_id"] for interact in student_interactions])
         q_answered = list(
             map(str, q_answered - {question_id})
@@ -289,7 +404,21 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
             for interact in student_interactions
             if interact["question_id"] in question_ids_selected
         ]
-        return interactions_selected
+
+        if not self.return_miscons:
+            # if we don't want to return misconceptions, just return the interactions
+            return interactions_selected
+        else:
+            # assert that for each interaction, correct option is 1
+            assert_correct_option(interactions_selected)
+
+            skills, misconceptions = get_skills_miscons_from_interactions(
+                interactions_selected
+            )
+            text = format_skills_miscons(skills, misconceptions)
+
+            # NOTE: return list of length 1 with dict with key "skills_misconceptions"
+            return [{"skills_misconceptions": text}]
 
 
 class StudentIDRecencyExampleSelector(BaseExampleSelector):
@@ -440,7 +569,7 @@ class StudentIDKCPrimaryExampleSelector(BaseExampleSelector):
 class StudentIDKCExactExampleSelector(BaseExampleSelector):
     """Filter on student_id and entire list of KCs."""
 
-    def __init__(self, examples: list, k: int) -> None:
+    def __init__(self, examples: list, k: int, return_miscons: bool) -> None:
         """Initialize the example selector.
 
         Parameters
@@ -449,9 +578,12 @@ class StudentIDKCExactExampleSelector(BaseExampleSelector):
             List of examples
         k : int
             k-shot prompting
+        return_miscons : bool
+            Whether to return misconceptions or not.
         """
         self.examples = examples
         self.k = k
+        self.return_miscons = return_miscons
 
     def add_example(self, example: list) -> None:
         self.examples.append(example)
@@ -533,7 +665,20 @@ class StudentIDKCExactExampleSelector(BaseExampleSelector):
                 selected=k,
             )
 
-        return interactions_selected
+        if not self.return_miscons:
+            # if we don't want to return misconceptions, just return the interactions
+            return interactions_selected
+        else:
+            # assert that for each interaction, correct option is 1
+            assert_correct_option(interactions_selected)
+
+            skills, misconceptions = get_skills_miscons_from_interactions(
+                interactions_selected
+            )
+            text = format_skills_miscons(skills, misconceptions)
+
+            # NOTE: return list of length 1 with dict with key "skills_misconceptions"
+            return [{"skills_misconceptions": text}]
 
 
 def compute_jaccard_similarity(other_kcs: list[int], target_kcs: list[int]) -> float:
@@ -554,7 +699,9 @@ def compute_jaccard_similarity(other_kcs: list[int], target_kcs: list[int]) -> f
 class StudentLevelRandomExampleSelector(BaseExampleSelector):
     """Filter examples of the same student level and randomly select."""
 
-    def __init__(self, examples: list[dict], q_ids_train: list[int], k: int) -> None:
+    def __init__(
+        self, examples: list[dict], q_ids_train: list[int], k: int, return_miscons: bool
+    ) -> None:
         """Initialize the example selector.
 
         Parameters
@@ -565,10 +712,13 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
             List of question IDs in the training set.
         k : int
             k-shot prompting
+        return_miscons : bool
+            Whether to return misconceptions or not.
         """
         self.examples = examples
         self.q_ids_train = q_ids_train
         self.k = k
+        self.return_miscons = return_miscons
 
     def add_example(self, example):
         self.examples.append(example)
@@ -614,7 +764,20 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
                 selected=k,
             )
 
-        return interactions_selected
+        if not self.return_miscons:
+            # if we don't want to return misconceptions, just return the interactions
+            return interactions_selected
+        else:
+            # assert that for each interaction, correct option is 1
+            assert_correct_option(interactions_selected)
+
+            skills, misconceptions = get_skills_miscons_from_interactions(
+                interactions_selected
+            )
+            text = format_skills_miscons(skills, misconceptions)
+
+            # NOTE: return list of length 1 with dict with key "skills_misconceptions"
+            return [{"skills_misconceptions": text}]
 
 
 class StudentLevelSemanticExampleSelector(BaseExampleSelector):
@@ -801,7 +964,9 @@ class StudentLevelKCPrimaryExampleSelector(BaseExampleSelector):
 class StudentLevelKCExactExampleSelector(BaseExampleSelector):
     """Filter examples of the same student level and randomly select from that exact KC."""  # noqa
 
-    def __init__(self, examples: list[dict], q_ids_train: list[int], k: int) -> None:
+    def __init__(
+        self, examples: list[dict], q_ids_train: list[int], k: int, return_miscons: bool
+    ) -> None:
         """Initialize the example selector.
 
         Parameters
@@ -812,10 +977,13 @@ class StudentLevelKCExactExampleSelector(BaseExampleSelector):
             List of question IDs in the training set.
         k : int
             k-shot prompting
+        return_miscons : bool
+            Whether to return misconceptions or not.
         """
         self.examples = examples
         self.q_ids_train = q_ids_train
         self.k = k
+        self.return_miscons = return_miscons
 
     def add_example(self, example):
         self.examples.append(example)
@@ -896,4 +1064,17 @@ class StudentLevelKCExactExampleSelector(BaseExampleSelector):
                 selected=k,
             )
 
-        return interactions_selected
+        if not self.return_miscons:
+            # if we don't want to return misconceptions, just return the interactions
+            return interactions_selected
+        else:
+            # assert that for each interaction, correct option is 1
+            assert_correct_option(interactions_selected)
+
+            skills, misconceptions = get_skills_miscons_from_interactions(
+                interactions_selected
+            )
+            text = format_skills_miscons(skills, misconceptions)
+
+            # NOTE: return list of length 1 with dict with key "skills_misconceptions"
+            return [{"skills_misconceptions": text}]

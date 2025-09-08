@@ -1,0 +1,30 @@
+CONTEXT_TYPE: snippets
+EXAMPLE_FORMATTER:
+  INTERACTIONS:
+    NAME: quotes
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: studentid_kc_exact
+  NUM_EXAMPLES: 3
+ID: o4-mini-2025-04-16~T_1.0~SO_student_bool~SP_student_chocolate_level_context~EFI_quotes~ES_studentid_kc_exact3
+LOADER:
+  JOIN_KEY: question_id
+  NAME: dbe_kt22
+  RUN_LARGE_VAL: false
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: 4096
+  NAME: o4-mini-2025-04-16
+  NATIVE_STRUCTURED_OUTPUT: true
+  TEMPERATURE: 1.0
+  TIMEOUT: null
+OUTPUT_DIR: ./output/replication_snippets_20250812-090413
+PROMPT:
+  NAME: student_chocolate_level_context
+ROLEPLAY:
+  NUM_STUDENT_LEVELS: 5
+  STUDENT_SCALE: proficiency_5_str
+RUNS: 2
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: student_bool

@@ -1,0 +1,26 @@
+CONTEXT_TYPE: misconceptions
+EXAMPLE_FORMATTER:
+  INTERACTIONS:
+    NAME: quotes
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: miscon_studentid_random
+  NUM_EXAMPLES: 0
+LOADER:
+  JOIN_KEY: question_id
+  NAME: dbe_kt22
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: 4096
+  NAME: qwen3:14b
+  TEMPERATURE: 0.0
+  TIMEOUT: null
+PROMPT:
+  NAME: student_chocolate_level_nocontext
+ROLEPLAY:
+  NUM_STUDENT_LEVELS: 5
+  STUDENT_SCALE: proficiency_5_str
+RUNS: 3
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: student_kt

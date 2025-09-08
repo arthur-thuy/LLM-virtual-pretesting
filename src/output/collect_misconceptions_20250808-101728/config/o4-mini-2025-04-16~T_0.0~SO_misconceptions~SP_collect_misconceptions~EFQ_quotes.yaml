@@ -1,0 +1,21 @@
+EXAMPLE_FORMATTER:
+  QUESTIONS:
+    NAME: quotes
+ID_MISCON: o4-mini-2025-04-16~T_0.0~SO_misconceptions~SP_collect_misconceptions~EFQ_quotes
+LOADER:
+  JOIN_KEY: question_id
+  NAME: dbe_kt22
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: null
+  NAME: o4-mini-2025-04-16
+  NATIVE_STRUCTURED_OUTPUT: true
+  TEMPERATURE: 0.0
+  TIMEOUT: null
+OUTPUT_DIR: ./output/collect_misconceptions_20250808-101728
+PROMPT:
+  NAME: collect_misconceptions
+RUNS: 1
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: misconceptions

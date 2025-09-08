@@ -12,7 +12,6 @@ load_env(os.path.join("..", ".env"))  # noqa
 
 # related third party imports
 import structlog
-from langfuse import Langfuse
 from langfuse.decorators import langfuse_context, observe
 from yacs.config import CfgNode
 
@@ -38,11 +37,11 @@ from tools.constants import (  # noqa
     TRAIN,
     VALIDATION,
 )
+from tools.data_manager.utils import bring_correct_option_forward
 from tools.evaluate import evaluate_q_difficulty, evaluate_roleplay, predict
 from tools.irt_estimator import (
-    compute_student_levels,
     explode_student_levels,
-    group_student_levels,
+    apply_student_scale_map,
 )
 from tools.utils import (
     delete_previous_content,
@@ -70,7 +69,7 @@ parser.add_argument(
 
 # Create a trace via Langfuse decorators and get a Langchain Callback handler for it
 @observe()  # automtically log function as a trace to Langfuse
-def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -> None:
+def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
     """Run a single configuration."""
     # update trace attributes (e.g, name, session_id, user_id)
     langfuse_context.update_current_trace(
@@ -96,6 +95,23 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         questions[VALIDATION] = questions[VALIDATION].iloc[:2, :]
         questions[TEST] = questions[TEST].iloc[:2, :]
 
+    if cfg.CONTEXT_TYPE == "misconceptions":  # NOTE: alternative is "snippets"
+        # bring correct option to first place
+        logger.info("Misconceptions as context: bringing correct option forward")
+        interact_train = interact_train.apply(
+            bring_correct_option_forward,
+            is_interaction=True,
+            axis=1,
+        )
+
+    # get student scale mapping
+    student_scale_map, student_scale_str = build_student_scale(cfg=cfg)
+    # create one row for each student level
+    for split, df_q in questions.items():
+        questions[split] = explode_student_levels(
+            df_questions=df_q, student_scale_map=student_scale_map
+        )
+
     # format questions/interactions for prompt
     interact_train_fmt = build_example_formatter(
         example_formatter_cfg=cfg.EXAMPLE_FORMATTER.INTERACTIONS,
@@ -108,27 +124,18 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         is_interaction=False,
     )
 
-    # get student scale mapping
-    student_scale_map, student_scale_str = build_student_scale(cfg=cfg)
-
-    # Compute IRT parameters and group students
-    interact_train_fmt = compute_student_levels(df_interactions=interact_train_fmt)
-    interact_train_fmt = group_student_levels(
-        df_interactions=interact_train_fmt,
-        num_groups=cfg.ROLEPLAY.NUM_STUDENT_LEVELS,
-        student_scale_map=student_scale_map,
+    # apply student scale map to predefined groups!
+    interact_train_fmt = apply_student_scale_map(
+        interactions={TRAIN: interact_train_fmt}, student_scale_map=student_scale_map
+    )[TRAIN]
+    questions_fmt = apply_student_scale_map(
+        interactions=questions_fmt, student_scale_map=student_scale_map
     )
-
-    # create one row for each student level
-    for split, df_q in questions_fmt.items():
-        questions_fmt[split] = explode_student_levels(
-            df_questions=df_q, student_scale_map=student_scale_map
-        )
 
     # list of dicts
     list_train = df_to_listdict(interact_train_fmt)
     list_val = df_to_listdict(questions_fmt[VALIDATION])
-    # list_test = df_to_listdict(questions_fmt[TEST])  # TODO
+    list_test = df_to_listdict(questions_fmt[TEST])  # TODO
 
     # seed
     set_seed(cfg.SEED + run_n)
@@ -154,38 +161,90 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
     # chain
     chain = prompt | model
 
-    # predict & evaluate
-    # TODO: same for test
-    val_preds_raw = predict(
-        chain=chain,
-        data=list_val,
-        prefix="val",
-        structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
-        json_schema=StrucOutput,
-        langfuse_handler=langfuse_handler,
-    )
-    val_metrics_answers, val_preds_answers = evaluate_roleplay(
-        preds_validated=val_preds_raw["val_preds_validated"],
-        dataset=questions_fmt[VALIDATION],
-        prefix="val",
-    )
+    # compute answer correctness per student level in train set
+    train_student_group_correctness = (
+        interact_train.groupby("student_level_group")["student_option_correct"]
+        .mean()
+        .to_numpy()
+    )  # TODO: does not exist for language learning!
 
-    # compute IRT and evaluate question difficulty
-    val_metrics_qdiff, val_preds_qdiff = evaluate_q_difficulty(
-        preds_validated=val_preds_raw["val_preds_validated"],
-        dataset=questions_fmt[VALIDATION],
-        df_questions=questions_fmt[VALIDATION],
-        prefix="val",
-    )
+    # predict & evaluate
+    if cfg.LOADER.RUN_VAL:
+        val_preds_raw = predict(
+            chain=chain,
+            data=list_val,
+            prefix="val",
+            structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+            json_schema=StrucOutput,
+            langfuse_handler=langfuse_handler,
+        )
+        val_metrics_answers, val_preds_answers = evaluate_roleplay(
+            preds_validated=val_preds_raw["val_preds_validated"],
+            dataset=questions[VALIDATION],  # unformatted dataset!
+            prefix="val",
+            student_group_correctness=train_student_group_correctness,
+            only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
+        )
+        # compute IRT and evaluate question difficulty
+        val_metrics_qdiff, val_preds_qdiff = evaluate_q_difficulty(
+            preds_validated=val_preds_raw["val_preds_validated"],
+            dataset=questions[VALIDATION],
+            prefix="val",
+            only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
+        )
+    else:
+        val_preds_raw = {}
+        val_metrics_answers, val_preds_answers = {}, {}
+        val_metrics_qdiff, val_preds_qdiff = {}, {}
+
+    if cfg.LOADER.RUN_TEST:
+        test_preds_raw = predict(
+            chain=chain,
+            data=list_test,
+            prefix="test",
+            structured=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+            json_schema=StrucOutput,
+            langfuse_handler=langfuse_handler,
+        )
+        test_metrics_answers, test_preds_answers = evaluate_roleplay(
+            preds_validated=test_preds_raw["test_preds_validated"],
+            dataset=questions[TEST],  # unformatted dataset!
+            prefix="test",
+            student_group_correctness=train_student_group_correctness,
+            only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
+        )
+        # compute IRT and evaluate question difficulty
+        test_metrics_qdiff, test_preds_qdiff = evaluate_q_difficulty(
+            preds_validated=test_preds_raw["test_preds_validated"],
+            dataset=questions[TEST],
+            prefix="test",
+            only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
+        )
+    else:
+        test_preds_raw = {}
+        test_metrics_answers, test_preds_answers = {}, {}
+        test_metrics_qdiff, test_preds_qdiff = {}, {}
+
+    log_data = {
+        "metrics": {
+            **val_metrics_qdiff,
+            **val_metrics_answers,
+            **test_metrics_qdiff,
+            **test_metrics_answers,
+        },
+        # "preds_raw": {**val_preds_raw, **test_preds_raw},
+        "preds_answers": {**val_preds_answers, **test_preds_answers},
+        "preds_qdiff": {**val_preds_qdiff, **test_preds_qdiff},
+        "student_group_correctness": train_student_group_correctness,
+        "student_scale_map": student_scale_map,
+    }
+    if cfg.LOADER.RUN_VAL:
+        log_data["val_data"] = questions_fmt[VALIDATION]
+    if cfg.LOADER.RUN_TEST:
+        log_data["test_data"] = questions_fmt[TEST]
 
     write_pickle(
-        {
-            "preds_raw": {**val_preds_raw},
-            "metrics": {**val_metrics_qdiff},
-            "metrics_answers": {**val_metrics_answers},
-            "preds_answers": {**val_preds_answers},
-            "preds_qdiff": {**val_preds_qdiff},
-        },
+        log_data,
         save_dir=os.path.join(cfg.OUTPUT_DIR, cfg.ID_ROLEPLAY),
         fname=f"run_{run_n}",
     )
@@ -198,17 +257,14 @@ def main() -> None:
     args = parser.parse_args()
 
     # config
-    configs = load_configs(args.config, freeze=False)
+    configs = load_configs(args.config, problem_type="roleplay", freeze=False)
 
     # remove previous contents (take dir form first cfg)
     delete_previous_content(configs[0].OUTPUT_DIR)
 
     # logical checks before start running
     for cfg in configs:
-        check_cfg(cfg)
-
-    # langfuse
-    langfuse_session = Langfuse()
+        check_cfg(cfg, problem_type="roleplay")
 
     previous_experiment_names = []
     previous_configs = []
@@ -216,7 +272,7 @@ def main() -> None:
         print(EXP_NAME)
         previous_configs.extend(get_configs_out(EXP_NAME))
     errors = []
-    for cfg in configs:
+    for i, cfg in enumerate(configs):
         already_evaluated = False
         for prev_cfg in previous_configs:
             if check_config_equivalence(prev_cfg, cfg):
@@ -224,27 +280,32 @@ def main() -> None:
                 break
         if not already_evaluated:
             print("\n", "=" * 10, f"Config: {cfg.ID_ROLEPLAY}", "=" * 10)
+            print(f"Config {i + 1}/{len(configs)}")
 
-            try:
-                # start experiment loop
-                for run_n in range(1, cfg.RUNS + 1):
-                    run_single_cfg(
-                        cfg=cfg,
-                        run_n=run_n,
-                        args=args,
-                        langfuse_session=langfuse_session,
-                    )
-
-                save_config(
-                    cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID_ROLEPLAY
+            # start experiment loop
+            for run_n in range(1, cfg.RUNS + 1):
+                run_single_cfg(
+                    cfg=cfg,
+                    run_n=run_n,
+                    args=args,
                 )
-            except Exception as e:
-                errors.append((cfg.ID, e))
-                logger.error(
-                    "Error occurred during the experiment",
-                    config=cfg.ID,
-                    error=str(e),
-                )
+            save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID_ROLEPLAY)
+            # try:
+            #     for run_n in range(1, cfg.RUNS + 1):
+            #         run_single_cfg(
+            #             cfg=cfg,
+            #             run_n=run_n,
+            #             args=args,
+            #             langfuse_session=langfuse_session,
+            #         )
+            #     save_config(cfg, save_dir=cfg.OUTPUT_DIR, fname=cfg.ID_ROLEPLAY)
+            # except Exception as e:
+            #     errors.append((cfg.ID, e))
+            #     logger.error(
+            #         "Error occurred during the experiment",
+            #         config=cfg.ID,
+            #         error=str(e),
+            #     )
         else:
             print(cfg.ID, "already evaluated.")
 
