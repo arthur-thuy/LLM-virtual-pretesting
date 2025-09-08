@@ -3,8 +3,12 @@
 import pandas as pd
 
 # read interactions and validation questions
-df_interactions = pd.read_csv("../data/silver/dbe_kt22_interactions.csv")
-df_q_val = pd.read_csv("../data/gold/dbe_kt22_questions_validation.csv")
+df_interactions = pd.read_csv(
+    "../data/silver/dbe_kt22_interactions.csv"
+)  # TODO: do not hardcode
+df_q_val = pd.read_csv(
+    "../data/gold/dbe_kt22_questions_validation.csv"
+)  # TODO: do not hardcode
 
 # filter interactions for validation questions
 df_i_val = df_interactions[df_interactions["question_id"].isin(df_q_val["question_id"])]
@@ -24,4 +28,6 @@ prop_df = prop_df.drop(columns=[1, 2, 3, 4])
 
 
 # save to CSV
-prop_df.to_csv("../data/platinum/dbe_kt22_proportions_val.csv", index=False)
+prop_df.to_csv(
+    "../data/platinum/dbe_kt22_proportions_val.csv", index=False
+)  # TODO: do not hardcode
