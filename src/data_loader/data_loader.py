@@ -43,9 +43,12 @@ class DataLoader:
         df_questions = pd.read_csv(
             os.path.join(self.read_dir, f"{self.dataset_name}_questions.csv")
         )
-        if set([Q_OPTION_TEXTS, KC]).issubset(df_questions.columns):
+        if Q_OPTION_TEXTS in df_questions.columns:
             # convert string back to list
-            df_questions[Q_OPTION_TEXTS] = df_questions[Q_OPTION_TEXTS].apply(eval)
+            df_questions[Q_OPTION_TEXTS] = df_questions[
+                Q_OPTION_TEXTS
+            ].apply(eval)
+        if KC in df_questions.columns:
             df_questions[KC] = df_questions[KC].apply(eval)
         return df_questions
 
@@ -67,11 +70,14 @@ class DataLoader:
                     f"{self.dataset_name}_questions_{split}.csv",
                 )
             )
-            if set([Q_OPTION_TEXTS, KC]).issubset(df_questions_tmp.columns):
+            if df_questions_tmp.empty:
+                continue
+            if Q_OPTION_TEXTS in df_questions_tmp.columns:
                 # convert string back to list
                 df_questions_tmp[Q_OPTION_TEXTS] = df_questions_tmp[
                     Q_OPTION_TEXTS
                 ].apply(eval)
+            if KC in df_questions_tmp.columns:
                 df_questions_tmp[KC] = df_questions_tmp[KC].apply(eval)
             questions[split] = df_questions_tmp
             logger.info(
@@ -88,9 +94,12 @@ class DataLoader:
                 f"{self.dataset_name}_interactions_train.csv",
             )
         )
-        if set([Q_OPTION_TEXTS, KC]).issubset(interact_train.columns):
+        if Q_OPTION_TEXTS in interact_train.columns:
             # convert string back to list
-            interact_train[Q_OPTION_TEXTS] = interact_train[Q_OPTION_TEXTS].apply(eval)
+            interact_train[Q_OPTION_TEXTS] = interact_train[
+                Q_OPTION_TEXTS
+            ].apply(eval)
+        if KC in interact_train.columns:
             interact_train[KC] = interact_train[KC].apply(eval)
 
         logger.info(
@@ -126,11 +135,12 @@ class DataLoader:
                     self.write_dir, f"{self.dataset_name}_interactions_{split}.csv"
                 )
             )
-            if set([Q_OPTION_TEXTS, KC]).issubset(df_interactions_tmp.columns):
+            if Q_OPTION_TEXTS in df_interactions_tmp.columns:
                 # convert string back to list
                 df_interactions_tmp[Q_OPTION_TEXTS] = df_interactions_tmp[
                     Q_OPTION_TEXTS
                 ].apply(eval)
+            if KC in df_interactions_tmp.columns:
                 df_interactions_tmp[KC] = df_interactions_tmp[KC].apply(eval)
             interactions[split] = df_interactions_tmp
             logger.info(
@@ -289,7 +299,7 @@ class DataLoader:
         else:
             # we can keep all interactions
             interact_splits_df = {
-                TRAIN: df_interactions[df_interactions[QUESTION_ID].isin(q_ids_train)]
+                TRAIN: df_interactions
             }
 
         # # add student levels to each set, computed from train interactions
