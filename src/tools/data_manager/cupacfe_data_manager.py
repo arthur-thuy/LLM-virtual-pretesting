@@ -281,9 +281,13 @@ def format_xml_annotation(xml_string: str) -> str:
             incorrect = ns.find("i")
             correct = ns.find("c")
             # Prepare formatted correction string
+            # correction = (
+            #     f'{incorrect.get_text() if incorrect else ""} '
+            #     f'<{ns_type} "{correct.get_text() if correct else ""}">'
+            # )
             correction = (
                 f'{incorrect.get_text() if incorrect else ""} '
-                f'<{ns_type} "{correct.get_text() if correct else ""}">'
+                f'<{ns_type} "{incorrect.get_text() if incorrect else ""}"->"{correct.get_text() if correct else ""}">'
             )
             # print(correction)
             ns.replace_with(correction)
