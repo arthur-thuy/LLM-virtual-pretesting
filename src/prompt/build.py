@@ -115,7 +115,6 @@ def build_prompt(
     final_prompt = ChatPromptTemplate.from_messages(messages).partial(
         format_instructions=parser.get_format_instructions(),
         exam_type=PROMPT_INFO[cfg.LOADER.NAME]["exam_type"],
-        exam_type_luca_emnlp=PROMPT_INFO[cfg.LOADER.NAME]["exam_type_luca_emnlp"],
         student_scale=student_scale_str,
     )
     # NOTE: unused variables are simply ignored
