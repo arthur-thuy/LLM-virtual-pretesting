@@ -144,7 +144,10 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
     StrucOutput = build_structured_outputter(cfg.STRUCTURED_OUTPUTTER)
 
     # prompt
-    q_ids_train = list(questions_fmt[TRAIN][QUESTION_ID].unique().tolist())
+    if cfg.LOADER.JOIN_KEY is None:
+        q_ids_train = None
+    else:
+        q_ids_train = list(questions_fmt[TRAIN][QUESTION_ID].unique().tolist())
     prompt, _ = build_prompt(
         cfg=cfg,
         examples=list_train,
@@ -162,11 +165,14 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
     chain = prompt | model
 
     # compute answer correctness per student level in train set
-    train_student_group_correctness = (
-        interact_train.groupby("student_level_group")["student_option_correct"]
-        .mean()
-        .to_numpy()
-    )  # TODO: does not exist for language learning!
+    if cfg.LOADER.JOIN_KEY is None:
+        train_student_group_correctness = None
+    else:
+        train_student_group_correctness = (
+            interact_train.groupby("student_level_group")["student_option_correct"]
+            .mean()
+            .to_numpy()
+        )
 
     # predict & evaluate
     if cfg.LOADER.RUN_VAL:
