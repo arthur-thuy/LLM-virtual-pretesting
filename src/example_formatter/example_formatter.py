@@ -5,6 +5,7 @@
 
 # related third party imports
 import pandas as pd
+import structlog
 
 # local application/library specific imports
 from example_formatter.build import EXAMPLE_FORMATTER_REGISTRY
@@ -17,6 +18,8 @@ from tools.constants import (
     S_OPTION_ID,
     Q_CONTEXT_TEXT,
 )
+
+logger = structlog.get_logger(__name__)
 
 
 # TODO: use letters to denote options instead of integers!
@@ -138,7 +141,8 @@ def build_mcq_reading_quotes(
     def input_fmt(row: pd.Series) -> str:
         """Create human-readable input text from a row of a DataFrame."""
         # NOTE: this is flexible wrt the number of answer options
-        # TODO: add context text
+        if len(row[Q_OPTION_TEXTS]) > 10:
+            logger.warning("Number of options > 10, this is likely a mistake.")
         text = (
             f"Reading context:\n{row[Q_CONTEXT_TEXT]}"
             f"\n\nQuestion:\n{row[Q_TEXT]}\n\nOptions:\n"
@@ -180,13 +184,13 @@ def build_open_reading(dataset: pd.DataFrame, is_interaction: bool) -> pd.DataFr
 
     def output_fmt(row: pd.Series) -> str:
         """Create human-readable output text from a row of a DataFrame."""
-        return (
-            f"Student response (first language {row['student_language']}; "
+        return (  # TODO: do we keep student language and age?
+            f"Student response (first language '{row['student_language']}'; "
             f"age {row['student_age']}):\n{row['answer_response']}"
         )
 
     df_out = dataset.copy()
     # Create input and output columns
-    df_out[INPUT] = ""
+    df_out[INPUT] = "Write a letter of between 120 and 180 words."  # TODO: make flexible
     df_out[OUTPUT] = dataset.apply(output_fmt, axis=1)
     return df_out
