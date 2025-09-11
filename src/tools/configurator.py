@@ -305,15 +305,20 @@ def check_cfg(
     if cfg.CONTEXT_TYPE == "misconceptions":
         if "miscon" not in cfg.EXAMPLE_SELECTOR.NAME:
             raise ValueError(
-                "Example selector must have substring 'miscon' for misconceptions "
-                f"as context, got {cfg.EXAMPLE_SELECTOR.NAME}."
+                "Example selector must have substring 'miscon' "
+                f"for misconceptions as context, got {cfg.EXAMPLE_SELECTOR.NAME}."
+            )
+
+    if cfg.CONTEXT_TYPE == "errors":
+        if "errors" not in cfg.EXAMPLE_SELECTOR.NAME:
+            raise ValueError(
+                "Example selector must have substring 'errors' "
+                f"for errors as context, got {cfg.EXAMPLE_SELECTOR.NAME}."
             )
 
     if cfg.CONTEXT_TYPE == "replicate":
         if sum([cfg.LOADER.RUN_VAL, cfg.LOADER.RUN_TEST]) == 0:
-            raise ValueError(
-                "At least one of RUN_VAL or RUN_TEST must be True."
-            )
+            raise ValueError("At least one of RUN_VAL or RUN_TEST must be True.")
 
 
 def convert_to_dict(cfg_node, key_list=[]):  # noqa
