@@ -184,9 +184,12 @@ def build_open_reading(dataset: pd.DataFrame, is_interaction: bool) -> pd.DataFr
 
     def output_fmt(row: pd.Series) -> str:
         """Create human-readable output text from a row of a DataFrame."""
+        # return (  # TODO: do we keep student language and age?
+        #     f"Student response (first language '{row['student_language']}'; "
+        #     f"age {row['student_age']}):\n{row['answer_response']}"
+        # )
         return (  # TODO: do we keep student language and age?
-            f"Student response (first language '{row['student_language']}'; "
-            f"age {row['student_age']}):\n{row['answer_response']}"
+            f"Student response:\n{row['answer_response']}"
         )
 
     df_out = dataset.copy()
