@@ -10,6 +10,9 @@ _C.SEED = 42
 # number of runs
 _C.RUNS = 1
 
+# context type
+_C.CONTEXT_TYPE = "snippets"
+
 # model architecture
 _C.MODEL = CN()
 # model name
@@ -34,6 +37,10 @@ _C.LOADER = CN()
 _C.LOADER.NAME = "cupacfe"
 # dataset join key
 _C.LOADER.JOIN_KEY = None
+# run sets
+_C.LOADER.RUN_VAL = True
+_C.LOADER.RUN_LARGE_VAL = False
+_C.LOADER.RUN_TEST = False
 
 # example formatter
 _C.EXAMPLE_FORMATTER = CN()
@@ -47,16 +54,16 @@ _C.EXAMPLE_FORMATTER.QUESTIONS.NAME = "mcq_reading_quotes"
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
 # example selector name
-_C.EXAMPLE_SELECTOR.NAME = "studentlevel_random"
+_C.EXAMPLE_SELECTOR.NAME = "studentlevel_random"  # TODO: need to get mistakes
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 1
 # example selector embedding model
 _C.EXAMPLE_SELECTOR.EMBEDDING = "text-embedding-3-large"
 
-# systemprompt
+# system prompt
 _C.PROMPT = CN()
 # system prompt name
-_C.PROMPT.NAME = "roleplay_student_pepper"
+_C.PROMPT.NAME = "student_cfe_snippet_level_context"
 
 _C.ROLEPLAY = CN()
 # number of student levels to simulate
