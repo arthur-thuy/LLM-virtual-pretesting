@@ -89,7 +89,7 @@ def build_prompt(
                     ),
                 )
 
-            elif cfg.CONTEXT_TYPE == "misconceptions":
+            elif cfg.CONTEXT_TYPE in ["misconceptions", "errors"]:
                 example_selector, input_vars = build_example_selector(
                     cfg, examples=examples, q_ids_train=q_ids_train
                 )

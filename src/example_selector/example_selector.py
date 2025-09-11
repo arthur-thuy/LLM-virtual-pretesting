@@ -2,7 +2,7 @@
 
 # standard library imports
 import random
-from typing import Optional
+from typing import Optional, Literal
 
 # related third party imports
 import numpy as np
@@ -17,6 +17,8 @@ from example_selector.utils import (
     assert_correct_option,
     format_skills_miscons,
     get_skills_miscons_from_interactions,
+    get_errors_from_interactions,
+    format_errors,
 )
 from tools.vector_db import get_vector_store
 
@@ -43,7 +45,7 @@ def build_studentid_random(
     selector = StudentIDRandomExampleSelector(
         examples=examples,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
-        return_miscons=False,
+        return_value="snippets",
     )
     return (selector, input_vars)
 
@@ -58,7 +60,7 @@ def build_studentid_semantic(
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
         embedding=cfg.EXAMPLE_SELECTOR.EMBEDDING,
         namespace=cfg.LOADER.NAME,
-        return_miscons=False,
+        return_value="snippets",
     )
     return (selector, input_vars)
 
@@ -95,7 +97,7 @@ def build_studentid_kc_exact(
     selector = StudentIDKCExactExampleSelector(
         examples=examples,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
-        return_miscons=False,
+        return_value="snippets",
     )
     return (selector, input_vars)
 
@@ -110,7 +112,7 @@ def build_studentlevel_random(
         examples=examples,
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
-        return_miscons=False,
+        return_value="snippets",
     )
     return (selector, input_vars)
 
@@ -155,7 +157,7 @@ def build_studentlevel_kc_exact(
         examples=examples,
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
-        return_miscons=False,
+        return_value="snippets",
     )
     return (selector, input_vars)
 
@@ -168,7 +170,7 @@ def build_miscon_studentid_random(
     selector = StudentIDRandomExampleSelector(
         examples=examples,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
-        return_miscons=True,
+        return_value="misconceptions",
     )
     return (selector, input_vars)
 
@@ -183,7 +185,7 @@ def build_miscon_studentid_semantic(
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
         embedding=cfg.EXAMPLE_SELECTOR.EMBEDDING,
         namespace=cfg.LOADER.NAME,
-        return_miscons=True,
+        return_value="misconceptions",
     )
     return (selector, input_vars)
 
@@ -196,7 +198,7 @@ def build_miscon_studentid_kc_exact(
     selector = StudentIDKCExactExampleSelector(
         examples=examples,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
-        return_miscons=True,
+        return_value="misconceptions",
     )
     return (selector, input_vars)
 
@@ -211,7 +213,7 @@ def build_miscon_studentlevel_random(
         examples=examples,
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
-        return_miscons=True,
+        return_value="misconceptions",
     )
     return (selector, input_vars)
 
@@ -226,7 +228,22 @@ def build_miscon_studentlevel_kc_exact(
         examples=examples,
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
-        return_miscons=True,
+        return_value="misconceptions",
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("errors_studentlevel_random")
+def build_errors_studentlevel_random(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    """Build a random example selector based on student levels."""
+    input_vars = ["student_level_group"]
+    selector = StudentLevelRandomExampleSelector(
+        examples=examples,
+        q_ids_train=q_ids_train,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_value="errors",
     )
     return (selector, input_vars)
 
@@ -260,7 +277,12 @@ class RandomExampleSelector(BaseExampleSelector):
 class StudentIDRandomExampleSelector(BaseExampleSelector):
     """Filter examples of the same student_id and randomly select."""
 
-    def __init__(self, examples: list[dict], k: int, return_miscons: bool):
+    def __init__(
+        self,
+        examples: list[dict],
+        k: int,
+        return_value: Literal["snippets", "misconceptions", "errors"],
+    ) -> None:
         """Initialize the example selector.
 
         Parameters
@@ -274,7 +296,7 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
         """
         self.examples = examples
         self.k = k
-        self.return_miscons = return_miscons
+        self.return_value = return_value
 
     def add_example(self, example):
         self.examples.append(example)
@@ -301,10 +323,10 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
         k = min(self.k, len(student_interactions))
         interactions_selected = random.sample(student_interactions, k)
 
-        if not self.return_miscons:
+        if self.return_value == "snippets":
             # if we don't want to return misconceptions, just return the interactions
             return interactions_selected
-        else:
+        elif self.return_value == "misconceptions":
             # assert that for each interaction, correct option is 1
             assert_correct_option(interactions_selected)
 
@@ -326,7 +348,7 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
         k: int,
         embedding: str,
         namespace: str,
-        return_miscons: bool,
+        return_value: Literal["snippets", "misconceptions", "errors"],
     ) -> None:
         """Initialize the example selector.
 
@@ -345,7 +367,7 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
         """
         self.examples = examples
         self.k = k
-        self.return_miscons = return_miscons
+        self.return_value = return_value
 
         self.vectorstore = get_vector_store(
             index_name=embedding,
@@ -408,10 +430,10 @@ class StudentIDSemanticExampleSelector(BaseExampleSelector):
             if interact["question_id"] in question_ids_selected
         ]
 
-        if not self.return_miscons:
+        if self.return_value == "snippets":
             # if we don't want to return misconceptions, just return the interactions
             return interactions_selected
-        else:
+        elif self.return_value == "misconceptions":
             # assert that for each interaction, correct option is 1
             assert_correct_option(interactions_selected)
 
@@ -572,7 +594,12 @@ class StudentIDKCPrimaryExampleSelector(BaseExampleSelector):
 class StudentIDKCExactExampleSelector(BaseExampleSelector):
     """Filter on student_id and entire list of KCs."""
 
-    def __init__(self, examples: list, k: int, return_miscons: bool) -> None:
+    def __init__(
+        self,
+        examples: list,
+        k: int,
+        return_value: Literal["snippets", "misconceptions", "errors"],
+    ) -> None:
         """Initialize the example selector.
 
         Parameters
@@ -586,7 +613,7 @@ class StudentIDKCExactExampleSelector(BaseExampleSelector):
         """
         self.examples = examples
         self.k = k
-        self.return_miscons = return_miscons
+        self.return_value = return_value
 
     def add_example(self, example: list) -> None:
         self.examples.append(example)
@@ -668,10 +695,10 @@ class StudentIDKCExactExampleSelector(BaseExampleSelector):
                 selected=k,
             )
 
-        if not self.return_miscons:
+        if self.return_value == "snippets":
             # if we don't want to return misconceptions, just return the interactions
             return interactions_selected
-        else:
+        elif self.return_value == "misconceptions":
             # assert that for each interaction, correct option is 1
             assert_correct_option(interactions_selected)
 
@@ -706,7 +733,7 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
         self,
         examples: list[dict],
         k: int,
-        return_miscons: bool,
+        return_value: Literal["snippets", "misconceptions", "errors"],
         q_ids_train: Optional[list[int]] = None,
     ) -> None:
         """Initialize the example selector.
@@ -725,7 +752,7 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
         self.examples = examples
         self.q_ids_train = q_ids_train
         self.k = k
-        self.return_miscons = return_miscons
+        self.return_value = return_value
 
     def add_example(self, example):
         self.examples.append(example)
@@ -781,10 +808,10 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
                 selected=k,
             )
 
-        if not self.return_miscons:
+        if self.return_value == "snippets":
             # if we don't want to return misconceptions, just return the interactions
             return interactions_selected
-        else:
+        elif self.return_value == "misconceptions":
             # assert that for each interaction, correct option is 1
             assert_correct_option(interactions_selected)
 
@@ -795,6 +822,12 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
 
             # NOTE: return list of length 1 with dict with key "skills_misconceptions"
             return [{"skills_misconceptions": text}]
+        elif self.return_value == "errors":
+            # get errors from an open-ended response
+            errors = get_errors_from_interactions(interactions_selected)
+            text = format_errors(errors)
+            # NOTE: return list of length 1 with dict with key "errors"
+            return [{"skills_misconceptions": text}]  # NOTE: need this key for prompt
 
 
 class StudentLevelSemanticExampleSelector(BaseExampleSelector):
@@ -982,7 +1015,11 @@ class StudentLevelKCExactExampleSelector(BaseExampleSelector):
     """Filter examples of the same student level and randomly select from that exact KC."""  # noqa
 
     def __init__(
-        self, examples: list[dict], q_ids_train: list[int], k: int, return_miscons: bool
+        self,
+        examples: list[dict],
+        q_ids_train: list[int],
+        k: int,
+        return_value: Literal["snippets", "misconceptions", "errors"],
     ) -> None:
         """Initialize the example selector.
 
@@ -1000,7 +1037,7 @@ class StudentLevelKCExactExampleSelector(BaseExampleSelector):
         self.examples = examples
         self.q_ids_train = q_ids_train
         self.k = k
-        self.return_miscons = return_miscons
+        self.return_value = return_value
 
     def add_example(self, example):
         self.examples.append(example)
@@ -1081,10 +1118,10 @@ class StudentLevelKCExactExampleSelector(BaseExampleSelector):
                 selected=k,
             )
 
-        if not self.return_miscons:
+        if self.return_value == "snippets":
             # if we don't want to return misconceptions, just return the interactions
             return interactions_selected
-        else:
+        elif self.return_value == "misconceptions":
             # assert that for each interaction, correct option is 1
             assert_correct_option(interactions_selected)
 
