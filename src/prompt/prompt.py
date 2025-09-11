@@ -179,6 +179,32 @@ def build_student_chocolate_level_nocontext(
     return messages
 
 
+# NOTE: for CFE-CUP&A, for snippets
+@PROMPT_REGISTRY.register("student_cfe_snippet_level_context")
+def build_student_cfe_snippet_level_context(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are a student of level {student_level_group} {student_scale} working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
+        "You are shown an open-ended response that you answered earlier in the exam, where your errors have been annotated. "  # noqa
+        "Analyse your responses to the questions and identify the possible misconceptions that led to answering incorrectly. "  # noqa
+        "Inspect the new question and think how you would answer it as a student of level {student_level_group}, keeping in mind your misconceptions. "  # noqa
+        "Think about how the student level relates to the question difficulty. "
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+    )
+
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        few_shot_prompt,
+        ("human", human1_prompt_str),
+    ]
+    return messages
+
+
 #######################
 ### TEACHER PROMPTS ###
 #######################
@@ -257,26 +283,6 @@ def build_teacher_avocado_level_context(
         ("human", human1_prompt_str),
         few_shot_prompt,
         ("human", human2_prompt_str),
-    ]
-    return messages
-
-
-@PROMPT_REGISTRY.register("luca_emnlp_level_nocontext")
-def build_luca_emnlp_level_nocontext(few_shot_prompt, native_str_output: bool) -> list:
-    # NOTE: do not add a statement about JSON output! -> this is added automatically
-
-    system_prompt_str = (
-        "You will be shown a multiple choice question from a {exam_type_luca_emnlp}, and the questions in the exam have difficulty levels "  # noqa
-        "on a scale from one (very easy) to five (very difficult). "
-        "You must assign a difficulty level to the given multiple choice question, and select the answer choice that a student of level {student_level_group} would pick. "  # noqa
-    )
-    human_prompt_str = "Question:\n{input}"
-
-    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
-    # NOTE: do not add few_shot_prompt because it is zero-shot!
-    messages = [
-        ("system", system_prompt_str),
-        ("human", human_prompt_str),
     ]
     return messages
 
