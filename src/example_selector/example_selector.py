@@ -2,6 +2,7 @@
 
 # standard library imports
 import random
+from typing import Optional
 
 # related third party imports
 import numpy as np
@@ -109,6 +110,7 @@ def build_studentlevel_random(
         examples=examples,
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_miscons=False,
     )
     return (selector, input_vars)
 
@@ -153,6 +155,7 @@ def build_studentlevel_kc_exact(
         examples=examples,
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_miscons=False,
     )
     return (selector, input_vars)
 
@@ -700,7 +703,11 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
     """Filter examples of the same student level and randomly select."""
 
     def __init__(
-        self, examples: list[dict], q_ids_train: list[int], k: int, return_miscons: bool
+        self,
+        examples: list[dict],
+        k: int,
+        return_miscons: bool,
+        q_ids_train: Optional[list[int]] = None,
     ) -> None:
         """Initialize the example selector.
 
@@ -727,13 +734,23 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
         # student_level_group of target student
         student_level_group = input_variables["student_level_group"]
 
+        print(f"{len(self.examples)=}")  # TODO: remove
+
         # find all interactions of this student level group
-        student_interactions = [
-            interact
-            for interact in self.examples
-            if interact["student_level_group"] == student_level_group
-            and interact["question_id"] in self.q_ids_train
-        ]
+        if self.q_ids_train is None:
+            student_interactions = [
+                interact
+                for interact in self.examples
+                if interact["student_level_group"] == student_level_group
+            ]
+            print(f"{len(student_interactions)=}")  # TODO: remove
+        else:
+            student_interactions = [
+                interact
+                for interact in self.examples
+                if interact["student_level_group"] == student_level_group
+                and interact["question_id"] in self.q_ids_train
+            ]
         if len(student_interactions) == 0:
             logger.warning(
                 f"No interactions found for student level group {student_level_group}"
