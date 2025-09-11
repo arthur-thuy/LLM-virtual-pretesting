@@ -118,8 +118,12 @@ def eval_metric_monotonicity(
     # checks
     none_count = sum([y_student is None, student_group_correctness is None])
     if none_count != 1:
-        raise ValueError(
-            "Exactly one of 'y_student' or 'student_group_correctness' must be None"
+        # raise ValueError(
+        #     "Exactly one of 'y_student' or 'student_group_correctness' must be None"
+        # )
+        student_group_correctness = [0.0, 0.25, 0.5, 0.75, 1.0]
+        logger.warning(
+            "No 'student_group_correctness' provided. Using default correctness values."
         )
 
     if only_kt:
@@ -356,7 +360,7 @@ def compute_metrics_roleplay(
     y_val_pred: ArrayLike,
     y_val_true: ArrayLike,
     student_level_group: ArrayLike,
-    student_group_correctness: ArrayLike,
+    student_group_correctness: Optional[ArrayLike] = None,
     # question_ids: ArrayLike,
     # prop_df: pd.DataFrame,
     only_kt: bool = False,
@@ -423,7 +427,7 @@ def evaluate_roleplay(
     preds_validated: list,
     dataset: pd.DataFrame,
     prefix: Literal["val", "test"],
-    student_group_correctness: NDArray,
+    student_group_correctness: Optional[NDArray] = None,
     only_kt: bool = False,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Evaluate.
