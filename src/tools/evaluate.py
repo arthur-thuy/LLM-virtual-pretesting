@@ -198,7 +198,7 @@ def eval_metric_monotonicity(
             student_group_correctness=student_group_correctness,
         )
         score = np.nan
-    return score
+    return score, llm_group_correctness
 
 
 def compute_metrics_replication(
@@ -393,17 +393,19 @@ def compute_metrics_roleplay(
     else:
         llm_correct = np.equal(y_val_pred, y_val_true)
     # compute metrics
+    monotonicity, llm_group_correctness = eval_metric_monotonicity(
+        y_true=y_val_true,
+        y_llm=y_val_pred,
+        student_level_group=student_level_group,
+        y_student=None,
+        student_group_correctness=student_group_correctness,
+        only_kt=only_kt,
+    )
     kt_metrics = {
         # knowledge tracing
         "llm_correctness": np.mean(llm_correct).item(),
-        "monotonicity": eval_metric_monotonicity(
-            y_true=y_val_true,
-            y_llm=y_val_pred,
-            student_level_group=student_level_group,
-            y_student=None,
-            student_group_correctness=student_group_correctness,
-            only_kt=only_kt,
-        ),
+        "monotonicity": monotonicity,
+        "llm_group_correctness": llm_group_correctness,
     }
     if only_kt:
         metrics = kt_metrics
@@ -474,6 +476,9 @@ def evaluate_roleplay(
             "Evaluate - end",
             correctness_llm=round(metrics["llm_correctness"], 2),
             monotonicity=round(metrics["monotonicity"], 2),
+            llm_group_correctness=[
+                round(x.item(), 2) for x in metrics["llm_group_correctness"]
+            ],
             # distr_alignment=round(metrics["distractor_alignment"], 2),
         )
     else:
@@ -481,6 +486,9 @@ def evaluate_roleplay(
             "Evaluate - end",
             correctness_llm=round(metrics["llm_correctness"], 2),
             monotonicity=round(metrics["monotonicity"], 2),
+            llm_group_correctness=[
+                round(x.item(), 2) for x in metrics["llm_group_correctness"]
+            ],
         )
     metrics = {f"{prefix}_{k}": v for k, v in metrics.items()}
     preds = {
