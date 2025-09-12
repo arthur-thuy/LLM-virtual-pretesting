@@ -761,8 +761,6 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
         # student_level_group of target student
         student_level_group = input_variables["student_level_group"]
 
-        print(f"{len(self.examples)=}")  # TODO: remove
-
         # find all interactions of this student level group
         if self.q_ids_train is None:
             student_interactions = [
@@ -770,7 +768,6 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
                 for interact in self.examples
                 if interact["student_level_group"] == student_level_group
             ]
-            print(f"{len(student_interactions)=}")  # TODO: remove
         else:
             student_interactions = [
                 interact
