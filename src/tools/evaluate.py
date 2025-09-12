@@ -486,7 +486,7 @@ def evaluate_roleplay(
     preds = {
         f"{prefix}_y_pred": y_val_pred,
         f"{prefix}_y_true": y_val_true,
-        f"{prefix}_{STUDENT_LEVEL_GROUP}": student_level_group,
+        f"{prefix}_student_level_group": student_level_group,
     }
     return metrics, preds
 
@@ -520,7 +520,10 @@ def evaluate_q_difficulty(
     # Compute IRT parameters
     _, difficulty_dict, _ = irt_estimation(interactions_df=df)
     df_q_tmp = dataset.copy()
+    # NOTE: only retain unique set of question IDs, because repeated 5 times in dataset!
+    df_q_tmp = df_q_tmp.drop_duplicates(subset=[QUESTION_ID]).reset_index(drop=True)
     df_q_tmp["q_diff_pred"] = df_q_tmp[QUESTION_ID].map(difficulty_dict)
+
     # compute RMSE
     metrics = {
         f"{prefix}_rmse": root_mean_squared_error(
@@ -536,6 +539,7 @@ def evaluate_q_difficulty(
     preds = {
         f"{prefix}_y_pred": df_q_tmp["q_diff_pred"].to_numpy(),
         f"{prefix}_y_true": df_q_tmp[Q_DIFFICULTY].to_numpy(),
+        f"{prefix}_df_input": df,
     }
     return metrics, preds
 
