@@ -22,7 +22,7 @@ MODEL:
   NATIVE_STRUCTURED_OUTPUT: true
   TEMPERATURE: 0.0
   TIMEOUT: null
-OUTPUT_DIR: ./output/roleplay_cupacfe_errors_20250911-144211
+OUTPUT_DIR: ./output/roleplay_cupacfe_errors_20250912-100608
 PROMPT:
   NAME: student_cfe_errors_level_context
 ROLEPLAY:
