@@ -32,10 +32,6 @@ TODOs for later:
 - experiment with temperature > 0.0. Value 0.0 is easiest but higher values might give better results because this will likely lower the answer correctness, which might bring it closer to the student answer.
 
 
-TODO for roleplaying:
-- roleplaying config ID: include number of roleplays per test question
-
-
 
 
 # Questions meeting 17/03/2025
