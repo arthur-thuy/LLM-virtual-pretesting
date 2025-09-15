@@ -41,6 +41,8 @@ _C.LOADER.JOIN_KEY = None
 _C.LOADER.RUN_VAL = True
 _C.LOADER.RUN_LARGE_VAL = False
 _C.LOADER.RUN_TEST = False
+# difficulty range
+_C.LOADER.DIFFICULTY_RANGE = (30, 110)
 
 # example formatter
 _C.EXAMPLE_FORMATTER = CN()

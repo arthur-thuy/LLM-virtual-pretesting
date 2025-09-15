@@ -1,0 +1,23 @@
+CONTEXT_TYPE: "errors"
+
+MODEL:
+  TEMPERATURE: [0.0, 1.0]
+  NAME: ["qwen3:0.6b",
+        "qwen3:1.7b",
+        "qwen3:4b" ,
+        "qwen3:8b",
+        "qwen3:14b",
+        "llama3.2:1b",
+        "llama3.2:3b",
+        "llama3.1:8b",
+      ]
+
+STRUCTURED_OUTPUTTER:
+  NAME: "teacher_bool_nocontext"
+
+PROMPT:
+  NAME: "teacher_cfe_errors_level_context"
+
+EXAMPLE_SELECTOR:
+  NUM_EXAMPLES: 1
+  NAME: "errors_studentlevel_random"

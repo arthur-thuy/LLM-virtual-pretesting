@@ -1,0 +1,11 @@
+CONTEXT_TYPE: snippets
+EXAMPLE_SELECTOR:
+  NAME: studentlevel_random
+  NUM_EXAMPLES: 1
+MODEL:
+  NAME: llama3.2:1b
+  TEMPERATURE: 1.0
+PROMPT:
+  NAME: student_cfe_snippet_level_context
+STRUCTURED_OUTPUTTER:
+  NAME: student_bool_nocontext

@@ -1,0 +1,10 @@
+CONTEXT_TYPE: errors
+EXAMPLE_SELECTOR:
+  NUM_EXAMPLES: 0
+MODEL:
+  NAME: llama3.2:3b
+  TEMPERATURE: 1.0
+PROMPT:
+  NAME: student_cfe_errors_level_nocontext
+STRUCTURED_OUTPUTTER:
+  NAME: student_bool_nocontext
