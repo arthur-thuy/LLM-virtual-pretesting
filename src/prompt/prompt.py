@@ -64,7 +64,6 @@ def build_student_pepper_level_nocontext(
     messages = [
         ("system", system_prompt_str),
         ("human", human1_prompt_str),
-        few_shot_prompt,
         ("human", human2_prompt_str),
     ]
     return messages
@@ -205,7 +204,30 @@ def build_student_cfe_snippet_level_context(
     return messages
 
 
-# NOTE: for CFE-CUP&A, for misconceptions
+# NOTE: for CFE-CUP&A, for snippets
+@PROMPT_REGISTRY.register("student_cfe_snippet_level_nocontext")
+def build_student_cfe_snippet_level_nocontext(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are a student of level {student_level_group} {student_scale} working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
+        "Inspect the new question and think how you would answer it as a student of level {student_level_group}. "  # noqa
+        "Think about how the student level relates to the question difficulty. "
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+    )
+
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human1_prompt_str),
+    ]
+    return messages
+
+
+# NOTE: for CFE-CUP&A, for errors
 @PROMPT_REGISTRY.register("student_cfe_errors_level_context")
 def build_student_cfe_errors_level_context(
     few_shot_prompt, native_str_output: bool
@@ -225,6 +247,29 @@ def build_student_cfe_errors_level_context(
     messages = [
         ("system", system_prompt_str),
         few_shot_prompt,
+        ("human", human1_prompt_str),
+    ]
+    return messages
+
+
+# NOTE: for CFE-CUP&A, for errors
+@PROMPT_REGISTRY.register("student_cfe_errors_level_nocontext")
+def build_student_cfe_errors_level_nocontext(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are a student of level {student_level_group} {student_scale} working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
+        "Inspect the new question and think how you would answer it as a student of level {student_level_group}. "  # noqa
+        "Think about how the student level relates to the question difficulty. "
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+    )
+
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
         ("human", human1_prompt_str),
     ]
     return messages
@@ -356,6 +401,102 @@ def build_teacher_marshmellow_level_nocontext(
         # "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
         # "If you answer correctly, explain why you think the answer is correct. "
         # "Provide your answer as the integer index of the multiple choice option."
+    )
+
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human1_prompt_str),
+    ]
+    return messages
+
+
+# NOTE: for CFE-CUP&A, for snippets
+@PROMPT_REGISTRY.register("teacher_cfe_snippet_level_context")
+def build_teacher_cfe_snippet_level_context(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are an expert teacher preparing a set of multiple choice exam questions on {exam_type}. "  # noqa
+        "You are shown an open-ended response that a student of level {student_level_group} {student_scale} in your class answered earlier, where their errors have been annotated. "  # noqa
+        "Inspect the new question and think how that student of level {student_level_group} would answer it, keeping in mind their skills and misconceptions. "  # noqa
+        "Think about how the student level relates to the question difficulty. "
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+    )
+
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        few_shot_prompt,
+        ("human", human1_prompt_str),
+    ]
+    return messages
+
+
+# NOTE: for CFE-CUP&A, for snippets
+@PROMPT_REGISTRY.register("teacher_cfe_snippet_level_nocontext")
+def build_teacher_cfe_snippet_level_nocontext(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are an expert teacher preparing a set of multiple choice exam questions on {exam_type}. "  # noqa
+        "Inspect the new question and think how that student of level {student_level_group} {student_scale} would answer it. "  # noqa
+        "Think about how the student level relates to the question difficulty. "
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+    )
+
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human1_prompt_str),
+    ]
+    return messages
+
+
+# NOTE: for CFE-CUP&A, for errors
+@PROMPT_REGISTRY.register("teacher_cfe_errors_level_context")
+def build_teacher_cfe_errors_level_context(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are an expert teacher preparing a set of multiple choice exam questions on {exam_type}. "  # noqa
+        "From an earlier open-ended response of a student of level {student_level_group} {student_scale} in your class, you have identified a set of misconceptions that they have. "  # noqa
+        "Inspect the new question and think how that student of level {student_level_group} would answer it, keeping in mind their skills and misconceptions. "  # noqa
+        "Think about how the student level relates to the question difficulty. "
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+    )
+
+    human1_prompt_str = "New multiple choice question:\n\n{input}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    messages = [
+        ("system", system_prompt_str),
+        few_shot_prompt,
+        ("human", human1_prompt_str),
+    ]
+    return messages
+
+
+# NOTE: for CFE-CUP&A, for errors
+@PROMPT_REGISTRY.register("teacher_cfe_errors_level_nocontext")
+def build_teacher_cfe_errors_level_nocontext(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = (
+        "You are an expert teacher preparing a set of multiple choice exam questions on {exam_type}. "  # noqa
+        "Inspect the new question and think how that student of level {student_level_group} {student_scale} would answer it. "  # noqa
+        "Think about how the student level relates to the question difficulty. "
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
     )
 
     human1_prompt_str = "New multiple choice question:\n\n{input}"
