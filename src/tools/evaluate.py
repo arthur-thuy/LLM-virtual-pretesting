@@ -17,6 +17,7 @@ from sklearn.metrics import (
     f1_score,
     root_mean_squared_error,
     balanced_accuracy_score,
+    mean_absolute_error,
 )
 
 # local application/library specific imports
@@ -29,6 +30,8 @@ from tools.constants import (
     S_OPTION_ID,
     STUDENT_ID,
     STUDENT_LEVEL_GROUP,
+    DIFFICULTY_MAX,
+    DIFFICULTY_MIN,
 )
 from tools.utils import BatchCallback, format_time
 
@@ -503,6 +506,7 @@ def evaluate_q_difficulty(
     preds_validated: list,
     dataset: pd.DataFrame,
     prefix: Literal["val", "test"],
+    difficulty_range: tuple[float, float],
     only_kt: bool = False,
 ):
     from tools.irt_estimator import irt_estimation
@@ -527,22 +531,39 @@ def evaluate_q_difficulty(
     )
     # Compute IRT parameters
     _, difficulty_dict, _ = irt_estimation(interactions_df=df)
+    # rescale difficulty for specific dataset
+    logger.info(
+        "Rescaling difficulty range",
+        old_range=(DIFFICULTY_MIN, DIFFICULTY_MAX),
+        new_range=difficulty_range,
+    )
+    new_min_diff, new_max_diff = difficulty_range
+    for key, value in difficulty_dict.items():
+        difficulty_dict[key] = (
+            (value - DIFFICULTY_MIN) / (DIFFICULTY_MAX - DIFFICULTY_MIN)
+        ) * (new_max_diff - new_min_diff) + new_min_diff
+
     df_q_tmp = dataset.copy()
     # NOTE: only retain unique set of question IDs, because repeated 5 times in dataset!
     df_q_tmp = df_q_tmp.drop_duplicates(subset=[QUESTION_ID]).reset_index(drop=True)
     df_q_tmp["q_diff_pred"] = df_q_tmp[QUESTION_ID].map(difficulty_dict)
 
-    # compute RMSE
+    # compute RMSE and MAE
     metrics = {
         f"{prefix}_rmse": root_mean_squared_error(
             y_true=df_q_tmp[Q_DIFFICULTY].to_numpy(),
             y_pred=df_q_tmp["q_diff_pred"].to_numpy(),
-        )
+        ),
+        f"{prefix}_mae": mean_absolute_error(
+            y_true=df_q_tmp[Q_DIFFICULTY].to_numpy(),
+            y_pred=df_q_tmp["q_diff_pred"].to_numpy(),
+        ),
     }
     logger.info(
         "Evaluate question difficulty - end",
         split=prefix,
-        rmse=metrics[f"{prefix}_rmse"],
+        rmse=round(metrics[f"{prefix}_rmse"], 2),
+        mae=round(metrics[f"{prefix}_mae"], 2),
     )
     preds = {
         f"{prefix}_y_pred": df_q_tmp["q_diff_pred"].to_numpy(),

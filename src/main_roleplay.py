@@ -196,6 +196,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
             preds_validated=val_preds_raw["val_preds_validated"],
             dataset=questions[VALIDATION],
             prefix="val",
+            difficulty_range=cfg.LOADER.DIFFICULTY_RANGE,
             only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
         )
     else:
@@ -224,6 +225,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
             preds_validated=test_preds_raw["test_preds_validated"],
             dataset=questions[TEST],
             prefix="test",
+            difficulty_range=cfg.LOADER.DIFFICULTY_RANGE,
             only_kt=("kt" in cfg.STRUCTURED_OUTPUTTER.NAME),
         )
     else:
