@@ -47,6 +47,7 @@ user_prompt_str = (
     "How would the student of level {student_level_group} answer this question? "
     "Think about how the student level relates to the question difficulty. "
     "You can answer incorrectly, if that is what the student is likely to do for this question. "
+    # TODO: add the JSON formatting instructions here
 )
 ```
 
