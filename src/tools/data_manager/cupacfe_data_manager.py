@@ -12,6 +12,7 @@ from pathlib import Path
 import pandas as pd
 import structlog
 from bs4 import BeautifulSoup
+from imblearn.under_sampling import RandomUnderSampler
 
 # local application/library specific imports
 from tools.constants import (
@@ -195,11 +196,27 @@ class CupaCFEDatamanager:
         # bring value 0 to 1
         df_explode[STUDENT_LEVEL_GROUP] = df_explode[STUDENT_LEVEL_GROUP].replace(0, 1)
 
+        # stratified sampling based on student level group
+        # value counts of student levels
+        print("Value counts of student levels before undersampling:")
+        print(df_explode[STUDENT_LEVEL_GROUP].value_counts())
+
+        #  undersample majority classes from "student_level_group"
+        sampling_dict = {1: 14, 2: 75, 3: 75, 4: 75, 5: 75}
+        rus = RandomUnderSampler(sampling_strategy=sampling_dict)
+        df_interactions_rus, _ = rus.fit_resample(
+            df_explode, df_explode[STUDENT_LEVEL_GROUP]
+        )
+
+        # value counts of student levels
+        print("Value counts of student levels after undersampling:")
+        print(df_interactions_rus[STUDENT_LEVEL_GROUP].value_counts())
+
         # format XML annotations
-        df_explode[A_TEXT] = df_explode.apply(
+        df_interactions_rus[A_TEXT] = df_interactions_rus.apply(
             lambda x: format_xml_annotation(x[A_TEXT]), axis=1
         )
-        return df_explode
+        return df_interactions_rus
 
 
 def extract_xml_data_bs(xml_file_path) -> dict[str, Any]:
