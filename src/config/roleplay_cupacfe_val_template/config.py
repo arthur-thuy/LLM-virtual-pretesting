@@ -8,10 +8,10 @@ _C = CN()
 _C.SEED = 42
 
 # number of runs
-_C.RUNS = 3
+_C.RUNS = 1
 
 # context type
-_C.CONTEXT_TYPE = "errors"
+_C.CONTEXT_TYPE = "snippets_misconceptions"
 
 # model architecture
 _C.MODEL = CN()
@@ -56,7 +56,7 @@ _C.EXAMPLE_FORMATTER.QUESTIONS.NAME = "mcq_reading_quotes"
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
 # example selector name
-_C.EXAMPLE_SELECTOR.NAME = "errors_studentlevel_random"
+_C.EXAMPLE_SELECTOR.NAME = "both_cfe_studentlevel_random"
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 1
 # example selector embedding model
@@ -65,7 +65,7 @@ _C.EXAMPLE_SELECTOR.EMBEDDING = "text-embedding-3-large"
 # system prompt
 _C.PROMPT = CN()
 # system prompt name
-_C.PROMPT.NAME = "student_cfe_errors_level_context"
+_C.PROMPT.NAME = "teacher_cfe_miscons_level_context"
 
 _C.ROLEPLAY = CN()
 # number of student levels to simulate
