@@ -21,6 +21,7 @@ from example_selector.utils import (
     format_errors,
     get_error_legend_from_interactions,
     format_error_legend,
+    get_skills_miscons_from_interactions_cfe,
 )
 from tools.vector_db import get_vector_store
 
@@ -844,22 +845,18 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
             return [{"skills_misconceptions": text}]  # NOTE: need this key for prompt
         elif self.return_value == "both_cfe":
             assert len(interactions_selected) == 1  # TODO: relax this for DBE-KT22
-            # TODO: replace list of errors with actual misconceptions!
+            interaction_selected = interactions_selected[0]
+            # get skills and misconceptions from mapping
+            skills, misconceptions = get_skills_miscons_from_interactions_cfe(
+                interaction_selected
+            )
+            text_miscons = format_skills_miscons(skills, misconceptions)
 
-            # get errors from an open-ended response
-            errors = get_errors_from_interactions(interactions_selected)
-            text_errors = format_errors(errors)
-
-            error_legend = get_error_legend_from_interactions(interactions_selected)
+            error_legend = get_error_legend_from_interactions(interaction_selected)
             text_error_legend = format_error_legend(error_legend)
-            text = text_error_legend + "\n\n" + interactions_selected[0]["output"]
+            text_snippet = text_error_legend + "\n\n" + interaction_selected["output"]
 
-            aggregated_snippets_text = text
-            aggregated_misconceptions_text = text_errors  # TODO: replace with real misconceptions
-            return [{
-                "snippets": aggregated_snippets_text,
-                "misconceptions": aggregated_misconceptions_text
-            }]
+            return [{"snippets": text_snippet, "misconceptions": text_miscons}]
 
 
 class StudentLevelSemanticExampleSelector(BaseExampleSelector):

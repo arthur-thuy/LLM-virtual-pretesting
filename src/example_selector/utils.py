@@ -66,6 +66,18 @@ def format_skills_miscons(skills: list[str], misconceptions: list[str]) -> str:
     return text
 
 
+def get_skills_miscons_from_interactions_cfe(
+    interaction: dict,
+) -> tuple[list[str], list[str]]:
+    """Get skills and misconceptions from interactions."""
+    miscon_mapping = read_pickle("../data/platinum/miscon_mapping_cfe.pickle")
+
+    skills = miscon_mapping[interaction["interact_id"]]["skills"]
+    misconceptions = miscon_mapping[interaction["interact_id"]]["misconceptions"]
+
+    return skills, misconceptions
+
+
 def format_errors(errors: dict[str, list[dict[str, str]]]) -> str:
     """Format errors into a string."""
     text = "Errors:\n"
@@ -133,14 +145,10 @@ def extract_errors(text: str) -> dict:
 
 
 def get_error_legend_from_interactions(
-    interactions: list[dict],
+    interaction: dict,
 ) -> dict[str, int]:
     """Get error legend from interactions."""
-    text = ""
-    for interaction in interactions:
-        text += interaction["answer_response"] + "\n"
-
-    errors = extract_errors(text)
+    errors = extract_errors(interaction["answer_response"])
     error_legend = {key: CFE_ERROR_CODES[key] for key in list(errors.keys())}
 
     return error_legend

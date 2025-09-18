@@ -278,6 +278,80 @@ def build_student_cfe_errors_level_nocontext(
     return messages
 
 
+# NOTE: for CFE-CUP&A
+@PROMPT_REGISTRY.register("student_cfe_miscons_level_context")
+def build_student_cfe_miscons_level_context(
+    example_selector, input_vars: list, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = "You are a student of level {student_level_group} {student_scale} working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
+
+    user_prompt_str_1a = (
+        "You have a student in your class of level {student_level_group} {student_scale}. "  # noqa
+        "Below is a short essay you have produced earlier: \n\n"
+    )
+    user_prompt_str_1b = (
+        "Inspect the short essay and list the skills and misconceptions that you have. "  # noqa
+        "List up to 3 skills and up to 3 misconceptions, in bullet point format. "
+        "Specifically, focus on skills and misconceptions that would transfer from writing to reading comprehension. "  # noqa
+        "If there are no skills or misconceptions, return 'None'."
+    )
+
+    user_prompt_str_2 = (
+        "Inspect the following new multiple-choice question:\n"
+        "{input}\n\n"
+        "How would you answer this question as a student of level {student_level_group}? "  # noqa
+        "Think about how your student level, skills, and misconceptions relate to the question difficulty and what mistakes you are likely to make. "  # noqa
+        "You can answer incorrectly, if that is what you are likely to do for this question. "  # noqa
+    )
+    user_prompt_str_2 = prepare_str_output(user_prompt_str_2, native_str_output)
+
+    few_shot_prompt = FewShotChatMessagePromptTemplate(
+        # values to pass to the example_selector
+        input_variables=input_vars,
+        example_selector=example_selector,
+        example_prompt=ChatPromptTemplate.from_messages(
+            [
+                ("human", "{snippets}"),
+                ("human", user_prompt_str_1b),
+                ("ai", "{misconceptions}"),
+            ]
+        ),
+    )
+
+    messages = [
+        ("system", system_prompt_str),
+        ("human", user_prompt_str_1a),
+        few_shot_prompt,
+        ("human", user_prompt_str_2),
+    ]
+    return messages
+
+
+# NOTE: for CFE-CUP&A
+@PROMPT_REGISTRY.register("student_cfe_miscons_level_nocontext")
+def build_student_cfe_miscons_level_nocontext(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = "You are a student of level {student_level_group} {student_scale} working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
+
+    user_prompt_str_1 = (
+        "Inspect the following new multiple-choice question:\n"
+        "{input}\n\n"
+        "How would you answer this question as a student of level {student_level_group}? "  # noqa
+        "Think about how your student level, skills, and misconceptions relate to the question difficulty and what mistakes you are likely to make. "  # noqa
+        "You can answer incorrectly, if that is what you are likely to do for this question. "  # noqa
+    )
+    user_prompt_str_1 = prepare_str_output(user_prompt_str_1, native_str_output)
+
+    messages = [
+        ("system", system_prompt_str),
+        ("human", user_prompt_str_1),
+    ]
+    return messages
+
+
 #######################
 ### TEACHER PROMPTS ###
 #######################
@@ -512,7 +586,7 @@ def build_teacher_cfe_errors_level_nocontext(
     return messages
 
 
-# NOTE: for CFE-CUP&A, for errors
+# NOTE: for CFE-CUP&A
 @PROMPT_REGISTRY.register("teacher_cfe_miscons_level_context")
 def build_teacher_cfe_miscons_level_context(
     example_selector, input_vars: list, native_str_output: bool
@@ -527,13 +601,13 @@ def build_teacher_cfe_miscons_level_context(
     user_prompt_str_1b = (
         "Inspect the short essay and list the skills and misconceptions that the student has. "  # noqa
         "List up to 3 skills and up to 3 misconceptions, in bullet point format. "
-        "Specifically, focus on skills and misconceptions that would transfer from production to reading comprehension. "  # noqa
+        "Specifically, focus on skills and misconceptions that would transfer from writing to reading comprehension. "  # noqa
         "If there are no skills or misconceptions, return 'None'."
     )
 
     user_prompt_str_2 = (
         "Inspect the following new multiple-choice question:\n"
-        "{input}\n\n"  # TODO: insert actual question
+        "{input}\n\n"
         "How would the student of level {student_level_group} answer this question? "
         "Think about how the student level, skills, and misconceptions relate to the question difficulty and what mistakes the student is likely to make. "  # noqa
         "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
@@ -561,6 +635,29 @@ def build_teacher_cfe_miscons_level_context(
     ]
     return messages
 
+
+# NOTE: for CFE-CUP&A
+@PROMPT_REGISTRY.register("teacher_cfe_miscons_level_nocontext")
+def build_teacher_cfe_miscons_level_nocontext(
+    few_shot_prompt, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = "You are an expert teacher preparing a set of multiple choice exam questions on {exam_type}. "  # noqa
+    user_prompt_str_1 = (
+        "Inspect the following new multiple-choice question:\n"
+        "{input}\n\n"
+        "You have a student in your class of level {student_level_group} {student_scale}. "  # noqa
+        "How would the student of level {student_level_group} answer this question? "
+        "Think about how the student level relates to the question difficulty and what mistakes the student is likely to make. "  # noqa
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+    )
+    user_prompt_str_1 = prepare_str_output(user_prompt_str_1, native_str_output)
+
+    messages = [
+        ("system", system_prompt_str),
+        ("human", user_prompt_str_1),
+    ]
+    return messages
 
 #################################
 ### COLLECTING MISCONCEPTIONS ###
@@ -590,4 +687,25 @@ def build_collect_misconceptions(few_shot_prompt, native_str_output: bool) -> li
     return messages
 
 
-# TODO: add prompt for CFE dataset
+@PROMPT_REGISTRY.register("collect_misconceptions_cfe")
+def build_collect_misconceptions_cfe(few_shot_prompt, native_str_output: bool) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+
+    system_prompt_str = (
+        "You are shown a short essay in English that a student has written. "
+        "Inspect the essay and list the skills and misconceptions that the student has. "  # noqa
+        "Your answers should be very concise; each field should have a maximum of 10 words. "  # noqa
+        "The skill description should start with 'Understands' and the misconception description should start with 'Confuses'. "  # noqa
+        "Specifically, focus on skills and misconceptions that would transfer from writing to reading comprehension. "  # noqa
+        "List up to 3 skills and up to 3 misconceptions. "
+        "If there are no skills or misconceptions, return 'None'."
+    )
+    human_prompt_str = "{output}"
+
+    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+    # NOTE: do not add few_shot_prompt because it is zero-shot!
+    messages = [
+        ("system", system_prompt_str),
+        ("human", human_prompt_str),
+    ]
+    return messages
