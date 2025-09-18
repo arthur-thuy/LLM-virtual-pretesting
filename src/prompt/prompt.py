@@ -4,7 +4,10 @@
 # /
 
 # related third party imports
-# /
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    FewShotChatMessagePromptTemplate,
+)
 
 # local application/library specific imports
 from prompt.build import PROMPT_REGISTRY
@@ -509,6 +512,56 @@ def build_teacher_cfe_errors_level_nocontext(
     return messages
 
 
+# NOTE: for CFE-CUP&A, for errors
+@PROMPT_REGISTRY.register("teacher_cfe_miscons_level_context")
+def build_teacher_cfe_miscons_level_context(
+    example_selector, input_vars: list, native_str_output: bool
+) -> list:
+    # NOTE: do not add a statement about JSON output! -> this is added automatically
+    system_prompt_str = "You are an expert teacher preparing a set of multiple choice exam questions on {exam_type}. "  # noqa
+
+    user_prompt_str_1a = (
+        "You have a student in your class of level {student_level_group} {student_scale}. "  # noqa
+        "Below is a short essay they have produced: \n\n"
+    )
+    user_prompt_str_1b = (
+        "Inspect the short essay and list the skills and misconceptions that the student has. "  # noqa
+        "List up to 3 skills and up to 3 misconceptions, in bullet point format. "
+        "Specifically, focus on skills and misconceptions that would transfer from production to reading comprehension. "  # noqa
+        "If there are no skills or misconceptions, return 'None'."
+    )
+
+    user_prompt_str_2 = (
+        "Inspect the following new multiple-choice question:\n"
+        "{input}\n\n"  # TODO: insert actual question
+        "How would the student of level {student_level_group} answer this question? "
+        "Think about how the student level, skills, and misconceptions relate to the question difficulty and what mistakes the student is likely to make. "  # noqa
+        "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
+    )
+    user_prompt_str_2 = prepare_str_output(user_prompt_str_2, native_str_output)
+
+    few_shot_prompt = FewShotChatMessagePromptTemplate(
+        # values to pass to the example_selector
+        input_variables=input_vars,
+        example_selector=example_selector,
+        example_prompt=ChatPromptTemplate.from_messages(
+            [
+                ("human", "{snippets}"),
+                ("human", user_prompt_str_1b),
+                ("ai", "{misconceptions}"),
+            ]
+        ),
+    )
+
+    messages = [
+        ("system", system_prompt_str),
+        ("human", user_prompt_str_1a),
+        few_shot_prompt,
+        ("human", user_prompt_str_2),
+    ]
+    return messages
+
+
 #################################
 ### COLLECTING MISCONCEPTIONS ###
 #################################
@@ -535,3 +588,6 @@ def build_collect_misconceptions(few_shot_prompt, native_str_output: bool) -> li
         ("human", human_prompt_str),
     ]
     return messages
+
+
+# TODO: add prompt for CFE dataset

@@ -19,6 +19,8 @@ from example_selector.utils import (
     get_skills_miscons_from_interactions,
     get_errors_from_interactions,
     format_errors,
+    get_error_legend_from_interactions,
+    format_error_legend,
 )
 from tools.vector_db import get_vector_store
 
@@ -244,6 +246,21 @@ def build_errors_studentlevel_random(
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
         return_value="errors",
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("both_cfe_studentlevel_random")
+def build_both_cfe_studentlevel_random(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    """Build a random example selector based on student levels."""
+    input_vars = ["student_level_group"]
+    selector = StudentLevelRandomExampleSelector(
+        examples=examples,
+        q_ids_train=q_ids_train,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_value="both_cfe",
     )
     return (selector, input_vars)
 
@@ -825,6 +842,24 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
             text = format_errors(errors)
             # NOTE: return list of length 1 with dict with key "errors"
             return [{"skills_misconceptions": text}]  # NOTE: need this key for prompt
+        elif self.return_value == "both_cfe":
+            assert len(interactions_selected) == 1  # TODO: relax this for DBE-KT22
+            # TODO: replace list of errors with actual misconceptions!
+
+            # get errors from an open-ended response
+            errors = get_errors_from_interactions(interactions_selected)
+            text_errors = format_errors(errors)
+
+            error_legend = get_error_legend_from_interactions(interactions_selected)
+            text_error_legend = format_error_legend(error_legend)
+            text = text_error_legend + "\n\n" + interactions_selected[0]["output"]
+
+            aggregated_snippets_text = text
+            aggregated_misconceptions_text = text_errors  # TODO: replace with real misconceptions
+            return [{
+                "snippets": aggregated_snippets_text,
+                "misconceptions": aggregated_misconceptions_text
+            }]
 
 
 class StudentLevelSemanticExampleSelector(BaseExampleSelector):

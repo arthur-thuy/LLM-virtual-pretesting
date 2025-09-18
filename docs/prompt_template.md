@@ -15,11 +15,11 @@ system_prompt_str = (
 ```python
 user_prompt_str = (
     "You have a student in your class of level {student_level_group} {student_scale}. "
-    "Consider their earlier open-ended response below: \n\n"
+    "Below is a short essay they have produced: \n\n"
     "{open_ended_response}\n\n"  # TODO: insert actual response (text with annotations + error legend)
-    "Inspect the open-ended response and list the skills and misconceptions that the student has. "
+    "Inspect the short essay and list the skills and misconceptions that the student has. "
     "List up to 3 skills and up to 3 misconceptions, in bullet point format. "
-    "Specifically, think about what skills and misconceptions would translate from writing to reading comprehension. "
+    "Specifically, focus on skills and misconceptions that would transfer from production to reading comprehension. "
     "If there are no skills or misconceptions, return 'None'."
 )
 ```
@@ -45,7 +45,7 @@ user_prompt_str = (
     "Inspect the following new multiple-choice question:\n"
     "{question_text}\n\n"  # TODO: insert actual question
     "How would the student of level {student_level_group} answer this question? "
-    "Think about how the student level relates to the question difficulty. "
+    "Think about how the student level, skills, and misconceptions relate to the question difficulty and what mistakes the student is likely to make. "
     "You can answer incorrectly, if that is what the student is likely to do for this question. "
     # TODO: add the JSON formatting instructions here
 )

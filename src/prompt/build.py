@@ -97,11 +97,34 @@ def build_prompt(
                     # values to pass to the example_selector
                     input_variables=input_vars,
                     example_selector=example_selector,
-                    # each example is 2 messages: 1 human, 1 AI
                     example_prompt=ChatPromptTemplate.from_messages(
                         [("system", "{skills_misconceptions}")]
                     ),
                 )
+            elif cfg.CONTEXT_TYPE in ["snippets_misconceptions"]:
+                example_selector, input_vars = build_example_selector(
+                    cfg, examples=examples, q_ids_train=q_ids_train
+                )
+
+                # get the messages list
+                messages = PROMPT_REGISTRY[cfg.PROMPT.NAME](
+                    example_selector=example_selector,
+                    input_vars=input_vars,
+                    native_str_output=cfg.MODEL.NATIVE_STRUCTURED_OUTPUT,
+                )
+
+                # Set up a parser (not used if model supports structured output)
+                parser = PydanticOutputParser(pydantic_object=struc_output)
+
+                # Create the template from the messages list
+                final_prompt = ChatPromptTemplate.from_messages(messages).partial(
+                    format_instructions=parser.get_format_instructions(),
+                    exam_type=PROMPT_INFO[cfg.LOADER.NAME]["exam_type"],
+                    student_scale=student_scale_str,
+                )
+                # NOTE: unused variables are simply ignored
+
+                return final_prompt, parser
 
     # Set up a parser (not used if model supports structured output)
     parser = PydanticOutputParser(pydantic_object=struc_output)

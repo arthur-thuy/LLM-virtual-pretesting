@@ -130,3 +130,28 @@ def extract_errors(text: str) -> dict:
         error_dict[error_type].append({"mistake": mistake, "correction": correction})
 
     return error_dict
+
+
+def get_error_legend_from_interactions(
+    interactions: list[dict],
+) -> dict[str, int]:
+    """Get error legend from interactions."""
+    text = ""
+    for interaction in interactions:
+        text += interaction["answer_response"] + "\n"
+
+    errors = extract_errors(text)
+    error_legend = {key: CFE_ERROR_CODES[key] for key in list(errors.keys())}
+
+    return error_legend
+
+
+def format_error_legend(error_legend: dict[str, str]) -> str:
+    """Format error legend into a string."""
+    text = "Full name of relevant error codes:\n"
+    if len(error_legend) == 0:
+        text += "None\n"
+    else:
+        for error_key, error_value in error_legend.items():
+            text += f"- {error_key}: {error_value}\n"
+    return text
