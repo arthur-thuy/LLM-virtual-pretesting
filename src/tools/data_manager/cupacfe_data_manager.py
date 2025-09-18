@@ -107,7 +107,7 @@ class CupaCFEDatamanager:
                     .decode("ascii")
                 )  # to fix issue with encoding
                 options = [option_0, option_1, option_2, option_3]
-                correct_answer = ord(q_val["answer"]) - ord("a")
+                correct_answer = ord(q_val["answer"]) - ord("a") + 1
                 # define difficulty
                 if diff_type == "irt":
                     # continuous IRT value
