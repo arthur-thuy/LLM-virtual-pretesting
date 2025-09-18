@@ -173,9 +173,6 @@ def eval_metric_monotonicity(
         llm_group_correctness
     ), "Number of student groups and LLM groups must match"
 
-    # print(f"{student_group_correctness=}")
-    # print(f"{llm_group_correctness=}")
-
     try:
         correlation_score = scipy.stats.linregress(
             llm_group_correctness, student_group_correctness
@@ -202,6 +199,23 @@ def eval_metric_monotonicity(
         )
         score = np.nan
     return score, llm_group_correctness
+
+
+def compute_answer_distr(y_val_pred: ArrayLike) -> dict[int, float]:
+    """Compute answer distribution.
+
+    Parameters
+    ----------
+    y_val_pred : ArrayLike
+        Predicted values.
+
+    Returns
+    -------
+    dict[int, float]
+        Answer distribution.
+    """
+    unique, counts = np.unique(y_val_pred, return_counts=True)
+    return {int(k): float(v/y_val_pred.shape[0]) for k, v in zip(unique, counts)}
 
 
 def compute_metrics_replication(
@@ -267,6 +281,8 @@ def compute_metrics_replication(
             "f1_weighted": f1_score(
                 y_true=y_val_student, y_pred=y_val_pred, average="weighted"
             ),
+            # answer distribution
+            "answer_distr": compute_answer_distr(y_val_pred=y_val_pred),
         }
         metrics = {**kt_metrics, **non_kt_metrics}
     return metrics
@@ -416,6 +432,8 @@ def compute_metrics_roleplay(
         # only compute these of non-KT
         non_kt_metrics = {
             "prop_invalid": np.mean(y_val_pred == -1),
+            # answer distribution
+            "answer_distr": compute_answer_distr(y_val_pred=y_val_pred),
             # "distractor_alignment": eval_distractor_alignment(
             #     y_true_array=y_val_true,
             #     y_llm_array=y_val_pred,
@@ -482,6 +500,7 @@ def evaluate_roleplay(
             llm_group_correctness=[
                 round(x.item(), 2) for x in metrics["llm_group_correctness"]
             ],
+            answer_distr={k: round(v, 2) for k, v in metrics["answer_distr"].items()},
             # distr_alignment=round(metrics["distractor_alignment"], 2),
         )
     else:
