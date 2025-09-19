@@ -201,7 +201,7 @@ def eval_metric_monotonicity(
     return score, llm_group_correctness
 
 
-def compute_answer_distr(y_val_pred: ArrayLike) -> dict[int, float]:
+def compute_answer_distr(y_val_pred: ArrayLike) -> ArrayLike:
     """Compute answer distribution.
 
     Parameters
@@ -211,11 +211,17 @@ def compute_answer_distr(y_val_pred: ArrayLike) -> dict[int, float]:
 
     Returns
     -------
-    dict[int, float]
-        Answer distribution.
+    ArrayLike
+        Answer distribution over options 1-4.
     """
     unique, counts = np.unique(y_val_pred, return_counts=True)
-    return {int(k): float(v/y_val_pred.shape[0]) for k, v in zip(unique, counts)}
+    dict_counts = {int(k): int(v) for k, v in zip(unique, counts)}
+    # fill in value 0 if one of keys 1-4 is missing
+    for k in range(1, 5):
+        if k not in dict_counts:
+            dict_counts[k] = 0
+    print(dict_counts)
+    return np.array([dict_counts[k]/y_val_pred.shape[0] for k in range(1, 5)])
 
 
 def compute_metrics_replication(
@@ -500,7 +506,9 @@ def evaluate_roleplay(
             llm_group_correctness=[
                 round(x.item(), 2) for x in metrics["llm_group_correctness"]
             ],
-            answer_distr={k: round(v, 2) for k, v in metrics["answer_distr"].items()},
+            answer_distr=[
+                round(x.item(), 2) for x in metrics["answer_distr"]
+            ],
             # distr_alignment=round(metrics["distractor_alignment"], 2),
         )
     else:
