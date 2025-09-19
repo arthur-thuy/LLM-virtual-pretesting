@@ -8,7 +8,7 @@ _C = CN()
 _C.SEED = 42
 
 # number of runs
-_C.RUNS = 1
+_C.RUNS = 3
 
 # context type
 _C.CONTEXT_TYPE = "snippets_misconceptions"
