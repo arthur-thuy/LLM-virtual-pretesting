@@ -220,7 +220,6 @@ def compute_answer_distr(y_val_pred: ArrayLike) -> ArrayLike:
     for k in range(1, 5):
         if k not in dict_counts:
             dict_counts[k] = 0
-    print(dict_counts)
     return np.array([dict_counts[k]/y_val_pred.shape[0] for k in range(1, 5)])
 
 
