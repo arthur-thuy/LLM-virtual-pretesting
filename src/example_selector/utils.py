@@ -106,9 +106,7 @@ def get_errors_from_interactions(
 
     errors = extract_errors(text)
     # replace error codes with full meaning
-    errors = {
-        CFE_ERROR_CODES.get(key, key): value for key, value in errors.items()
-    }
+    errors = {CFE_ERROR_CODES.get(key, key): value for key, value in errors.items()}
 
     return errors
 
@@ -163,3 +161,25 @@ def format_error_legend(error_legend: dict[str, str]) -> str:
         for error_key, error_value in error_legend.items():
             text += f"- {error_key}: {error_value}\n"
     return text
+
+
+def format_snippets_dbe(interactions: list[dict]) -> str:
+    """Format snippets from interactions for DBE.
+
+    Parameters
+    ----------
+    interactions : list[dict]
+        List of interactions.
+
+    Returns
+    -------
+    str
+        Formatted text snippets.
+    """
+    text_snippet = f"\n{'#'*10}\n".join(
+        [
+            interaction["input"] + "\n\n" + interaction["output"]
+            for interaction in interactions
+        ]
+    )
+    return text_snippet

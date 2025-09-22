@@ -22,6 +22,7 @@ from example_selector.utils import (
     get_error_legend_from_interactions,
     format_error_legend,
     get_skills_miscons_from_interactions_cfe,
+    format_snippets_dbe,
 )
 from tools.vector_db import get_vector_store
 
@@ -262,6 +263,36 @@ def build_both_cfe_studentlevel_random(
         q_ids_train=q_ids_train,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
         return_value="both_cfe",
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("both_dbe_studentlevel_random")
+def build_both_dbe_studentlevel_random(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    """Build a random example selector based on student levels."""
+    input_vars = ["student_level_group"]
+    selector = StudentLevelRandomExampleSelector(
+        examples=examples,
+        q_ids_train=q_ids_train,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_value="both_dbe",
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("both_dbe_studentlevel_kc_exact")
+def build_both_dbe_studentlevel_kc_exact(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    """Build a random example selector based on student levels."""
+    input_vars = ["student_level_group", "knowledge_components", "question_id"]
+    selector = StudentLevelKCExactExampleSelector(
+        examples=examples,
+        q_ids_train=q_ids_train,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_value="both_dbe",
     )
     return (selector, input_vars)
 
@@ -857,6 +888,18 @@ class StudentLevelRandomExampleSelector(BaseExampleSelector):
             text_snippet = text_error_legend + "\n\n" + interaction_selected["output"]
 
             return [{"snippets": text_snippet, "misconceptions": text_miscons}]
+        elif self.return_value == "both_dbe":
+            # assert that for each interaction, correct option is 1
+            assert_correct_option(interactions_selected)
+
+            skills, misconceptions = get_skills_miscons_from_interactions(
+                interactions_selected
+            )
+            text_miscons = format_skills_miscons(skills, misconceptions)
+
+            text_snippet = format_snippets_dbe(interactions_selected)
+
+            return [{"snippets": text_snippet, "misconceptions": text_miscons}]
 
 
 class StudentLevelSemanticExampleSelector(BaseExampleSelector):
@@ -1161,3 +1204,15 @@ class StudentLevelKCExactExampleSelector(BaseExampleSelector):
 
             # NOTE: return list of length 1 with dict with key "skills_misconceptions"
             return [{"skills_misconceptions": text}]
+        elif self.return_value == "both_dbe":
+            # assert that for each interaction, correct option is 1
+            assert_correct_option(interactions_selected)
+
+            skills, misconceptions = get_skills_miscons_from_interactions(
+                interactions_selected
+            )
+            text_miscons = format_skills_miscons(skills, misconceptions)
+
+            text_snippet = format_snippets_dbe(interactions_selected)
+
+            return [{"snippets": text_snippet, "misconceptions": text_miscons}]
