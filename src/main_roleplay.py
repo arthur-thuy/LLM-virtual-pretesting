@@ -95,7 +95,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args) -> None:
         questions[VALIDATION] = questions[VALIDATION].iloc[:2, :]
         questions[TEST] = questions[TEST].iloc[:2, :]
 
-    if cfg.CONTEXT_TYPE == "misconceptions":  # NOTE: alternative is "snippets"
+    if "miscon" in cfg.CONTEXT_TYPE and cfg.LOADER.NAME == "dbe_kt22":
         # bring correct option to first place
         logger.info("Misconceptions as context: bringing correct option forward")
         interact_train = interact_train.apply(
