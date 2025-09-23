@@ -1,0 +1,10 @@
+EXAMPLE_SELECTOR:
+  NAME: both_dbe_studentlevel_kc_exact
+  NUM_EXAMPLES: 1
+MODEL:
+  NAME: llama3.1:8b
+  TEMPERATURE: 0.0
+PROMPT:
+  NAME: teacher_dbe_miscons_level_context
+STRUCTURED_OUTPUTTER:
+  NAME: teacher_kt

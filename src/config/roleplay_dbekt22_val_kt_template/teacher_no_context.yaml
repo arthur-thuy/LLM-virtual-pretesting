@@ -1,0 +1,20 @@
+MODEL:
+  TEMPERATURE: [0.0, 1.0]
+  NAME: ["qwen3:0.6b",
+        "qwen3:1.7b",
+        "qwen3:4b" ,
+        "qwen3:8b",
+        "qwen3:14b",
+        "llama3.2:1b",
+        "llama3.2:3b",
+        "llama3.1:8b",
+      ]
+
+STRUCTURED_OUTPUTTER:
+  NAME: "teacher_kt"
+
+PROMPT:
+  NAME: "teacher_dbe_miscons_level_nocontext"
+
+EXAMPLE_SELECTOR:
+  NUM_EXAMPLES: 0
