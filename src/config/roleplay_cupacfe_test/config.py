@@ -38,9 +38,9 @@ _C.LOADER.NAME = "cupacfe"
 # dataset join key
 _C.LOADER.JOIN_KEY = None
 # run sets
-_C.LOADER.RUN_VAL = True
+_C.LOADER.RUN_VAL = False
 _C.LOADER.RUN_LARGE_VAL = False
-_C.LOADER.RUN_TEST = False
+_C.LOADER.RUN_TEST = True
 # difficulty range
 _C.LOADER.DIFFICULTY_RANGE = (30, 110)
 

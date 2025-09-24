@@ -38,9 +38,9 @@ _C.LOADER.NAME = "dbe_kt22"
 # dataset join key
 _C.LOADER.JOIN_KEY = "question_id"
 # run sets
-_C.LOADER.RUN_VAL = True
+_C.LOADER.RUN_VAL = False
 _C.LOADER.RUN_LARGE_VAL = False
-_C.LOADER.RUN_TEST = False
+_C.LOADER.RUN_TEST = True
 # difficulty range
 _C.LOADER.DIFFICULTY_RANGE = (-5, 5)
 
