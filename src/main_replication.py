@@ -93,7 +93,7 @@ def run_single_cfg(cfg: CfgNode, run_n: int, args, langfuse_session: Langfuse) -
         num_interactions=len(datasets[VALIDATION]),
     )
 
-    if cfg.CONTEXT_TYPE == "misconceptions":  # NOTE: alternative is "snippets"
+    if "miscon" in cfg.CONTEXT_TYPE and cfg.LOADER.NAME == "dbe_kt22":
         # bring correct option to first place
         logger.info("Misconceptions as context: bringing correct option forward")
         datasets[TRAIN] = datasets[TRAIN].apply(

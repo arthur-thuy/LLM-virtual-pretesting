@@ -54,6 +54,19 @@ def build_studentid_random(
     return (selector, input_vars)
 
 
+@EXAMPLE_SELECTOR_REGISTRY.register("both_dbe_studentid_random")
+def build_both_dbe_studentid_random(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    input_vars = ["student_id", "time"]
+    selector = StudentIDRandomExampleSelector(
+        examples=examples,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_value="both_dbe",
+    )
+    return (selector, input_vars)
+
+
 @EXAMPLE_SELECTOR_REGISTRY.register("studentid_semantic")
 def build_studentid_semantic(
     cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
@@ -102,6 +115,19 @@ def build_studentid_kc_exact(
         examples=examples,
         k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
         return_value="snippets",
+    )
+    return (selector, input_vars)
+
+
+@EXAMPLE_SELECTOR_REGISTRY.register("both_dbe_studentid_kc_exact")
+def build_both_dbe_studentid_kc_exact(
+    cfg: CfgNode, examples: list[dict], q_ids_train: list[int]
+) -> BaseExampleSelector:
+    input_vars = ["student_id", "question_id", "knowledge_components", "time"]
+    selector = StudentIDKCExactExampleSelector(
+        examples=examples,
+        k=cfg.EXAMPLE_SELECTOR.NUM_EXAMPLES,
+        return_value="both_dbe",
     )
     return (selector, input_vars)
 
@@ -386,6 +412,18 @@ class StudentIDRandomExampleSelector(BaseExampleSelector):
 
             # NOTE: return list of length 1 with dict with key "skills_misconceptions"
             return [{"skills_misconceptions": text}]
+        elif self.return_value == "both_dbe":
+            # assert that for each interaction, correct option is 1
+            assert_correct_option(interactions_selected)
+
+            skills, misconceptions = get_skills_miscons_from_interactions(
+                interactions_selected
+            )
+            text_miscons = format_skills_miscons(skills, misconceptions)
+
+            text_snippet = format_snippets_dbe(interactions_selected)
+
+            return [{"snippets": text_snippet, "misconceptions": text_miscons}]
 
 
 class StudentIDSemanticExampleSelector(BaseExampleSelector):
@@ -758,6 +796,18 @@ class StudentIDKCExactExampleSelector(BaseExampleSelector):
 
             # NOTE: return list of length 1 with dict with key "skills_misconceptions"
             return [{"skills_misconceptions": text}]
+        elif self.return_value == "both_dbe":
+            # assert that for each interaction, correct option is 1
+            assert_correct_option(interactions_selected)
+
+            skills, misconceptions = get_skills_miscons_from_interactions(
+                interactions_selected
+            )
+            text_miscons = format_skills_miscons(skills, misconceptions)
+
+            text_snippet = format_snippets_dbe(interactions_selected)
+
+            return [{"snippets": text_snippet, "misconceptions": text_miscons}]
 
 
 def compute_jaccard_similarity(other_kcs: list[int], target_kcs: list[int]) -> float:

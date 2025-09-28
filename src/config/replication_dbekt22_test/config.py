@@ -38,9 +38,9 @@ _C.LOADER.NAME = "dbe_kt22"
 # dataset join key
 _C.LOADER.JOIN_KEY = "question_id"
 # run sets
-_C.LOADER.RUN_VAL = True
+_C.LOADER.RUN_VAL = False
 _C.LOADER.RUN_LARGE_VAL = False
-_C.LOADER.RUN_TEST = False
+_C.LOADER.RUN_TEST = True
 # difficulty range
 _C.LOADER.DIFFICULTY_RANGE = (-5, 5)
 
@@ -56,7 +56,7 @@ _C.EXAMPLE_FORMATTER.QUESTIONS.NAME = "quotes"
 # example selector
 _C.EXAMPLE_SELECTOR = CN()
 # example selector name
-_C.EXAMPLE_SELECTOR.NAME = "both_dbe_studentlevel_random"
+_C.EXAMPLE_SELECTOR.NAME = "both_cfe_studentid_random"  # TODO: change
 # number of examples to select
 _C.EXAMPLE_SELECTOR.NUM_EXAMPLES = 1
 # example selector embedding model
