@@ -178,6 +178,9 @@ cython_debug/
 
 # draft
 draft.ipynb
+check_irt_virtual_pretesting.py
+check_irt.py
+create_df_prop.py
 
 # PyCharm folder
 .idea/
