@@ -1,20 +1,28 @@
 # LLM-virtual-pretesting
-Repo for the project on virtual pretesting with LLMs using in-context learning
+Repo for the project on virtual pretesting with LLMs using in-context learning.
+
+The corresponding paper is titled "Leveraging Misconceptions with In-Context Learning to Simulate Students with Role-Playing LLMs".
 
 ## Run instructions
 
 ## Short
 
-Activate the virtual environment:
+Create and activate the virtual environment:
 ```bash
 cd "/home/abthuy/Documents/PhD research/LLM-virtual-pretesting"  # your own path
+python3 -m venv .venv
 source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 With configurations in e.g., `config/experiment/`:
 ```bash
 cd src
 python main_replication.py experiment
+```
+or:
+```bash
+python main_roleplay.py experiment
 ```
 Optional argument: `--dry-run` to predict only for 10 examples
 > NOTE: in order to save the logs to a file, append `2>&1 | tee output/log` to the command above.
@@ -35,6 +43,8 @@ GOOGLE_API_KEY="..."
 ```
 
 ## Links
+
+> NOTE: only accessible to authors
 
 [Langfuse dashboard](https://cloud.langfuse.com/project/cm8n8clg300k7ad07l3pjqklk)
 

@@ -14,6 +14,7 @@ LANGFUSE_PUBLIC_KEY="..."
 LANGFUSE_HOST="..."
 PINECONE_API_KEY="..."
 ANTHROPIC_API_KEY="..."
+GOOGLE_API_KEY="..."
 ```
 4. Create and activate your virtual environment:
 ```bash
