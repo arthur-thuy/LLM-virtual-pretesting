@@ -72,57 +72,30 @@ def build_student_pepper_level_nocontext(
     return messages
 
 
-@PROMPT_REGISTRY.register("student_tomato_level_context")
-def build_student_tomato_level_context(
-    few_shot_prompt, native_str_output: bool
-) -> list:
-    # NOTE: do not add a statement about JSON output! -> this is added automatically
-
-    system_prompt_str = (
-        "You are a student of level {student_level_group} {student_scale} working on a multiple choice exam on {exam_type}. "  # noqa
-        "You will be shown your question-answer records from earlier in the exam, together with the correct answers. "  # noqa
-        "Analyze your responses and identify the possible misconceptions that led to your errors, if any. "  # noqa
-        "Next, you will be shown a new multiple choice question. "
-        "Inspect the new question and think how you would answer it as a student of level {student_level_group} {student_scale}, keeping in mind the misconceptions identified earlier. "  # noqa
-        "You can answer incorrectly, if that is what you are likely to do for this question."  # noqa
-    )
-    # NOTE: the JSON structured output provides instructions on how to answer exactly
-    human1_prompt_str = "Question-answer records:"
-    human2_prompt_str = "New multiple choice question:\n{input}"
-
-    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
-    messages = [
-        ("system", system_prompt_str),
-        ("human", human1_prompt_str),
-        few_shot_prompt,
-        ("human", human2_prompt_str),
-    ]
-    return messages
-
-
-# NOTE: FOR MISCONCEPTIONS
-# @PROMPT_REGISTRY.register("student_chocolate_nolevel_context")
-# def build_student_chocolate_nolevel_context(
+# @PROMPT_REGISTRY.register("student_tomato_level_context")
+# def build_student_tomato_level_context(
 #     few_shot_prompt, native_str_output: bool
 # ) -> list:
 #     # NOTE: do not add a statement about JSON output! -> this is added automatically
+
 #     system_prompt_str = (
-#         "You are a student working on an exam on {exam_type}, containing multiple choice questions. "  # noqa
-#         "From your earlier answers on the exam, the teacher has identified a set of knowledge concepts that you master and a set of misconceptions that you have. "  # noqa
-#         "Inspect the new question and think how you would answer it as a student, keeping in mind your skills and misconceptions. "  # noqa
-#         "Think about how the student level relates to the question difficulty. "
-#         "You can answer incorrectly, if that is what the student is likely to do for this question. "  # noqa
-#         # "If you answer incorrectly, explain which misconception leads to selecting that answer. "  # noqa
-#         # "If you answer correctly, explain why you think the answer is correct. "
-#         # "Provide your answer as the integer index of the multiple choice option."
+#         "You are a student of level {student_level_group} {student_scale} working on a multiple choice exam on {exam_type}. "  # noqa
+#         "You will be shown your question-answer records from earlier in the exam, together with the correct answers. "  # noqa
+#         "Analyze your responses and identify the possible misconceptions that led to your errors, if any. "  # noqa
+#         "Next, you will be shown a new multiple choice question. "
+#         "Inspect the new question and think how you would answer it as a student of level {student_level_group} {student_scale}, keeping in mind the misconceptions identified earlier. "  # noqa
+#         "You can answer incorrectly, if that is what you are likely to do for this question."  # noqa
 #     )
-#     human1_prompt_str = "New multiple choice question:\n\n{input}"
+#     # NOTE: the JSON structured output provides instructions on how to answer exactly
+#     human1_prompt_str = "Question-answer records:"
+#     human2_prompt_str = "New multiple choice question:\n{input}"
 
 #     system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
 #     messages = [
 #         ("system", system_prompt_str),
-#         few_shot_prompt,
 #         ("human", human1_prompt_str),
+#         few_shot_prompt,
+#         ("human", human2_prompt_str),
 #     ]
 #     return messages
 
@@ -428,81 +401,81 @@ def build_student_dbe_miscons_level_nocontext(
 #######################
 
 
-@PROMPT_REGISTRY.register("teacher_onion_level_context")
-def build_teacher_onion_level_context(few_shot_prompt, native_str_output: bool) -> list:
-    # NOTE: do not add a statement about JSON output! -> this is added automatically
-    system_prompt_str = (
-        "You are an expert teacher preparing a set of questions for a multiple choice exam on {exam_type}. "  # noqa
-        "You will be shown question-answer records of a student of level {student_level_group} {student_scale} together with the correct answers. "  # noqa
-        "Analyze the responses and identify the possible misconceptions that led to the errors, if any. "  # noqa
-        "Next, you will be shown a new multiple choice question. "
-        "Inspect the new question and discuss how the student of level {student_level_group} {student_scale} would answer it, keeping in mind the misconceptions identified earlier."  # noqa
-    )
-    human1_prompt_str = "Question-answer records:"
-    human2_prompt_str = "New multiple choice question:\n{input}"
+# @PROMPT_REGISTRY.register("teacher_onion_level_context")
+# def build_teacher_onion_level_context(few_shot_prompt, native_str_output: bool) -> list:
+#     # NOTE: do not add a statement about JSON output! -> this is added automatically
+#     system_prompt_str = (
+#         "You are an expert teacher preparing a set of questions for a multiple choice exam on {exam_type}. "  # noqa
+#         "You will be shown question-answer records of a student of level {student_level_group} {student_scale} together with the correct answers. "  # noqa
+#         "Analyze the responses and identify the possible misconceptions that led to the errors, if any. "  # noqa
+#         "Next, you will be shown a new multiple choice question. "
+#         "Inspect the new question and discuss how the student of level {student_level_group} {student_scale} would answer it, keeping in mind the misconceptions identified earlier."  # noqa
+#     )
+#     human1_prompt_str = "Question-answer records:"
+#     human2_prompt_str = "New multiple choice question:\n{input}"
 
-    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
-    messages = [
-        ("system", system_prompt_str),
-        ("human", human1_prompt_str),
-        few_shot_prompt,
-        ("human", human2_prompt_str),
-    ]
-    return messages
-
-
-@PROMPT_REGISTRY.register(
-    "teacher_carrot_level_context"
-)  # NOTE: previously "roleplay_teacher_LB_A"
-def build_teacher_carrot_level_context(
-    few_shot_prompt, native_str_output: bool
-) -> list:
-    # NOTE: do not add a statement about JSON output! -> this is added automatically
-    system_prompt_str = (
-        "You are a teacher curating a multiple choice exam on {exam_type}, and need to hypothesise how specific students would answer to a new question. "  # noqa
-        "You will be shown responses to previous questions of a student of level {student_level_group} {student_scale}; "  # noqa
-        "if one or more of the responses are wrong, list the misconceptions that possibly led to the errors. "  # noqa
-        "You will be then shown a new multiple choice question. "
-        "Discuss how the student of level {student_level_group} {student_scale} would answer it, and how the misconceptions you identified might cause them to answer wrongly. "  # noqa
-    )
-    human1_prompt_str = "Question-answer records:"
-    human2_prompt_str = "New multiple choice question:\n{input}"
-
-    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
-    messages = [
-        ("system", system_prompt_str),
-        ("human", human1_prompt_str),
-        few_shot_prompt,
-        ("human", human2_prompt_str),
-    ]
-    return messages
+#     system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+#     messages = [
+#         ("system", system_prompt_str),
+#         ("human", human1_prompt_str),
+#         few_shot_prompt,
+#         ("human", human2_prompt_str),
+#     ]
+#     return messages
 
 
-@PROMPT_REGISTRY.register(
-    "teacher_avocado_level_context"
-)  # NOTE: previously "roleplay_teacher_LB_B"
-def build_teacher_avocado_level_context(
-    few_shot_prompt, native_str_output: bool
-) -> list:
-    # NOTE: do not add a statement about JSON output! -> this is added automatically
-    system_prompt_str = (
-        "You are a teacher curating a multiple choice exam on {exam_type}, and I want you to provide feedback about a student's responses, as well as discuss how they would likely answer to new questions. "  # noqa
-        "First, you will be shown responses to previous questions of a student of level {student_level_group} {student_scale}; "  # noqa
-        "you need to discuss the possible misconceptions that caused the errors, if any. "  # noqa
-        "Then, you will be shown a new multiple choice question, and have to discuss how the student of level {student_level_group} {student_scale} would answer it. "  # noqa
-        "Specifically, discuss how the misconceptions you have identified might be the cause of new errors. "  # noqa
-    )
-    human1_prompt_str = "Question-answer records:"
-    human2_prompt_str = "New multiple choice question:\n{input}"
+# @PROMPT_REGISTRY.register(
+#     "teacher_carrot_level_context"
+# )  # NOTE: previously "roleplay_teacher_LB_A"
+# def build_teacher_carrot_level_context(
+#     few_shot_prompt, native_str_output: bool
+# ) -> list:
+#     # NOTE: do not add a statement about JSON output! -> this is added automatically
+#     system_prompt_str = (
+#         "You are a teacher curating a multiple choice exam on {exam_type}, and need to hypothesise how specific students would answer to a new question. "  # noqa
+#         "You will be shown responses to previous questions of a student of level {student_level_group} {student_scale}; "  # noqa
+#         "if one or more of the responses are wrong, list the misconceptions that possibly led to the errors. "  # noqa
+#         "You will be then shown a new multiple choice question. "
+#         "Discuss how the student of level {student_level_group} {student_scale} would answer it, and how the misconceptions you identified might cause them to answer wrongly. "  # noqa
+#     )
+#     human1_prompt_str = "Question-answer records:"
+#     human2_prompt_str = "New multiple choice question:\n{input}"
 
-    system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
-    messages = [
-        ("system", system_prompt_str),
-        ("human", human1_prompt_str),
-        few_shot_prompt,
-        ("human", human2_prompt_str),
-    ]
-    return messages
+#     system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+#     messages = [
+#         ("system", system_prompt_str),
+#         ("human", human1_prompt_str),
+#         few_shot_prompt,
+#         ("human", human2_prompt_str),
+#     ]
+#     return messages
+
+
+# @PROMPT_REGISTRY.register(
+#     "teacher_avocado_level_context"
+# )  # NOTE: previously "roleplay_teacher_LB_B"
+# def build_teacher_avocado_level_context(
+#     few_shot_prompt, native_str_output: bool
+# ) -> list:
+#     # NOTE: do not add a statement about JSON output! -> this is added automatically
+#     system_prompt_str = (
+#         "You are a teacher curating a multiple choice exam on {exam_type}, and I want you to provide feedback about a student's responses, as well as discuss how they would likely answer to new questions. "  # noqa
+#         "First, you will be shown responses to previous questions of a student of level {student_level_group} {student_scale}; "  # noqa
+#         "you need to discuss the possible misconceptions that caused the errors, if any. "  # noqa
+#         "Then, you will be shown a new multiple choice question, and have to discuss how the student of level {student_level_group} {student_scale} would answer it. "  # noqa
+#         "Specifically, discuss how the misconceptions you have identified might be the cause of new errors. "  # noqa
+#     )
+#     human1_prompt_str = "Question-answer records:"
+#     human2_prompt_str = "New multiple choice question:\n{input}"
+
+#     system_prompt_str = prepare_str_output(system_prompt_str, native_str_output)
+#     messages = [
+#         ("system", system_prompt_str),
+#         ("human", human1_prompt_str),
+#         few_shot_prompt,
+#         ("human", human2_prompt_str),
+#     ]
+#     return messages
 
 
 # NOTE: FOR MISCONCEPTIONS
