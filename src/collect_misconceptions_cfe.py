@@ -1,4 +1,4 @@
-"""Script for collecting misconceptions of student essays."""
+"""Script for collecting misconceptions of CFE student essays."""
 
 # standard library imports
 import argparse
