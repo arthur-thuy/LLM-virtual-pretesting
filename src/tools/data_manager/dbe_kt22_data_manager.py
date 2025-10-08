@@ -11,10 +11,8 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import structlog
-from imblearn.under_sampling import RandomUnderSampler
 
 # local application/library specific imports
-from student_scale.student_scale import build_digits_int
 from tools.constants import (
     INTERACT_ID,
     KC,
@@ -73,26 +71,6 @@ class DBEKT22Datamanager:
             df_interactions=df_interactions,
             num_groups=5,
         )
-
-        # # TODO: is this necessary?
-        # #  undersample majority classes from "student_level_group"
-        # rus = RandomUnderSampler(sampling_strategy="not minority")
-        # df_interactions_rus, _ = rus.fit_resample(
-        #     df_interactions, df_interactions[STUDENT_LEVEL_GROUP]
-        # )
-
-        # # value counts of student levels
-        # print("Value counts of student levels after undersampling:")
-        # level_value_counts = (
-        #     df_interactions_rus[STUDENT_LEVEL_GROUP].value_counts().reset_index()
-        # )
-        # level_value_counts.columns = [STUDENT_LEVEL_GROUP, "count"]
-        # print(level_value_counts)  # TODO: remove
-
-        # # drop student level, because only group is used
-        # df_interactions_rus = df_interactions_rus.drop(
-        #     columns=[STUDENT_LEVEL]
-        # )
 
         # remove the STUDENT_LEVEL and STUDENT_LEVEL_GROUP
         # because they will be re-estimated for the training interactions

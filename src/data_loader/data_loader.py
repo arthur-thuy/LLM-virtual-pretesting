@@ -12,7 +12,6 @@ from imblearn.under_sampling import RandomUnderSampler
 
 # local application/library specific imports
 from tools.constants import (
-    INTERACT_ID,
     KC,
     Q_OPTION_TEXTS,
     QUESTION_ID,
@@ -301,23 +300,6 @@ class DataLoader:
             interact_splits_df = {
                 TRAIN: df_interactions
             }
-
-        # # add student levels to each set, computed from train interactions
-        # interact_splits_df = {
-        #     TRAIN: df_interactions[
-        #         df_interactions[INTERACT_ID].isin(interact_splits[TRAIN])
-        #     ],
-        #     VALSMALL: df_interactions[
-        #         df_interactions[INTERACT_ID].isin(interact_splits[VALSMALL])
-        #     ],
-        #     VALLARGE: df_interactions[
-        #         df_interactions[INTERACT_ID].isin(interact_splits[VALLARGE])
-        #     ],
-        #     TEST: df_interactions[
-        #         df_interactions[INTERACT_ID].isin(interact_splits[TEST])
-        #     ],
-        # }
-        # interact_splits_df = self.add_student_levels(interact_splits_df, num_groups=5)
 
         # writing interactions
         for split_name, split_df in interact_splits_df.items():
