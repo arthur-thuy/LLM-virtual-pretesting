@@ -1,0 +1,37 @@
+CONTEXT_TYPE: errors
+EXAMPLE_FORMATTER:
+  INTERACTIONS:
+    NAME: open_reading
+  QUESTIONS:
+    NAME: mcq_reading_quotes
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: errors_studentlevel_random
+  NUM_EXAMPLES: 1
+ID_ROLEPLAY: qwen3:14b~T_0.0~SO_student_bool_nocontext~L_5~SP_student_cfe_errors_level_context~SS_proficiency_5_str~EFQ_mcq_reading_quotes~EFI_open_reading~ES_errors_studentlevel_random1
+LOADER:
+  DIFFICULTY_RANGE:
+  - 30
+  - 110
+  JOIN_KEY: null
+  NAME: cupacfe
+  RUN_LARGE_VAL: false
+  RUN_TEST: false
+  RUN_VAL: true
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: 1024
+  NAME: qwen3:14b
+  NATIVE_STRUCTURED_OUTPUT: true
+  TEMPERATURE: 0.0
+  TIMEOUT: null
+OUTPUT_DIR: ./output/roleplay_cupacfe_val_20250915-094326
+PROMPT:
+  NAME: student_cfe_errors_level_context
+ROLEPLAY:
+  NUM_STUDENT_LEVELS: 5
+  STUDENT_SCALE: proficiency_5_str
+RUNS: 3
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: student_bool_nocontext

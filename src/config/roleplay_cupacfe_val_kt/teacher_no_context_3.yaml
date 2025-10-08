@@ -1,0 +1,9 @@
+EXAMPLE_SELECTOR:
+  NUM_EXAMPLES: 0
+MODEL:
+  NAME: qwen3:4b
+  TEMPERATURE: 0.0
+PROMPT:
+  NAME: teacher_cfe_miscons_level_nocontext
+STRUCTURED_OUTPUTTER:
+  NAME: teacher_kt

@@ -163,6 +163,20 @@ class StrOutputTeacherKT(BaseModel):
 class StrOutputStudentKT(BaseModel):
     """Answer to a multiple-choice question."""
 
-    student_correct: bool = Field(
-        description="Whether you would answer correctly."
+    student_correct: bool = Field(description="Whether you would answer correctly.")
+
+
+@STRUCTURED_OUTPUTTER_REGISTRY.register("misconceptions_cfe")
+class StrOutputMisconceptionsCFE(BaseModel):
+    """Answer to a multiple-choice question."""
+
+    skills: list[str] = Field(
+        description=(
+            "The list of skills that the student demonstrates in their writing"
+        )
+    )
+    misconceptions: list[str] = Field(
+        description=(
+            "The list of misconceptions that the student demonstrates in their writing"  # noqa
+        )
     )

@@ -11,8 +11,8 @@ from pathlib import Path
 # related third party imports
 import pandas as pd
 import structlog
-import pandas as pd
 from bs4 import BeautifulSoup
+from imblearn.under_sampling import RandomUnderSampler
 
 # local application/library specific imports
 from tools.constants import (
@@ -28,6 +28,7 @@ from tools.constants import (
     QUESTION_ID,
     A_TEXT,
     A_SCORE,
+    STUDENT_LEVEL_GROUP,
 )
 from tools.utils import set_seed
 
@@ -107,13 +108,13 @@ class CupaCFEDatamanager:
                     .decode("ascii")
                 )  # to fix issue with encoding
                 options = [option_0, option_1, option_2, option_3]
-                correct_answer = ord(q_val["answer"]) - ord("a")
+                correct_answer = ord(q_val["answer"]) - ord("a") + 1
                 # define difficulty
                 if diff_type == "irt":
                     # continuous IRT value
                     difficulty = q_val["diff"]
                 else:
-                    # dicrete CEFR level: same level for all questions in the same context
+                    # dicrete CEFR level: same level for all questions in the same context  # noqa
                     difficulty = row["level"]
                 discrimination = q_val["disc"]
                 cefr_level = row["level"]
@@ -184,15 +185,38 @@ class CupaCFEDatamanager:
         # create interaction, question, student id
         df_explode[INTERACT_ID] = df_explode["sortkey"] + "_" + df_explode["task"]
         df_explode[QUESTION_ID] = df_explode["exam_code"] + "_" + df_explode["task"]
-        df_explode[STUDENT_ID] = df_explode['sortkey'].str.split('*').str[0]
-        # only keep task 1
+        df_explode[STUDENT_ID] = df_explode["sortkey"].str.split("*").str[0]
+        # only keep task 1 -> same for all students within an exam!
         df_explode = df_explode[df_explode["task"] == "1"]
 
+        # round down answer score to get student level
+        df_explode[STUDENT_LEVEL_GROUP] = df_explode["answer_score"].apply(
+            lambda x: int(x)
+        )
+        # bring value 0 to 1
+        df_explode[STUDENT_LEVEL_GROUP] = df_explode[STUDENT_LEVEL_GROUP].replace(0, 1)
+
+        # stratified sampling based on student level group
+        # value counts of student levels
+        print("Value counts of student levels before undersampling:")
+        print(df_explode[STUDENT_LEVEL_GROUP].value_counts())
+
+        #  undersample majority classes from "student_level_group"
+        sampling_dict = {1: 14, 2: 75, 3: 75, 4: 75, 5: 75}
+        rus = RandomUnderSampler(sampling_strategy=sampling_dict)
+        df_interactions_rus, _ = rus.fit_resample(
+            df_explode, df_explode[STUDENT_LEVEL_GROUP]
+        )
+
+        # value counts of student levels
+        print("Value counts of student levels after undersampling:")
+        print(df_interactions_rus[STUDENT_LEVEL_GROUP].value_counts())
+
         # format XML annotations
-        df_explode[A_TEXT] = df_explode.apply(
+        df_interactions_rus[A_TEXT] = df_interactions_rus.apply(
             lambda x: format_xml_annotation(x[A_TEXT]), axis=1
         )
-        return df_explode
+        return df_interactions_rus
 
 
 def extract_xml_data_bs(xml_file_path) -> dict[str, Any]:
@@ -274,7 +298,14 @@ def format_xml_annotation(xml_string: str) -> str:
             incorrect = ns.find("i")
             correct = ns.find("c")
             # Prepare formatted correction string
-            correction = f'{incorrect.get_text() if incorrect else ""} <{ns_type} "{correct.get_text() if correct else ""}">'
+            # correction = (
+            #     f'{incorrect.get_text() if incorrect else ""} '
+            #     f'<{ns_type} "{correct.get_text() if correct else ""}">'
+            # )
+            correction = (
+                f'{incorrect.get_text() if incorrect else ""} '
+                f'<{ns_type} "{incorrect.get_text() if incorrect else ""}"->"{correct.get_text() if correct else ""}">'
+            )
             # print(correction)
             ns.replace_with(correction)
 

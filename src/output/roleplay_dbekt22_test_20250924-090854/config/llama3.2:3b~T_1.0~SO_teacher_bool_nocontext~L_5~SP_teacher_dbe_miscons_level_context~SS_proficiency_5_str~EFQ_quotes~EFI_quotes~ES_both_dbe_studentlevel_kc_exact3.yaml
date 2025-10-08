@@ -1,0 +1,37 @@
+CONTEXT_TYPE: snippets_misconceptions
+EXAMPLE_FORMATTER:
+  INTERACTIONS:
+    NAME: quotes
+  QUESTIONS:
+    NAME: quotes
+EXAMPLE_SELECTOR:
+  EMBEDDING: text-embedding-3-large
+  NAME: both_dbe_studentlevel_kc_exact
+  NUM_EXAMPLES: 3
+ID_ROLEPLAY: llama3.2:3b~T_1.0~SO_teacher_bool_nocontext~L_5~SP_teacher_dbe_miscons_level_context~SS_proficiency_5_str~EFQ_quotes~EFI_quotes~ES_both_dbe_studentlevel_kc_exact3
+LOADER:
+  DIFFICULTY_RANGE:
+  - -5
+  - 5
+  JOIN_KEY: question_id
+  NAME: dbe_kt22
+  RUN_LARGE_VAL: false
+  RUN_TEST: true
+  RUN_VAL: false
+MODEL:
+  MAX_RETRIES: null
+  MAX_TOKENS: 1024
+  NAME: llama3.2:3b
+  NATIVE_STRUCTURED_OUTPUT: true
+  TEMPERATURE: 1.0
+  TIMEOUT: null
+OUTPUT_DIR: ./output/roleplay_dbekt22_test_20250924-090854
+PROMPT:
+  NAME: teacher_dbe_miscons_level_context
+ROLEPLAY:
+  NUM_STUDENT_LEVELS: 5
+  STUDENT_SCALE: proficiency_5_str
+RUNS: 3
+SEED: 42
+STRUCTURED_OUTPUTTER:
+  NAME: teacher_bool_nocontext

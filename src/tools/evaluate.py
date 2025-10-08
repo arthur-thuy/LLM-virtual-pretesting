@@ -17,6 +17,7 @@ from sklearn.metrics import (
     f1_score,
     root_mean_squared_error,
     balanced_accuracy_score,
+    mean_absolute_error,
 )
 
 # local application/library specific imports
@@ -29,6 +30,8 @@ from tools.constants import (
     S_OPTION_ID,
     STUDENT_ID,
     STUDENT_LEVEL_GROUP,
+    DIFFICULTY_MAX,
+    DIFFICULTY_MIN,
 )
 from tools.utils import BatchCallback, format_time
 
@@ -118,8 +121,12 @@ def eval_metric_monotonicity(
     # checks
     none_count = sum([y_student is None, student_group_correctness is None])
     if none_count != 1:
-        raise ValueError(
-            "Exactly one of 'y_student' or 'student_group_correctness' must be None"
+        # raise ValueError(
+        #     "Exactly one of 'y_student' or 'student_group_correctness' must be None"
+        # )
+        student_group_correctness = [0.0, 0.25, 0.5, 0.75, 1.0]
+        logger.warning(
+            "No 'student_group_correctness' provided. Using default correctness values."
         )
 
     if only_kt:
@@ -166,9 +173,6 @@ def eval_metric_monotonicity(
         llm_group_correctness
     ), "Number of student groups and LLM groups must match"
 
-    # print(f"{student_group_correctness=}")
-    # print(f"{llm_group_correctness=}")
-
     try:
         correlation_score = scipy.stats.linregress(
             llm_group_correctness, student_group_correctness
@@ -194,7 +198,29 @@ def eval_metric_monotonicity(
             student_group_correctness=student_group_correctness,
         )
         score = np.nan
-    return score
+    return score, llm_group_correctness
+
+
+def compute_answer_distr(y_val_pred: ArrayLike) -> ArrayLike:
+    """Compute answer distribution.
+
+    Parameters
+    ----------
+    y_val_pred : ArrayLike
+        Predicted values.
+
+    Returns
+    -------
+    ArrayLike
+        Answer distribution over options 1-4.
+    """
+    unique, counts = np.unique(y_val_pred, return_counts=True)
+    dict_counts = {int(k): int(v) for k, v in zip(unique, counts)}
+    # fill in value 0 if one of keys 1-4 is missing
+    for k in range(1, 5):
+        if k not in dict_counts:
+            dict_counts[k] = 0
+    return np.array([dict_counts[k]/y_val_pred.shape[0] for k in range(1, 5)])
 
 
 def compute_metrics_replication(
@@ -260,6 +286,8 @@ def compute_metrics_replication(
             "f1_weighted": f1_score(
                 y_true=y_val_student, y_pred=y_val_pred, average="weighted"
             ),
+            # answer distribution
+            "answer_distr": compute_answer_distr(y_val_pred=y_val_pred),
         }
         metrics = {**kt_metrics, **non_kt_metrics}
     return metrics
@@ -356,7 +384,7 @@ def compute_metrics_roleplay(
     y_val_pred: ArrayLike,
     y_val_true: ArrayLike,
     student_level_group: ArrayLike,
-    student_group_correctness: ArrayLike,
+    student_group_correctness: Optional[ArrayLike] = None,
     # question_ids: ArrayLike,
     # prop_df: pd.DataFrame,
     only_kt: bool = False,
@@ -389,17 +417,19 @@ def compute_metrics_roleplay(
     else:
         llm_correct = np.equal(y_val_pred, y_val_true)
     # compute metrics
+    monotonicity, llm_group_correctness = eval_metric_monotonicity(
+        y_true=y_val_true,
+        y_llm=y_val_pred,
+        student_level_group=student_level_group,
+        y_student=None,
+        student_group_correctness=student_group_correctness,
+        only_kt=only_kt,
+    )
     kt_metrics = {
         # knowledge tracing
         "llm_correctness": np.mean(llm_correct).item(),
-        "monotonicity": eval_metric_monotonicity(
-            y_true=y_val_true,
-            y_llm=y_val_pred,
-            student_level_group=student_level_group,
-            y_student=None,
-            student_group_correctness=student_group_correctness,
-            only_kt=only_kt,
-        ),
+        "monotonicity": monotonicity,
+        "llm_group_correctness": llm_group_correctness,
     }
     if only_kt:
         metrics = kt_metrics
@@ -407,6 +437,8 @@ def compute_metrics_roleplay(
         # only compute these of non-KT
         non_kt_metrics = {
             "prop_invalid": np.mean(y_val_pred == -1),
+            # answer distribution
+            "answer_distr": compute_answer_distr(y_val_pred=y_val_pred),
             # "distractor_alignment": eval_distractor_alignment(
             #     y_true_array=y_val_true,
             #     y_llm_array=y_val_pred,
@@ -423,7 +455,7 @@ def evaluate_roleplay(
     preds_validated: list,
     dataset: pd.DataFrame,
     prefix: Literal["val", "test"],
-    student_group_correctness: NDArray,
+    student_group_correctness: Optional[NDArray] = None,
     only_kt: bool = False,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Evaluate.
@@ -470,6 +502,12 @@ def evaluate_roleplay(
             "Evaluate - end",
             correctness_llm=round(metrics["llm_correctness"], 2),
             monotonicity=round(metrics["monotonicity"], 2),
+            llm_group_correctness=[
+                round(x.item(), 2) for x in metrics["llm_group_correctness"]
+            ],
+            answer_distr=[
+                round(x.item(), 2) for x in metrics["answer_distr"]
+            ],
             # distr_alignment=round(metrics["distractor_alignment"], 2),
         )
     else:
@@ -477,12 +515,15 @@ def evaluate_roleplay(
             "Evaluate - end",
             correctness_llm=round(metrics["llm_correctness"], 2),
             monotonicity=round(metrics["monotonicity"], 2),
+            llm_group_correctness=[
+                round(x.item(), 2) for x in metrics["llm_group_correctness"]
+            ],
         )
     metrics = {f"{prefix}_{k}": v for k, v in metrics.items()}
     preds = {
         f"{prefix}_y_pred": y_val_pred,
         f"{prefix}_y_true": y_val_true,
-        f"{prefix}_{STUDENT_LEVEL_GROUP}": student_level_group,
+        f"{prefix}_student_level_group": student_level_group,
     }
     return metrics, preds
 
@@ -491,6 +532,7 @@ def evaluate_q_difficulty(
     preds_validated: list,
     dataset: pd.DataFrame,
     prefix: Literal["val", "test"],
+    difficulty_range: tuple[float, float],
     only_kt: bool = False,
 ):
     from tools.irt_estimator import irt_estimation
@@ -515,23 +557,44 @@ def evaluate_q_difficulty(
     )
     # Compute IRT parameters
     _, difficulty_dict, _ = irt_estimation(interactions_df=df)
+    # rescale difficulty for specific dataset
+    logger.info(
+        "Rescaling difficulty range",
+        old_range=(DIFFICULTY_MIN, DIFFICULTY_MAX),
+        new_range=difficulty_range,
+    )
+    new_min_diff, new_max_diff = difficulty_range
+    for key, value in difficulty_dict.items():
+        difficulty_dict[key] = (
+            (value - DIFFICULTY_MIN) / (DIFFICULTY_MAX - DIFFICULTY_MIN)
+        ) * (new_max_diff - new_min_diff) + new_min_diff
+
     df_q_tmp = dataset.copy()
+    # NOTE: only retain unique set of question IDs, because repeated 5 times in dataset!
+    df_q_tmp = df_q_tmp.drop_duplicates(subset=[QUESTION_ID]).reset_index(drop=True)
     df_q_tmp["q_diff_pred"] = df_q_tmp[QUESTION_ID].map(difficulty_dict)
-    # compute RMSE
+
+    # compute RMSE and MAE
     metrics = {
         f"{prefix}_rmse": root_mean_squared_error(
             y_true=df_q_tmp[Q_DIFFICULTY].to_numpy(),
             y_pred=df_q_tmp["q_diff_pred"].to_numpy(),
-        )
+        ),
+        f"{prefix}_mae": mean_absolute_error(
+            y_true=df_q_tmp[Q_DIFFICULTY].to_numpy(),
+            y_pred=df_q_tmp["q_diff_pred"].to_numpy(),
+        ),
     }
     logger.info(
         "Evaluate question difficulty - end",
         split=prefix,
-        rmse=metrics[f"{prefix}_rmse"],
+        rmse=round(metrics[f"{prefix}_rmse"], 2),
+        mae=round(metrics[f"{prefix}_mae"], 2),
     )
     preds = {
         f"{prefix}_y_pred": df_q_tmp["q_diff_pred"].to_numpy(),
         f"{prefix}_y_true": df_q_tmp[Q_DIFFICULTY].to_numpy(),
+        f"{prefix}_df_input": df,
     }
     return metrics, preds
 

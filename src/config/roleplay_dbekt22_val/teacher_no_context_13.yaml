@@ -1,0 +1,9 @@
+EXAMPLE_SELECTOR:
+  NUM_EXAMPLES: 0
+MODEL:
+  NAME: qwen3:14b
+  TEMPERATURE: 1.0
+PROMPT:
+  NAME: teacher_dbe_miscons_level_nocontext
+STRUCTURED_OUTPUTTER:
+  NAME: teacher_bool_nocontext

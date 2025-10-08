@@ -43,10 +43,21 @@ A_TEXT = "answer_response"
 A_SCORE = "answer_score"
 
 # Parameters for IRT estimation
+
+# ## DBE-KT22
+# DIFFICULTY_MIN = -5
+# DIFFICULTY_MAX = +5
+# DISCRIMINATION_MIN = 0.0
+# DISCRIMINATION_MAX = 1.5
+# GUESS_FACTOR = 0.0
+# STUDENT_LEVEL_MIN = -3
+# STUDENT_LEVEL_MAX = +3
+
+## CFE-CUPA  # TODO: make this flexible
 DIFFICULTY_MIN = -5
-DIFFICULTY_MAX = +5
-DISCRIMINATION_MIN = 0.0
-DISCRIMINATION_MAX = 1.5
+DIFFICULTY_MAX = 5
+DISCRIMINATION_MIN = 1.0
+DISCRIMINATION_MAX = 1.0
 GUESS_FACTOR = 0.0
 STUDENT_LEVEL_MIN = -3
 STUDENT_LEVEL_MAX = +3
@@ -64,20 +75,16 @@ MODEL_STRUCTURED_OUTPUT = {
     "llama3.1:8b": True,
     "llama3.2:3b": True,
     "llama3.2:1b": True,
-
     # qwen3 models
     "qwen3:0.6b": True,
     "qwen3:1.7b": True,
     "qwen3:4b": True,
     "qwen3:8b": True,
     "qwen3:14b": True,
-
     # olmo2 models
     "olmo2:7b": False,
-
     # gemma models
     "gemma3:12b": True,
-
     # openai models
     "gpt-4o": True,
     "gpt-4o-mini": True,
@@ -87,11 +94,9 @@ MODEL_STRUCTURED_OUTPUT = {
     "o3": True,
     "o3-2025-04-16": True,
     "o4-mini-2025-04-16": True,
-
     # gemini models
     "gemini-2.5-flash-preview-05-20": True,
     "gemini-2.5-pro-preview-06-05": True,
-
     # anthropic models
     "claude-3-7-sonnet-20250219": False,  # NOTE: should work, but doesn't
     "claude-sonnet-4-20250514": False,  # NOTE: should work, but doesn't
@@ -104,20 +109,16 @@ MODEL_PROVIDER = {
     "llama3.1:8b": "ollama",
     "llama3.2:3b": "ollama",
     "llama3.2:1b": "ollama",
-
     # qwen3 models
     "qwen3:0.6b": "ollama",
     "qwen3:1.7b": "ollama",
     "qwen3:4b": "ollama",
     "qwen3:8b": "ollama",
     "qwen3:14b": "ollama",
-
     # olmo2 models
     "olmo2:7b": "ollama",
-
     # gemma models
     "gemma3:12b": "ollama",
-
     # openai models
     "gpt-4o": "openai",
     "gpt-4o-mini": "openai",
@@ -127,11 +128,9 @@ MODEL_PROVIDER = {
     "o3": "openai",
     "o3-2025-04-16": "openai",
     "o4-mini-2025-04-16": "openai",
-
     # gemini models
     "gemini-2.5-flash-preview-05-20": "google",
     "gemini-2.5-pro-preview-06-05": "google",
-
     # anthropic models
     "claude-3-7-sonnet-20250219": "anthropic",
     "claude-sonnet-4-20250514": "anthropic",
@@ -145,20 +144,16 @@ MODEL_RATE_LIMIT = {
     "llama3.1:8b": None,
     "llama3.2:3b": None,
     "llama3.2:1b": None,
-
     # qwen3 models
     "qwen3:0.6b": None,
     "qwen3:1.7b": None,
     "qwen3:4b": None,
     "qwen3:8b": None,
     "qwen3:14b": None,
-
     # olmo2 models
     "olmo2:7b": None,
-
     # gemma models
     "gemma3:12b": None,
-
     # openai models
     "gpt-4o": None,
     "gpt-4o-mini": None,
@@ -168,11 +163,9 @@ MODEL_RATE_LIMIT = {
     "o3": 0.25,
     "o3-2025-04-16": 0.25,
     "o4-mini-2025-04-16": None,
-
     # gemini models
     "gemini-2.5-flash-preview-05-20": None,
     "gemini-2.5-pro-preview-06-05": 0.35,
-
     # anthropic models
     "claude-3-7-sonnet-20250219": None,
     "claude-sonnet-4-20250514": 1.5,
@@ -191,8 +184,10 @@ DICT_CEFR_DESCRIPTIONS = {
 PROMPT_INFO = {
     "dbe_kt22": {
         "exam_type": "database systems (Department of Computer Science)",
-        "exam_type_luca_emnlp": "database systems exam (Department of Computer Science)",  # noqa
-    }
+    },
+    "cupacfe": {
+        "exam_type": "English reading comprehension",
+    },
 }
 
 # configuration types
@@ -214,4 +209,85 @@ RATE_LIMIT = {  # requests per minute
     "ollama": None,
     "openai": None,
     "google": 10,
+}
+
+# NOTE: copied from https://www.cl.cam.ac.uk/techreports/UCAM-CL-TR-938.pdf
+CFE_ERROR_CODES = {
+    "AG": "agreement",
+    "AGA": "pronoun agreement",
+    "AGD": "determiner agreement",
+    "AGN": "noun agreement",
+    "AGQ": "quantifier agreement",
+    "AGV": "verb agreement",
+    "AS": "argument structure",
+    "CD": "determiner countability",
+    "CE": "compound error",
+    "CL": "collocation",
+    "CN": "noun countability",
+    "CQ": "quantifier countability",
+    "DA": "pronoun derivation",
+    "DC": "conjunction derivation",
+    "DD": "determiner derivation",
+    "DI": "determiner inflection",
+    "DJ": "adjective derivation",
+    "DN": "noun derivation",
+    "DQ": "quantifier derivation",
+    "DT": "preposition derivation",
+    "DV": "verb derivation",
+    "DY": "adverb derivation",
+    "FA": "pronoun form",
+    "FD": "determiner form",
+    "FJ": "adjective form",
+    "FN": "noun form",
+    "FQ": "quantifier form",
+    "FV": "verb form",
+    "FY": "adverb form",
+    "IA": "pronoun inflection",
+    "ID": "idiom",
+    "IJ": "adjective inflection",
+    "IN": "noun inflection",
+    "IQ": "quantifier inflection",
+    "IV": "verb inflection",
+    "IY": "adverb inflection",
+    "L": "register",
+    "M": "missing",
+    "MA": "missing pronoun",
+    "MC": "missing conjunction",
+    "MD": "missing determiner",
+    "MJ": "missing adjective",
+    "MN": "missing noun",
+    "MP": "missing punctuation",
+    "MQ": "missing quantifier",
+    "MT": "missing preposition",
+    "MV": "missing verb",
+    "MY": "missing adverb",
+    "QL": "question prompt error",
+    "R": "replacement",
+    "RA": "replacement pronoun",
+    "RC": "replacement conjunction",
+    "RD": "replacement determiner",
+    "RJ": "replacement adjective",
+    "RN": "replacement noun",
+    "RP": "replacement punctuation",
+    "RQ": "replacement quantifier",
+    "RT": "replacement preposition",
+    "RV": "replacement verb",
+    "RY": "replacement adverb",
+    "S": "spelling (non-word)",
+    "SA": "american spelling",
+    "SX": "spelling (real word)",
+    "TV": "verb tense",
+    "U": "unnecessary",
+    "UA": "unnecessary pronoun",
+    "UC": "unnecessary conjunction",
+    "UD": "unnecessary determiner",
+    "UJ": "unnecessary adjective",
+    "UN": "unnecessary noun",
+    "UP": "unnecessary punctuation",
+    "UQ": "unnecessary quantifier",
+    "UT": "unnecessary preposition",
+    "UV": "unnecessary verb",
+    "UY": "unnecessary adverb",
+    "W": "word order",
+    "X": "negation",
 }

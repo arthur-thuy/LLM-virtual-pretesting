@@ -521,6 +521,7 @@ def get_config_df(config_dict: dict) -> pd.DataFrame:
     for config_id, cfg in config_dict.items():
         row = {
             "config_id": config_id,
+            "context": cfg["CONTEXT_TYPE"],
             "model": cfg["MODEL"]["NAME"],
             "temp": cfg["MODEL"]["TEMPERATURE"],
             "struc_output": cfg["STRUCTURED_OUTPUTTER"]["NAME"],
@@ -588,3 +589,55 @@ def get_llm_student_preds(
     else:
         raise ValueError(f"Unknown problem type: {problem_type}")
     return return_dict
+
+
+def check_overlap(df, mean_col, stderr_col):
+    """
+    Check if each row's confidence interval overlaps with previous and next rows.
+
+    Parameters:
+    df: DataFrame with mean and stderr columns
+    mean_col: name of mean column
+    stderr_col: name of stderr column
+
+    Returns:
+    DataFrame with overlap indicators
+    """
+    df = df.copy()
+
+    # Calculate confidence interval bounds
+    df["lower_bound"] = df[mean_col] - df[stderr_col]
+    df["upper_bound"] = df[mean_col] + df[stderr_col]
+
+    # Check overlap with previous row
+    df["overlap_with_prev"] = False
+    df["overlap_with_next"] = False
+
+    for i in range(len(df)):
+        # Check overlap with previous row
+        if i > 0:
+            current_lower = df.iloc[i]["lower_bound"]
+            current_upper = df.iloc[i]["upper_bound"]
+            prev_lower = df.iloc[i - 1]["lower_bound"]
+            prev_upper = df.iloc[i - 1]["upper_bound"]
+
+            # Overlap occurs if intervals intersect
+            overlap_prev = not (
+                current_upper < prev_lower or current_lower > prev_upper
+            )
+            df.iloc[i, df.columns.get_loc("overlap_with_prev")] = overlap_prev
+
+        # Check overlap with next row
+        if i < len(df) - 1:
+            current_lower = df.iloc[i]["lower_bound"]
+            current_upper = df.iloc[i]["upper_bound"]
+            next_lower = df.iloc[i + 1]["lower_bound"]
+            next_upper = df.iloc[i + 1]["upper_bound"]
+
+            # Overlap occurs if intervals intersect
+            overlap_next = not (
+                current_upper < next_lower or current_lower > next_upper
+            )
+            df.iloc[i, df.columns.get_loc("overlap_with_next")] = overlap_next
+
+    return df
