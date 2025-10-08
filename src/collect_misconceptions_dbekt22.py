@@ -1,4 +1,4 @@
-"""Script for collecting misconceptions of train questions."""
+"""Script for collecting misconceptions of DBE-KT22 train questions."""
 
 # standard library imports
 import argparse
